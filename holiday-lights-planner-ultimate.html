@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Holiday Lights Route Planner - Ultimate</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #c94b4b 0%, #4b134f 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .quick-start {
+            background: #e7f3ff;
+            border: 2px solid #2196F3;
+            padding: 20px;
+            margin: 20px;
+            border-radius: 8px;
+        }
+
+        .quick-start h3 {
+            color: #1976D2;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .quick-start ol {
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 480px 1fr;
+            gap: 0;
+            min-height: 600px;
+        }
+
+        .sidebar {
+            background: #f8f9fa;
+            padding: 30px;
+            border-right: 1px solid #dee2e6;
+            overflow-y: auto;
+            max-height: 600px;
+        }
+
+        .map-container {
+            position: relative;
+            background: #e9ecef;
+        }
+
+        #map {
+            width: 100%;
+            height: 600px;
+        }
+
+        .input-section {
+            margin-bottom: 25px;
+        }
+
+        .input-section h3 {
+            color: #4b134f;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .time-optimizer {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .time-optimizer h4 {
+            color: #856404;
+            margin-bottom: 12px;
+            font-size: 1.1em;
+        }
+
+        .time-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .time-input-group label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #495057;
+            min-width: 140px;
+        }
+
+        .time-input-group input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .time-input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .time-input-group span {
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        .toggle-edit {
+            font-size: 14px;
+            padding: 4px 12px;
+            background: #ffc107;
+            color: #000;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .toggle-edit:hover {
+            background: #ffb300;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #dee2e6;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .tab-button.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .tab-button:hover:not(.active) {
+            border-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-location {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-location:hover {
+            background: #218838;
+        }
+
+        .btn-google {
+            background: #4285f4;
+            color: white;
+        }
+
+        .btn-google:hover {
+            background: #3367d6;
+        }
+
+        .btn-save {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-save:hover {
+            background: #138496;
+        }
+
+        .btn-share {
+            background: #e83e8c;
+            color: white;
+        }
+
+        .btn-share:hover {
+            background: #d63384;
+        }
+
+        .route-info {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #dee2e6;
+            margin-bottom: 20px;
+        }
+
+        .route-info h4 {
+            color: #4b134f;
+            margin-bottom: 10px;
+        }
+
+        .stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .stat:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            color: #212529;
+            font-weight: 600;
+        }
+
+        .stat-value.highlight {
+            color: #28a745;
+            font-size: 1.1em;
+        }
+
+        .time-warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 13px;
+        }
+
+        .addresses-list {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #dee2e6;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .address-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            font-size: 13px;
+            gap: 10px;
+            transition: all 0.3s;
+        }
+
+        .address-item.visited {
+            opacity: 0.5;
+            background: #e9ecef;
+            text-decoration: line-through;
+        }
+
+        .address-item.excluded {
+            opacity: 0.4;
+            background: #fff3cd;
+        }
+
+        .address-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .address-number {
+            background: #667eea;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+            font-size: 13px;
+        }
+
+        .address-item.visited .address-number {
+            background: #6c757d;
+        }
+
+        .address-item.excluded .address-number {
+            background: #ffc107;
+            color: #000;
+        }
+
+        .address-text {
+            flex: 1;
+        }
+
+        .address-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .delete-btn, .navigate-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            display: none;
+        }
+
+        .navigate-btn {
+            background: #28a745;
+        }
+
+        .navigate-btn:hover {
+            background: #218838;
+        }
+
+        .edit-mode .delete-btn {
+            display: block;
+        }
+
+        .address-item .navigate-btn {
+            display: block;
+        }
+
+        .delete-btn:hover {
+            background: #c82333;
+        }
+
+        .saved-routes {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #dee2e6;
+            margin-bottom: 20px;
+        }
+
+        .saved-route-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .saved-route-name {
+            font-weight: 600;
+            color: #212529;
+        }
+
+        .saved-route-count {
+            color: #6c757d;
+            font-size: 12px;
+        }
+
+        .saved-route-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .saved-route-actions button {
+            padding: 4px 10px;
+            font-size: 12px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-content h3 {
+            margin-bottom: 20px;
+            color: #4b134f;
+        }
+
+        .modal-content input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .modal-content input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+            font-size: 14px;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        .error.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+            font-size: 14px;
+        }
+
+        .success.active {
+            display: block;
+        }
+
+        @media (max-width: 1024px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                max-height: none;
+                border-right: none;
+                border-bottom: 1px solid #dee2e6;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎄 Holiday Lights Route Planner 🎃</h1>
+            <p>Time-optimized routes with interactive checklist!</p>
+        </div>
+
+        <div class="quick-start">
+            <h3>🚀 New Features!</h3>
+            <ol>
+                <li><strong>⏱️ Time Optimization:</strong> Set your available time and viewing duration - we'll suggest the best route!</li>
+                <li><strong>✅ Interactive Checklist:</strong> Check off displays as you visit them</li>
+                <li><strong>🧭 Individual Navigation:</strong> Navigate to each display one at a time</li>
+                <li><strong>💾 Save & Share:</strong> Save routes and share with your community</li>
+            </ol>
+        </div>
+
+        <div class="quick-start" style="background: #fff3cd; border-color: #ffc107;">
+            <h3 style="color: #856404;">⚡ Optional: Faster Geocoding with Google Maps API</h3>
+            <p style="margin-bottom: 10px; font-size: 14px;">The free geocoding service works but is slower. For faster processing with many addresses, add a Google Maps API key (free tier includes 28,000 requests/month).</p>
+            <div class="time-input-group">
+                <input type="text" id="apiKeyInput" placeholder="Enter Google Maps API Key (optional)" style="flex: 2;">
+                <button class="btn-primary" onclick="saveApiKey()" style="flex: 0; padding: 8px 16px; font-size: 14px;">Save Key</button>
+            </div>
+            <div id="apiStatus" style="margin-top: 8px; font-size: 13px; color: #155724; display: none;"></div>
+            <small style="display: block; margin-top: 8px; opacity: 0.7;">
+                Get a free API key at: <a href="https://console.cloud.google.com/google/maps-apis" target="_blank">Google Cloud Console</a>
+            </small>
+        </div>
+
+        <div class="content">
+            <div class="sidebar">
+                <!-- Time Optimizer -->
+                <div class="time-optimizer">
+                    <h4>⏱️ Time-Based Route Optimizer</h4>
+                    <div class="time-input-group">
+                        <label>Available Time:</label>
+                        <input type="number" id="availableTime" value="120" min="30" max="480">
+                        <span>minutes</span>
+                    </div>
+                    <div class="time-input-group">
+                        <label>Time per Display:</label>
+                        <input type="number" id="viewingTime" value="10" min="1" max="30">
+                        <span>minutes</span>
+                    </div>
+                    <div class="help-text">
+                        💡 We'll calculate drive time + viewing time and suggest which displays to visit!
+                    </div>
+                </div>
+
+                <!-- Saved Routes Section -->
+                <div class="input-section" id="savedRoutesSection" style="display: none;">
+                    <h3>💾 Saved Routes</h3>
+                    <div class="saved-routes" id="savedRoutesList"></div>
+                </div>
+
+                <div class="input-section">
+                    <h3>📍 Add Addresses</h3>
+                    
+                    <div class="tab-buttons">
+                        <div class="tab-button active" onclick="switchTab('addresses')">📝 Addresses</div>
+                        <div class="tab-button" onclick="switchTab('sheet')">📊 Google Sheet</div>
+                    </div>
+
+                    <div id="addressesTab" class="tab-content active">
+                        <textarea id="addressInput" placeholder="Paste addresses here (one per line):&#10;&#10;356 byington rd, rogersville, TN&#10;1529 Carolina Ave, Kingsport, TN"></textarea>
+                    </div>
+
+                    <div id="sheetTab" class="tab-content">
+                        <textarea id="sheetInput" placeholder="Format: Address | Latitude | Longitude&#10;&#10;123 Main St | 36.5951 | -82.1887"></textarea>
+                    </div>
+                    
+                    <div class="button-group">
+                        <button class="btn-location" onclick="useCurrentLocation()">📍 Use My Location</button>
+                    </div>
+                    
+                    <div class="button-group">
+                        <button class="btn-primary" onclick="planRoute()">🗺️ Plan Route</button>
+                        <button class="btn-secondary" onclick="clearAll()">🗑️ Clear</button>
+                    </div>
+                    
+                    <div class="error" id="error"></div>
+                    <div class="success" id="success"></div>
+                    <div class="loading" id="loading">⏳ Planning your route...</div>
+                </div>
+
+                <!-- Route Actions -->
+                <div class="input-section" id="routeActions" style="display: none;">
+                    <h3>🚀 Actions</h3>
+                    <div class="button-group">
+                        <button class="btn-google" onclick="openInGoogleMaps()">📱 Open in Maps</button>
+                    </div>
+                    <div class="button-group">
+                        <button class="btn-save" onclick="showSaveModal()">💾 Save Route</button>
+                        <button class="btn-share" onclick="shareRoute()">🔗 Share Link</button>
+                    </div>
+                </div>
+
+                <div class="route-info" id="routeInfo" style="display: none;">
+                    <h4>📊 Route Summary</h4>
+                    <div class="stat">
+                        <span class="stat-label">Total Stops:</span>
+                        <span class="stat-value" id="totalStops">0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Drive Time:</span>
+                        <span class="stat-value" id="driveTime">0 min</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Viewing Time:</span>
+                        <span class="stat-value" id="viewingTimeDisplay">0 min</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Total Time:</span>
+                        <span class="stat-value highlight" id="totalTime">0 min</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Distance:</span>
+                        <span class="stat-value" id="totalDistance">0 mi</span>
+                    </div>
+                    <div id="timeWarning" class="time-warning" style="display: none;"></div>
+                </div>
+
+                <div class="input-section" id="addressesList" style="display: none;">
+                    <h3>
+                        🎯 Your Route
+                        <button class="toggle-edit" onclick="toggleEditMode()">✏️ Edit</button>
+                    </h3>
+                    <div class="addresses-list" id="orderedAddresses"></div>
+                </div>
+            </div>
+
+            <div class="map-container">
+                <div id="map"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Route Modal -->
+    <div class="modal" id="saveModal">
+        <div class="modal-content">
+            <h3>💾 Save Route</h3>
+            <input type="text" id="routeNameInput" placeholder="Enter route name (e.g., 'Christmas 2024 Tour')">
+            <div class="modal-buttons">
+                <button class="btn-primary" onclick="saveRoute()">Save</button>
+                <button class="btn-secondary" onclick="closeSaveModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let map;
+        let markers = [];
+        let routeLine;
+        let currentLocationMarker;
+        let currentLocation = null;
+        let activeTab = 'addresses';
+        let allLocations = []; // All available locations
+        let currentRoute = []; // Current optimized route
+        let visitedStops = new Set();
+        let editMode = false;
+        let googleApiKey = localStorage.getItem('googleMapsApiKey') || '';
+
+        // Check if API key is saved
+        if (googleApiKey) {
+            document.getElementById('apiKeyInput').value = googleApiKey;
+            const statusDiv = document.getElementById('apiStatus');
+            statusDiv.textContent = '✓ Google Maps API key loaded - geocoding will be much faster!';
+            statusDiv.style.display = 'block';
+        }
+
+        // Save API key
+        function saveApiKey() {
+            const apiKey = document.getElementById('apiKeyInput').value.trim();
+            if (apiKey) {
+                localStorage.setItem('googleMapsApiKey', apiKey);
+                googleApiKey = apiKey;
+                const statusDiv = document.getElementById('apiStatus');
+                statusDiv.textContent = '✓ API key saved! Geocoding will now be much faster.';
+                statusDiv.style.display = 'block';
+                showSuccess('✓ Google Maps API key saved!');
+            } else {
+                showError('Please enter an API key');
+            }
+        }
+
+        // Initialize map
+        function initMap() {
+            map = L.map('map').setView([36.5951, -82.1887], 13);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(map);
+
+            loadSavedRoutes();
+            loadFromURL();
+        }
+
+        // Load saved routes
+        function loadSavedRoutes() {
+            const saved = JSON.parse(localStorage.getItem('holidayRoutes') || '[]');
+            if (saved.length > 0) {
+                document.getElementById('savedRoutesSection').style.display = 'block';
+                const list = document.getElementById('savedRoutesList');
+                list.innerHTML = saved.map((route, index) => `
+                    <div class="saved-route-item">
+                        <div>
+                            <div class="saved-route-name">${route.name}</div>
+                            <div class="saved-route-count">${route.locations.length} stops</div>
+                        </div>
+                        <div class="saved-route-actions">
+                            <button class="btn-primary" onclick="loadSavedRoute(${index})">Load</button>
+                            <button class="btn-secondary" onclick="deleteSavedRoute(${index})">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Load saved route
+        function loadSavedRoute(index) {
+            const saved = JSON.parse(localStorage.getItem('holidayRoutes') || '[]');
+            const route = saved[index];
+            
+            allLocations = route.locations;
+            visitedStops.clear();
+            optimizeRouteWithTime();
+            showSuccess(`✓ Loaded route: ${route.name}`);
+        }
+
+        // Delete saved route
+        function deleteSavedRoute(index) {
+            if (confirm('Are you sure you want to delete this route?')) {
+                const saved = JSON.parse(localStorage.getItem('holidayRoutes') || '[]');
+                saved.splice(index, 1);
+                localStorage.setItem('holidayRoutes', JSON.stringify(saved));
+                loadSavedRoutes();
+                showSuccess('✓ Route deleted');
+            }
+        }
+
+        // Load from URL
+        function loadFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            const routeData = params.get('route');
+            
+            if (routeData) {
+                try {
+                    const decoded = JSON.parse(atob(routeData));
+                    allLocations = decoded.locations;
+                    currentLocation = decoded.startLocation;
+                    visitedStops.clear();
+                    optimizeRouteWithTime();
+                    showSuccess('✓ Loaded shared route!');
+                } catch (e) {
+                    console.error('Invalid route data');
+                }
+            }
+        }
+
+        // Switch tabs
+        function switchTab(tab) {
+            activeTab = tab;
+            
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            if (tab === 'addresses') {
+                document.getElementById('addressesTab').classList.add('active');
+            } else {
+                document.getElementById('sheetTab').classList.add('active');
+            }
+        }
+
+        // Toggle edit mode
+        function toggleEditMode() {
+            editMode = !editMode;
+            const list = document.getElementById('orderedAddresses');
+            list.classList.toggle('edit-mode', editMode);
+            
+            const btn = event.target;
+            btn.textContent = editMode ? '✓ Done' : '✏️ Edit';
+            btn.style.background = editMode ? '#28a745' : '#ffc107';
+        }
+
+        // Toggle visited status
+        function toggleVisited(index) {
+            if (visitedStops.has(index)) {
+                visitedStops.delete(index);
+            } else {
+                visitedStops.add(index);
+            }
+            updateRouteDisplay();
+        }
+
+        // Delete stop
+        function deleteStop(index) {
+            currentRoute.splice(index, 1);
+            allLocations = [...currentRoute];
+            visitedStops.clear();
+            optimizeRouteWithTime();
+            showSuccess('✓ Stop removed');
+        }
+
+        // Navigate to individual stop
+        function navigateToStop(index) {
+            const location = currentRoute[index];
+            const origin = currentLocation || currentRoute[0];
+            
+            const url = `https://www.google.com/maps/dir/?api=1&origin=${origin.lat},${origin.lng}&destination=${location.lat},${location.lng}&travelmode=driving`;
+            window.open(url, '_blank');
+        }
+
+        // Get current location
+        function useCurrentLocation() {
+            if ("geolocation" in navigator) {
+                showLoading(true);
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        currentLocation = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+                        
+                        if (currentLocationMarker) {
+                            map.removeLayer(currentLocationMarker);
+                        }
+                        
+                        const homeIcon = L.divIcon({
+                            html: '🏠',
+                            className: 'emoji-marker',
+                            iconSize: [30, 30]
+                        });
+                        
+                        currentLocationMarker = L.marker([currentLocation.lat, currentLocation.lng], {
+                            icon: homeIcon,
+                            zIndexOffset: 1000
+                        }).addTo(map);
+                        
+                        currentLocationMarker.bindPopup('<b>Your Location</b><br>Starting point').openPopup();
+                        map.setView([currentLocation.lat, currentLocation.lng], 13);
+                        
+                        showLoading(false);
+                        showSuccess('✓ Got your location!');
+                        
+                        // Recalculate route if we have locations
+                        if (allLocations.length > 0) {
+                            optimizeRouteWithTime();
+                        }
+                    },
+                    (error) => {
+                        showLoading(false);
+                        showError('Could not get your location. Please check browser permissions.');
+                    }
+                );
+            }
+        }
+
+        // Geocode using Google Maps API
+        async function geocodeWithGoogle(address) {
+            if (!googleApiKey) return null;
+            
+            try {
+                const response = await fetch(
+                    `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${googleApiKey}`
+                );
+                const data = await response.json();
+                
+                if (data.status === 'OK' && data.results.length > 0) {
+                    const result = data.results[0];
+                    return {
+                        lat: result.geometry.location.lat,
+                        lng: result.geometry.location.lng,
+                        display_name: result.formatted_address,
+                        original: address
+                    };
+                } else if (data.status === 'REQUEST_DENIED') {
+                    showError('Google API key invalid. Using free service.');
+                    googleApiKey = ''; // Clear invalid key
+                }
+            } catch (error) {
+                console.error('Google geocoding error:', error);
+            }
+            return null;
+        }
+
+        // Geocode using Photon (free service)
+        async function geocodeWithPhoton(address) {
+            try {
+                const response = await fetch(
+                    `https://photon.komoot.io/api/?q=${encodeURIComponent(address)}&limit=1`
+                );
+                
+                if (!response.ok) return null;
+                
+                const data = await response.json();
+                
+                if (data.features && data.features.length > 0) {
+                    const feature = data.features[0];
+                    return {
+                        lat: feature.geometry.coordinates[1],
+                        lng: feature.geometry.coordinates[0],
+                        display_name: feature.properties.name || address,
+                        original: address
+                    };
+                }
+            } catch (error) {
+                console.error(`Error geocoding ${address}:`, error);
+            }
+            return null;
+        }
+
+        // Main geocode function - tries Google first, falls back to Photon
+        async function geocodeAddress(address) {
+            // Try Google Maps API first if available
+            if (googleApiKey) {
+                const result = await geocodeWithGoogle(address);
+                if (result) return result;
+            }
+            
+            // Fall back to free Photon service
+            return await geocodeWithPhoton(address);
+        }
+
+        // Parse sheet input
+        function parseSheetInput(text) {
+            const lines = text.split('\n').filter(line => line.trim());
+            const locations = [];
+            
+            for (const line of lines) {
+                const parts = line.split(/[|\t,]/).map(p => p.trim());
+                
+                if (parts.length >= 3) {
+                    const address = parts[0];
+                    const lat = parseFloat(parts[1]);
+                    const lng = parseFloat(parts[2]);
+                    
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        locations.push({
+                            original: address,
+                            lat: lat,
+                            lng: lng,
+                            display_name: address
+                        });
+                    }
+                }
+            }
+            
+            return locations;
+        }
+
+        // Calculate distance (Haversine)
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 3959;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+
+        // Optimize route with time constraints
+        function optimizeRouteWithTime() {
+            if (allLocations.length === 0) return;
+            
+            const availableMinutes = parseInt(document.getElementById('availableTime').value);
+            const viewingMinutes = parseInt(document.getElementById('viewingTime').value);
+            const startPoint = currentLocation || allLocations[0];
+            
+            // Use nearest neighbor to build route
+            const unvisited = [...allLocations];
+            const route = [];
+            let current = startPoint;
+            let totalDriveTime = 0;
+            
+            while (unvisited.length > 0) {
+                let nearestIndex = 0;
+                let nearestDistance = Infinity;
+                
+                for (let i = 0; i < unvisited.length; i++) {
+                    const distance = calculateDistance(
+                        current.lat, current.lng,
+                        unvisited[i].lat, unvisited[i].lng
+                    );
+                    
+                    if (distance < nearestDistance) {
+                        nearestDistance = distance;
+                        nearestIndex = i;
+                    }
+                }
+                
+                const driveTime = nearestDistance * 3; // ~20mph average
+                const stopTotalTime = driveTime + viewingMinutes;
+                
+                // Check if we have time for this stop
+                if (totalDriveTime + stopTotalTime <= availableMinutes || route.length === 0) {
+                    route.push(unvisited[nearestIndex]);
+                    totalDriveTime += driveTime;
+                    current = unvisited[nearestIndex];
+                    unvisited.splice(nearestIndex, 1);
+                } else {
+                    // Can't fit more stops
+                    break;
+                }
+            }
+            
+            currentRoute = route;
+            displayRoute(route, startPoint, totalDriveTime, viewingMinutes, availableMinutes);
+        }
+
+        // Plan route
+        async function planRoute() {
+            let locations = [];
+            
+            showLoading(true);
+            showError('');
+            showSuccess('');
+            clearMarkers();
+            visitedStops.clear();
+            
+            if (activeTab === 'sheet') {
+                const sheetText = document.getElementById('sheetInput').value.trim();
+                
+                if (!sheetText) {
+                    showError('Please paste your data.');
+                    showLoading(false);
+                    return;
+                }
+                
+                locations = parseSheetInput(sheetText);
+                
+                if (locations.length === 0) {
+                    showError('Could not parse data. Use format: Address | Latitude | Longitude');
+                    showLoading(false);
+                    return;
+                }
+                
+            } else {
+                const addressText = document.getElementById('addressInput').value.trim();
+                
+                if (!addressText) {
+                    showError('Please enter at least one address.');
+                    showLoading(false);
+                    return;
+                }
+                
+                const addresses = addressText.split('\n')
+                    .map(addr => addr.trim())
+                    .filter(addr => addr.length > 0);
+                
+                const loadingDiv = document.getElementById('loading');
+                const failedAddresses = [];
+                const usingGoogle = !!googleApiKey;
+                const delayTime = usingGoogle ? 100 : 500; // Much faster with Google
+                
+                for (let i = 0; i < addresses.length; i++) {
+                    const address = addresses[i];
+                    const serviceName = usingGoogle ? 'Google Maps' : 'Photon';
+                    loadingDiv.innerHTML = `⏳ Processing ${i + 1} of ${addresses.length}...<br><small style="font-size: 12px;">${address}</small><br><small style="font-size: 11px; opacity: 0.7;">Using ${serviceName}</small>`;
+                    
+                    const location = await geocodeAddress(address);
+                    if (location) {
+                        locations.push({
+                            ...location,
+                            original: address
+                        });
+                    } else {
+                        failedAddresses.push(address);
+                    }
+                    
+                    await new Promise(resolve => setTimeout(resolve, delayTime));
+                }
+                
+                if (locations.length === 0) {
+                    showError('Could not find any addresses.');
+                    showLoading(false);
+                    return;
+                }
+                
+                if (failedAddresses.length > 0) {
+                    showError(`Warning: ${failedAddresses.length} address(es) not found.`);
+                }
+            }
+            
+            allLocations = locations;
+            document.getElementById('loading').innerHTML = '⏳ Optimizing with time constraints...';
+            
+            optimizeRouteWithTime();
+            showLoading(false);
+        }
+
+        // Display route
+        function displayRoute(route, startPoint, driveTime, viewingMinutes, availableMinutes) {
+            clearMarkers();
+            
+            const lineCoordinates = [
+                [startPoint.lat, startPoint.lng],
+                ...route.map(loc => [loc.lat, loc.lng])
+            ];
+            
+            if (routeLine) {
+                map.removeLayer(routeLine);
+            }
+            
+            routeLine = L.polyline(lineCoordinates, {
+                color: '#667eea',
+                weight: 4,
+                opacity: 0.7
+            }).addTo(map);
+            
+            route.forEach((location, index) => {
+                const marker = L.marker([location.lat, location.lng], {
+                    icon: L.divIcon({
+                        html: `<div style="background: #667eea; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">${index + 1}</div>`,
+                        className: 'custom-marker',
+                        iconSize: [30, 30]
+                    })
+                }).addTo(map);
+                
+                marker.bindPopup(`<b>Stop ${index + 1}</b><br>${location.original}`);
+                markers.push(marker);
+            });
+            
+            map.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
+            
+            // Calculate stats
+            let totalDistance = 0;
+            let currentPoint = startPoint;
+            
+            for (const location of route) {
+                totalDistance += calculateDistance(
+                    currentPoint.lat, currentPoint.lng,
+                    location.lat, location.lng
+                );
+                currentPoint = location;
+            }
+            
+            const calculatedDriveTime = Math.round(totalDistance * 3);
+            const totalViewingTime = route.length * viewingMinutes;
+            const totalTime = calculatedDriveTime + totalViewingTime;
+            
+            document.getElementById('totalStops').textContent = route.length;
+            document.getElementById('driveTime').textContent = calculatedDriveTime + ' min';
+            document.getElementById('viewingTimeDisplay').textContent = totalViewingTime + ' min';
+            document.getElementById('totalTime').textContent = totalTime + ' min';
+            document.getElementById('totalDistance').textContent = totalDistance.toFixed(1) + ' mi';
+            
+            // Show time warning if needed
+            const warningDiv = document.getElementById('timeWarning');
+            if (totalTime > availableMinutes) {
+                warningDiv.textContent = `⚠️ Total time (${totalTime} min) exceeds available time (${availableMinutes} min)`;
+                warningDiv.style.display = 'block';
+            } else if (route.length < allLocations.length) {
+                const excluded = allLocations.length - route.length;
+                warningDiv.textContent = `ℹ️ Optimized to fit time: ${excluded} display${excluded > 1 ? 's' : ''} excluded to meet ${availableMinutes} min limit`;
+                warningDiv.style.display = 'block';
+            } else {
+                warningDiv.style.display = 'none';
+            }
+            
+            document.getElementById('routeInfo').style.display = 'block';
+            document.getElementById('routeActions').style.display = 'block';
+            
+            updateRouteDisplay();
+        }
+
+        // Update route display with checkboxes
+        function updateRouteDisplay() {
+            const orderedList = document.getElementById('orderedAddresses');
+            orderedList.innerHTML = currentRoute.map((loc, index) => {
+                const visited = visitedStops.has(index);
+                const excluded = allLocations.includes(loc) && !currentRoute.includes(loc);
+                return `
+                    <div class="address-item ${visited ? 'visited' : ''} ${excluded ? 'excluded' : ''}">
+                        <input type="checkbox" class="address-checkbox" 
+                               ${visited ? 'checked' : ''} 
+                               onchange="toggleVisited(${index})">
+                        <div class="address-number">${index + 1}</div>
+                        <div class="address-text">${loc.original}</div>
+                        <div class="address-actions">
+                            <button class="navigate-btn" onclick="navigateToStop(${index})">🧭</button>
+                            <button class="delete-btn" onclick="deleteStop(${index})">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('addressesList').style.display = 'block';
+        }
+
+        // Open in Google Maps
+        function openInGoogleMaps() {
+            if (currentRoute.length === 0) {
+                showError('Please plan a route first!');
+                return;
+            }
+
+            const startPoint = currentLocation || currentRoute[0];
+            let url = `https://www.google.com/maps/dir/?api=1`;
+            url += `&origin=${startPoint.lat},${startPoint.lng}`;
+            url += `&destination=${currentRoute[currentRoute.length - 1].lat},${currentRoute[currentRoute.length - 1].lng}`;
+            
+            if (currentRoute.length > 1) {
+                const waypoints = currentRoute.slice(0, -1).slice(0, 9).map(loc => 
+                    `${loc.lat},${loc.lng}`
+                ).join('|');
+                url += `&waypoints=${waypoints}`;
+            }
+            
+            url += `&travelmode=driving`;
+            window.open(url, '_blank');
+        }
+
+        // Save/share functions
+        function showSaveModal() {
+            if (currentRoute.length === 0) {
+                showError('Please plan a route first!');
+                return;
+            }
+            document.getElementById('saveModal').classList.add('active');
+        }
+
+        function closeSaveModal() {
+            document.getElementById('saveModal').classList.remove('active');
+            document.getElementById('routeNameInput').value = '';
+        }
+
+        function saveRoute() {
+            const name = document.getElementById('routeNameInput').value.trim();
+            
+            if (!name) {
+                alert('Please enter a route name');
+                return;
+            }
+            
+            const saved = JSON.parse(localStorage.getItem('holidayRoutes') || '[]');
+            saved.push({
+                name: name,
+                locations: allLocations,
+                startLocation: currentLocation,
+                created: new Date().toISOString()
+            });
+            
+            localStorage.setItem('holidayRoutes', JSON.stringify(saved));
+            closeSaveModal();
+            loadSavedRoutes();
+            showSuccess(`✓ Route "${name}" saved!`);
+        }
+
+        function shareRoute() {
+            if (currentRoute.length === 0) {
+                showError('Please plan a route first!');
+                return;
+            }
+
+            const routeData = {
+                locations: allLocations,
+                startLocation: currentLocation
+            };
+            
+            const encoded = btoa(JSON.stringify(routeData));
+            const shareUrl = `${window.location.origin}${window.location.pathname}?route=${encoded}`;
+            
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                showSuccess('✓ Share link copied to clipboard!');
+            }).catch(() => {
+                prompt('Copy this link to share:', shareUrl);
+            });
+        }
+
+        function clearMarkers() {
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
+            if (routeLine) {
+                map.removeLayer(routeLine);
+            }
+        }
+
+        function clearAll() {
+            document.getElementById('addressInput').value = '';
+            document.getElementById('sheetInput').value = '';
+            clearMarkers();
+            if (currentLocationMarker) {
+                map.removeLayer(currentLocationMarker);
+            }
+            currentLocation = null;
+            allLocations = [];
+            currentRoute = [];
+            visitedStops.clear();
+            document.getElementById('routeInfo').style.display = 'none';
+            document.getElementById('routeActions').style.display = 'none';
+            document.getElementById('addressesList').style.display = 'none';
+            showError('');
+            showSuccess('');
+            map.setView([36.5951, -82.1887], 13);
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('active', show);
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.classList.toggle('active', message.length > 0);
+            errorDiv.classList.toggle('warning', message.toLowerCase().includes('warning'));
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('success');
+            successDiv.textContent = message;
+            successDiv.classList.toggle('active', message.length > 0);
+            setTimeout(() => successDiv.classList.remove('active'), 3000);
+        }
+
+        window.onload = initMap;
+    </script>
+</body>
+</html>
