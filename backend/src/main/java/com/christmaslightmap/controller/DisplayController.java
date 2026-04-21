@@ -1,6 +1,7 @@
 package com.christmaslightmap.controller;
 
 import com.christmaslightmap.dto.request.CreateDisplayRequest;
+import com.christmaslightmap.dto.request.ReportRequest;
 import com.christmaslightmap.dto.response.ApiResponse;
 import com.christmaslightmap.dto.response.DisplayResponse;
 import com.christmaslightmap.dto.response.DisplaySummaryResponse;
@@ -8,6 +9,7 @@ import com.christmaslightmap.dto.response.PagedResponse;
 import com.christmaslightmap.dto.response.PhotoResponse;
 import com.christmaslightmap.service.DisplayService;
 import com.christmaslightmap.service.PhotoService;
+import com.christmaslightmap.service.ReportService;
 import com.christmaslightmap.service.UpvoteService;
 import org.springframework.web.multipart.MultipartFile;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,7 @@ public class DisplayController {
     private final DisplayService displayService;
     private final UpvoteService upvoteService;
     private final PhotoService photoService;
+    private final ReportService reportService;
 
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<PagedResponse<DisplaySummaryResponse>>> search(
@@ -76,6 +79,17 @@ public class DisplayController {
     ) {
         Long userId = (Long) authentication.getPrincipal();
         return ResponseEntity.ok(ApiResponse.success(photoService.uploadPhoto(id, userId, file)));
+    }
+
+    @PostMapping("/{id}/report")
+    public ResponseEntity<ApiResponse<Void>> report(
+        @PathVariable Long id,
+        @RequestBody ReportRequest request,
+        Authentication authentication
+    ) {
+        Long userId = (Long) authentication.getPrincipal();
+        reportService.createReport(userId, id, request);
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @DeleteMapping("/{id}/upvote")
