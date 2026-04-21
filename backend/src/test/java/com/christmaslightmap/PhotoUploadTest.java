@@ -13,14 +13,12 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.PrecisionModel;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
@@ -37,9 +35,6 @@ class PhotoUploadTest extends BaseIntegrationTest {
     @Autowired private UserRepository userRepository;
     @Autowired private DisplayRepository displayRepository;
     @Autowired private DisplayPhotoRepository displayPhotoRepository;
-
-    @MockBean
-    private S3Client s3Client;
 
     @AfterEach
     void cleanUp() {
