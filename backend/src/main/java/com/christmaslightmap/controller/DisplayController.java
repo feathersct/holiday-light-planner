@@ -6,6 +6,7 @@ import com.christmaslightmap.dto.response.DisplayResponse;
 import com.christmaslightmap.dto.response.DisplaySummaryResponse;
 import com.christmaslightmap.dto.response.PagedResponse;
 import com.christmaslightmap.service.DisplayService;
+import com.christmaslightmap.service.UpvoteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,7 @@ import java.util.List;
 public class DisplayController {
 
     private final DisplayService displayService;
+    private final UpvoteService upvoteService;
 
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<PagedResponse<DisplaySummaryResponse>>> search(
@@ -48,5 +50,29 @@ public class DisplayController {
         Long userId = (Long) authentication.getPrincipal();
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(ApiResponse.success(displayService.createDisplay(userId, request)));
+    }
+
+    @PostMapping("/{id}/upvote")
+    public ResponseEntity<ApiResponse<Void>> upvote(
+        @PathVariable Long id,
+        Authentication authentication
+    ) {
+        Long userId = (Long) authentication.getPrincipal();
+        if (!upvoteService.upvote(userId, id)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.success(null));
+        }
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    @DeleteMapping("/{id}/upvote")
+    public ResponseEntity<ApiResponse<Void>> removeUpvote(
+        @PathVariable Long id,
+        Authentication authentication
+    ) {
+        Long userId = (Long) authentication.getPrincipal();
+        if (!upvoteService.removeUpvote(userId, id)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.success(null));
+        }
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 }
