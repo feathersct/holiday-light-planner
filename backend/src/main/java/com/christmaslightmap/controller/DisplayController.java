@@ -5,8 +5,11 @@ import com.christmaslightmap.dto.response.ApiResponse;
 import com.christmaslightmap.dto.response.DisplayResponse;
 import com.christmaslightmap.dto.response.DisplaySummaryResponse;
 import com.christmaslightmap.dto.response.PagedResponse;
+import com.christmaslightmap.dto.response.PhotoResponse;
 import com.christmaslightmap.service.DisplayService;
+import com.christmaslightmap.service.PhotoService;
 import com.christmaslightmap.service.UpvoteService;
+import org.springframework.web.multipart.MultipartFile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +25,7 @@ public class DisplayController {
 
     private final DisplayService displayService;
     private final UpvoteService upvoteService;
+    private final PhotoService photoService;
 
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<PagedResponse<DisplaySummaryResponse>>> search(
@@ -62,6 +66,16 @@ public class DisplayController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.success(null));
         }
         return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    @PostMapping("/{id}/photos")
+    public ResponseEntity<ApiResponse<PhotoResponse>> uploadPhoto(
+        @PathVariable Long id,
+        @RequestParam("file") MultipartFile file,
+        Authentication authentication
+    ) {
+        Long userId = (Long) authentication.getPrincipal();
+        return ResponseEntity.ok(ApiResponse.success(photoService.uploadPhoto(id, userId, file)));
     }
 
     @DeleteMapping("/{id}/upvote")
