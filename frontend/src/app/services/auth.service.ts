@@ -2,6 +2,7 @@ import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { User } from '../models/display.model';
 import { environment } from '../../environments/environment';
+import { UpvoteService } from './upvote.service';
 
 export type AccentColor = 'amber' | 'teal' | 'coral';
 
@@ -14,6 +15,7 @@ export const ACCENT_MAP: Record<AccentColor, { accent: string; bg: string; dark:
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private http = inject(HttpClient);
+  private upvoteService = inject(UpvoteService);
 
   readonly currentUser = signal<User | null>(null);
   readonly accentColor = signal<AccentColor>('teal');
@@ -25,7 +27,11 @@ export class AuthService {
   init(): void {
     this.http.get<{ success: boolean; data: User }>(`${environment.apiUrl}/api/v1/auth/me`)
       .subscribe({
-        next: res => this.currentUser.set(res.data),
+        next: res => {
+          this.currentUser.set(res.data);
+          this.http.get<{ success: boolean; data: Array<{ id: number }> }>(`${environment.apiUrl}/api/v1/displays/upvoted`)
+            .subscribe({ next: r => this.upvoteService.initFromIds(r.data.map(d => d.id)) });
+        },
         error: () => this.currentUser.set(null),
       });
   }
