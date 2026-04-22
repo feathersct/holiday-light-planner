@@ -6,6 +6,7 @@ import com.christmaslightmap.dto.response.PagedResponse;
 import com.christmaslightmap.dto.response.TagResponse;
 import com.christmaslightmap.dto.request.CreateDisplayRequest;
 import com.christmaslightmap.model.Display;
+import com.christmaslightmap.model.DisplayPhoto;
 import com.christmaslightmap.model.DisplayType;
 import com.christmaslightmap.repository.DisplayPhotoRepository;
 import com.christmaslightmap.repository.DisplayRepository;
@@ -118,22 +119,28 @@ public class DisplayService {
     }
 
     public List<DisplaySummaryResponse> getMyDisplays(Long userId) {
-        return displayRepository.findByUserIdAndIsActiveTrue(userId).stream()
-            .map(this::mapDisplayToSummary)
-            .collect(Collectors.toList());
+        List<Display> displays = displayRepository.findByUserIdAndIsActiveTrue(userId);
+        return toSummaries(displays);
     }
 
     public List<DisplaySummaryResponse> getUpvotedDisplays(Long userId) {
-        return upvoteRepository.findByUserIdWithActiveDisplays(userId).stream()
-            .map(u -> mapDisplayToSummary(u.getDisplay()))
+        List<Display> displays = upvoteRepository.findByUserIdWithActiveDisplays(userId).stream()
+            .map(u -> u.getDisplay())
+            .collect(Collectors.toList());
+        return toSummaries(displays);
+    }
+
+    private List<DisplaySummaryResponse> toSummaries(List<Display> displays) {
+        if (displays.isEmpty()) return List.of();
+        List<Long> ids = displays.stream().map(Display::getId).collect(Collectors.toList());
+        Map<Long, String> primaryUrls = displayPhotoRepository.findPrimaryByDisplayIdIn(ids).stream()
+            .collect(Collectors.toMap(p -> p.getDisplay().getId(), DisplayPhoto::getUrl));
+        return displays.stream()
+            .map(d -> buildSummary(d, primaryUrls.get(d.getId())))
             .collect(Collectors.toList());
     }
 
-    private DisplaySummaryResponse mapDisplayToSummary(Display display) {
-        String primaryPhotoUrl = displayPhotoRepository.findByDisplay_Id(display.getId()).stream()
-            .filter(p -> p.isPrimary())
-            .map(p -> p.getUrl())
-            .findFirst().orElse(null);
+    private DisplaySummaryResponse buildSummary(Display display, String primaryPhotoUrl) {
         return DisplaySummaryResponse.builder()
             .id(display.getId())
             .title(display.getTitle())
