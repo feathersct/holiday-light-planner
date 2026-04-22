@@ -1,4 +1,4 @@
-import { Component, signal, computed, effect, HostListener } from '@angular/core';
+import { Component, OnInit, signal, computed, effect, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NavbarComponent } from './shared/navbar/navbar.component';
@@ -11,7 +11,6 @@ import { ProfileComponent } from './pages/profile/profile.component';
 import { AdminComponent } from './pages/admin/admin.component';
 import { AuthService } from './services/auth.service';
 import { UpvoteService } from './services/upvote.service';
-import { Display } from './models/display.model';
 
 type Screen = 'map' | 'submit' | 'profile' | 'admin';
 
@@ -76,11 +75,11 @@ const TILE_OPTIONS = [
     <!-- Sign-in modal -->
     <app-sign-in-modal *ngIf="showSignIn()"
       (close)="showSignIn.set(false)"
-      (signIn)="mockSignIn()"/>
+      (signIn)="signIn()"/>
 
     <!-- Display detail modal -->
     <app-display-detail *ngIf="selectedDisplay()"
-      [display]="selectedDisplay()!"
+      [summary]="selectedDisplay()!"
       [upvoted]="isUpvoted(selectedDisplay()!.id)"
       [isMobile]="isMobile"
       (close)="selectedDisplay.set(null)"
@@ -134,11 +133,11 @@ const TILE_OPTIONS = [
     </div>
   `
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   screen = signal<Screen>('map');
   showSignIn = signal(false);
   showSettings = signal(false);
-  selectedDisplay = signal<Display | null>(null);
+  selectedDisplay = signal<import('./models/display.model').DisplaySummary | null>(null);
   isMobile = window.innerWidth < 768;
 
   accentOptions = ACCENT_OPTIONS;
@@ -148,6 +147,10 @@ export class AppComponent {
     public authService: AuthService,
     public upvoteService: UpvoteService,
   ) {}
+
+  ngOnInit() {
+    this.authService.init();
+  }
 
   @HostListener('window:resize')
   onResize() {
@@ -165,18 +168,18 @@ export class AppComponent {
 
   onAuthAction() {
     if (this.authService.currentUser()) {
-      this.authService.signOut();
+      this.authService.logout();
     } else {
       this.showSignIn.set(true);
     }
   }
 
-  mockSignIn() {
-    this.authService.mockSignIn();
+  signIn() {
     this.showSignIn.set(false);
+    this.authService.login();
   }
 
-  openDetail(display: Display) {
+  openDetail(display: import('./models/display.model').DisplaySummary) {
     this.selectedDisplay.set(display);
   }
 

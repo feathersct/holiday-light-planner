@@ -1,17 +1,7 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { User } from '../models/display.model';
-
-export const SAMPLE_USER: User = {
-  id: 1, name: 'Alex Chen', avatar: 'AC',
-  email: 'alex.chen@gmail.com', role: 'user',
-  submitted: [1, 3], upvoted: [2, 4, 5], joined: 'November 2024',
-};
-
-export const ADMIN_USER: User = {
-  id: 2, name: 'Jordan Park', avatar: 'JP',
-  email: 'jordan@luminaryapp.com', role: 'admin',
-  submitted: [], upvoted: [3, 5], joined: 'October 2024',
-};
+import { environment } from '../../environments/environment';
 
 export type AccentColor = 'amber' | 'teal' | 'coral';
 
@@ -23,18 +13,30 @@ export const ACCENT_MAP: Record<AccentColor, { accent: string; bg: string; dark:
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  readonly authState = signal<'loggedOut' | 'user' | 'admin'>('loggedOut');
+  private http = inject(HttpClient);
+
+  readonly currentUser = signal<User | null>(null);
   readonly accentColor = signal<AccentColor>('teal');
   readonly mapTiles = signal<'light' | 'dark' | 'standard'>('light');
 
-  readonly currentUser = computed<User | null>(() => {
-    if (this.authState() === 'user') return SAMPLE_USER;
-    if (this.authState() === 'admin') return ADMIN_USER;
-    return null;
-  });
+  readonly isLoggedIn = computed(() => !!this.currentUser());
+  readonly isAdmin = computed(() => this.currentUser()?.role === 'ADMIN');
 
-  setAuthState(state: 'loggedOut' | 'user' | 'admin') {
-    this.authState.set(state);
+  init(): void {
+    this.http.get<{ success: boolean; data: User }>(`${environment.apiUrl}/api/v1/auth/me`)
+      .subscribe({
+        next: res => this.currentUser.set(res.data),
+        error: () => this.currentUser.set(null),
+      });
+  }
+
+  login(): void {
+    window.location.href = `${environment.apiUrl}/oauth2/authorization/google`;
+  }
+
+  logout(): void {
+    this.http.post(`${environment.apiUrl}/api/v1/auth/logout`, {})
+      .subscribe({ complete: () => this.currentUser.set(null) });
   }
 
   setAccent(color: string) {
@@ -50,14 +52,6 @@ export class AuthService {
 
   setMapTiles(tiles: 'light' | 'dark' | 'standard') {
     this.mapTiles.set(tiles);
-  }
-
-  mockSignIn() {
-    this.setAuthState('user');
-  }
-
-  signOut() {
-    this.setAuthState('loggedOut');
   }
 
   setTiles(tiles: string) {
