@@ -77,7 +77,7 @@ export class NavbarComponent {
       { id: 'map', label: 'Explore' },
       ...(this.user ? [{ id: 'submit', label: 'Add Display' }] : []),
       ...(this.user ? [{ id: 'profile', label: 'My Displays' }] : []),
-      ...(this.user?.role === 'admin' ? [{ id: 'admin', label: '⚙ Admin' }] : []),
+      ...(this.user?.role === 'ADMIN' ? [{ id: 'admin', label: '⚙ Admin' }] : []),
     ];
   }
 }

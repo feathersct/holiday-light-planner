@@ -1,6 +1,7 @@
 import { Component, OnInit, signal, computed, effect, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DisplaySummary } from './models/display.model';
 import { NavbarComponent } from './shared/navbar/navbar.component';
 import { BottomTabBarComponent } from './shared/bottom-tab-bar/bottom-tab-bar.component';
 import { SignInModalComponent } from './shared/sign-in-modal/sign-in-modal.component';
@@ -137,7 +138,7 @@ export class AppComponent implements OnInit {
   screen = signal<Screen>('map');
   showSignIn = signal(false);
   showSettings = signal(false);
-  selectedDisplay = signal<import('./models/display.model').DisplaySummary | null>(null);
+  selectedDisplay = signal<DisplaySummary | null>(null);
   isMobile = window.innerWidth < 768;
 
   accentOptions = ACCENT_OPTIONS;
@@ -179,7 +180,7 @@ export class AppComponent implements OnInit {
     this.authService.login();
   }
 
-  openDetail(display: import('./models/display.model').DisplaySummary) {
+  openDetail(display: DisplaySummary) {
     this.selectedDisplay.set(display);
   }
 
