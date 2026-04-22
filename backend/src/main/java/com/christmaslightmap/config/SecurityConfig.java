@@ -38,7 +38,6 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/oauth2/**", "/login/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/displays/mine", "/api/v1/displays/upvoted").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/v1/displays/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/tags").permitAll()
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
