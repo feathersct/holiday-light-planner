@@ -5,11 +5,12 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as L from 'leaflet';
-import { Display, SAMPLE_DISPLAYS, TYPE_COLORS, TYPE_LABELS } from '../../models/display.model';
+import { DisplaySummary, Tag, TYPE_COLORS } from '../../models/display.model';
 import { DisplayCardComponent } from '../../shared/display-card/display-card.component';
 import { TagBadgeComponent } from '../../shared/tag-badge/tag-badge.component';
 import { UpvoteButtonComponent } from '../../shared/upvote-button/upvote-button.component';
-import { User, ALL_TAGS } from '../../models/display.model';
+import { User } from '../../models/display.model';
+import { DisplayApiService } from '../../services/display-api.service';
 
 const TILE_LAYERS: Record<string, { url: string; attr: string }> = {
   light:    { url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',  attr: '© OpenStreetMap © CARTO' },
@@ -99,12 +100,12 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
                              border-radius:50%;width:24px;height:24px;cursor:pointer;
                              font-size:12px;display:flex;align-items:center;justify-content:center">✕</button>
               <div style="font-weight:700;font-size:14px;margin-bottom:2px;padding-right:28px;color:#0f172a">{{selected.title}}</div>
-              <div style="font-size:12px;color:#94a3b8;margin-bottom:8px">📍 {{selected.address}}</div>
+              <div style="font-size:12px;color:#94a3b8;margin-bottom:8px">📍 {{selected.city}}, {{selected.state}}</div>
               <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px">
-                <app-tag-badge *ngFor="let t of selected.tags.slice(0,3)" [tag]="t" [small]="true"/>
+                <app-tag-badge *ngFor="let t of selected.tags.slice(0,3)" [tag]="t.name" [small]="true"/>
               </div>
               <div style="display:flex;justify-content:space-between;align-items:center">
-                <app-upvote-button [count]="selected.upvote_count"
+                <app-upvote-button [count]="selected.upvoteCount"
                   [upvoted]="isUpvoted(selected.id)" size="sm"
                   (toggled)="handleUpvote(selected.id)"/>
                 <button (click)="viewDetails.emit(selected)"
@@ -271,12 +272,12 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
         </div>
         <div style="padding:12px 14px 14px">
           <div style="font-weight:700;font-size:14px;margin-bottom:3px;color:#0f172a">{{selected.title}}</div>
-          <div style="font-size:11.5px;color:#94a3b8;margin-bottom:8px">📍 {{selected.address}}, {{selected.city}}</div>
+          <div style="font-size:11.5px;color:#94a3b8;margin-bottom:8px">📍 {{selected.city}}, {{selected.state}}</div>
           <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px">
-            <app-tag-badge *ngFor="let t of selected.tags.slice(0,3)" [tag]="t" [small]="true"/>
+            <app-tag-badge *ngFor="let t of selected.tags.slice(0,3)" [tag]="t.name" [small]="true"/>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center">
-            <app-upvote-button [count]="selected.upvote_count"
+            <app-upvote-button [count]="selected.upvoteCount"
               [upvoted]="isUpvoted(selected.id)" size="sm"
               (toggled)="handleUpvote(selected.id)"/>
             <button (click)="viewDetails.emit(selected)"
@@ -293,7 +294,7 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
     <ng-template #mobileFilters>
       <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding:0 12px 10px;
                   display:flex;gap:6px;scrollbar-width:none">
-        <button *ngFor="let t of typeFilters" (click)="activeType = t.id"
+        <button *ngFor="let t of typeFilters" (click)="setTypeFilter(t.id)"
                 [style.border-color]="activeType === t.id ? '#0f172a' : '#e2e8f0'"
                 [style.background]="activeType === t.id ? '#0f172a' : 'white'"
                 [style.color]="activeType === t.id ? 'white' : '#475569'"
@@ -307,7 +308,7 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
     <ng-template #desktopFilters>
       <div style="background:white;border-bottom:1px solid #e9ecf0">
         <div style="padding:10px 14px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-          <button *ngFor="let t of typeFilters" (click)="activeType = t.id"
+          <button *ngFor="let t of typeFilters" (click)="setTypeFilter(t.id)"
                   [style.border-color]="activeType === t.id ? '#0f172a' : '#e2e8f0'"
                   [style.background]="activeType === t.id ? '#0f172a' : 'white'"
                   [style.color]="activeType === t.id ? 'white' : '#475569'"
@@ -351,12 +352,12 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() upvotedIds: Set<number> = new Set();
   @Input() mapTiles = 'light';
 
-  @Output() viewDetails = new EventEmitter<Display>();
+  @Output() viewDetails = new EventEmitter<DisplaySummary>();
   @Output() needAuth = new EventEmitter<void>();
   @Output() upvoteToggle = new EventEmitter<number>();
 
   isMobile = window.innerWidth < 768;
-  selected: Display | null = null;
+  selected: DisplaySummary | null = null;
   activeType = 'all';
   activeTags: string[] = [];
   sortBy = 'popular';
@@ -364,16 +365,21 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
   snapKey: 'peek' | 'half' | 'full' = 'peek';
   snaps = SNAPS;
   snapKeys = Object.keys(SNAPS) as ('peek' | 'half' | 'full')[];
-  allTags = ALL_TAGS;
+  allTags: string[] = [];
+  availableTags: Tag[] = [];
+  displays: DisplaySummary[] = [];
+  loading = false;
   showTour = false;
   welcomeDismissed = localStorage.getItem('luminary_welcome_dismissed') === '1';
 
   typeFilters = [
     { id: 'all', label: 'All' },
-    { id: 'drive-by', label: 'Drive-by' },
-    { id: 'walk-through', label: 'Walk-through' },
-    { id: 'both', label: 'Combined' },
+    { id: 'DRIVE_BY', label: 'Drive-by' },
+    { id: 'WALK_THROUGH', label: 'Walk-through' },
+    { id: 'BOTH', label: 'Combined' },
   ];
+
+  constructor(private displayApi: DisplayApiService) {}
 
   private map: L.Map | null = null;
   private tileLayer: L.TileLayer | null = null;
@@ -385,12 +391,12 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
   private dragStartY = 0;
   private dragStartSnap = SNAPS.peek;
 
-  get filtered(): Display[] {
-    return SAMPLE_DISPLAYS.filter(d => {
-      if (this.activeType !== 'all' && d.display_type !== this.activeType) return false;
-      if (this.activeTags.length && !this.activeTags.every(t => d.tags.includes(t))) return false;
+  get filtered(): DisplaySummary[] {
+    return this.displays.filter(d => {
+      if (this.activeType !== 'all' && d.displayType !== this.activeType) return false;
+      if (this.activeTags.length && !this.activeTags.every(t => d.tags.some(tag => tag.name === t))) return false;
       return true;
-    }).sort((a, b) => this.sortBy === 'popular' ? b.upvote_count - a.upvote_count : b.id - a.id);
+    }).sort((a, b) => this.sortBy === 'popular' ? b.upvoteCount - a.upvoteCount : b.id - a.id);
   }
 
   isUpvoted(id: number): boolean {
@@ -400,6 +406,10 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
   ngAfterViewInit() {
     setTimeout(() => this.initMap(), 100);
     window.addEventListener('resize', this.onResize.bind(this));
+    this.displayApi.getTags().subscribe(tags => {
+      this.availableTags = tags;
+      this.allTags = tags.map(t => t.name);
+    });
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -428,16 +438,18 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
     this.tileLayer = L.tileLayer(cfg.url, { attribution: cfg.attr, maxZoom: 19 }).addTo(this.map);
     this.renderMarkers();
     this.map.on('click', () => { this.selected = null; });
+    this.map.on('moveend', () => this.loadDisplays());
     this.map.invalidateSize();
+    this.loadDisplays();
   }
 
   private renderMarkers() {
     this.markers.forEach(m => this.map!.removeLayer(m));
     this.markers = [];
-    SAMPLE_DISPLAYS.forEach(display => {
-      const tc = TYPE_COLORS[display.display_type];
-      const label = display.upvote_count >= 1000
-        ? (display.upvote_count / 1000).toFixed(1) + 'k' : String(display.upvote_count);
+    this.displays.forEach(display => {
+      const tc = TYPE_COLORS[display.displayType] ?? TYPE_COLORS['DRIVE_BY'];
+      const label = display.upvoteCount >= 1000
+        ? (display.upvoteCount / 1000).toFixed(1) + 'k' : String(display.upvoteCount);
       const icon = L.divIcon({
         html: `<div style="width:42px;height:42px;border-radius:50%;background:${tc.dot};border:3px solid white;box-shadow:0 2px 10px rgba(0,0,0,0.22);display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:800;color:white;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:transform 0.15s">${label}</div>`,
         className: '', iconSize: [42, 42], iconAnchor: [21, 21],
@@ -452,7 +464,28 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
     });
   }
 
-  selectDisplay(display: Display) {
+  loadDisplays() {
+    if (!this.map) return;
+    const center = this.map.getCenter();
+    const tagIds = this.activeTags.map(name => this.availableTags.find(t => t.name === name)?.id).filter((id): id is number => !!id);
+    this.loading = true;
+    this.displayApi.search({
+      lat: center.lat,
+      lng: center.lng,
+      radiusMiles: 10,
+      displayType: this.activeType !== 'all' ? this.activeType : undefined,
+      tags: tagIds.length ? tagIds : undefined,
+    }).subscribe({
+      next: page => {
+        this.displays = page.content;
+        this.loading = false;
+        this.renderMarkers();
+      },
+      error: () => { this.loading = false; },
+    });
+  }
+
+  selectDisplay(display: DisplaySummary) {
     this.selected = display;
     this.map?.panTo([display.lat, display.lng], { animate: true, duration: 0.4 } as any);
     if (this.isMobile) this.snapKey = 'half';
@@ -466,6 +499,7 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
   clearFilters() {
     this.activeTags = [];
     this.activeType = 'all';
+    this.loadDisplays();
   }
 
   toggleTag(tag: string) {
@@ -474,6 +508,12 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
     } else {
       this.activeTags = [...this.activeTags, tag];
     }
+    this.loadDisplays();
+  }
+
+  setTypeFilter(type: string) {
+    this.activeType = type;
+    this.loadDisplays();
   }
 
   dismissWelcome() {
