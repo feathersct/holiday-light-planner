@@ -2,7 +2,7 @@ import { Component, Input, Output, EventEmitter, computed } from '@angular/core'
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AvatarComponent } from '../avatar/avatar.component';
-import { User } from '../../models/display.model';
+import { User, getInitials } from '../../models/display.model';
 
 @Component({
   selector: 'app-navbar',
@@ -42,7 +42,7 @@ import { User } from '../../models/display.model';
 
       <!-- Auth -->
       <div *ngIf="user; else signInBtn" style="display:flex;align-items:center;gap:10px">
-        <app-avatar [initials]="user.avatar" [size]="32"/>
+        <app-avatar [initials]="getInitials(user.name)" [size]="32"/>
         <button (click)="authAction.emit()"
                 style="background:none;border:1.5px solid #e5e7eb;padding:5px 12px;
                        border-radius:7px;font-size:12.5px;color:#64748b;cursor:pointer">
@@ -66,6 +66,8 @@ import { User } from '../../models/display.model';
 export class NavbarComponent {
   @Input() currentScreen = 'map';
   @Input() user: User | null = null;
+
+  getInitials = getInitials;
 
   @Output() navigate = new EventEmitter<string>();
   @Output() authAction = new EventEmitter<void>();

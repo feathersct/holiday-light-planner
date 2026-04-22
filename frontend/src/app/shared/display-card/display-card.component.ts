@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Display, TYPE_COLORS, TYPE_LABELS } from '../../models/display.model';
+import { DisplaySummary, TYPE_COLORS, TYPE_LABELS } from '../../models/display.model';
 import { TagBadgeComponent } from '../tag-badge/tag-badge.component';
 import { UpvoteButtonComponent } from '../upvote-button/upvote-button.component';
 
@@ -14,18 +14,24 @@ import { UpvoteButtonComponent } from '../upvote-button/upvote-button.component'
          [style.box-shadow]="isSelected ? '0 4px 20px var(--accent-shadow)' : '0 1px 4px rgba(0,0,0,0.05)'"
          style="background:white;border-radius:12px;overflow:hidden;cursor:pointer;
                 transition:all 0.15s;margin-bottom:10px;flex-shrink:0;">
-      <!-- Photo placeholder -->
+      <!-- Photo -->
       <div style="width:100%;height:130px;background:#eef1f6;display:flex;align-items:center;
                   justify-content:center;position:relative;overflow:hidden;">
-        <svg width="100%" height="100%" style="position:absolute;inset:0" preserveAspectRatio="none">
+        <img *ngIf="display.primaryPhotoUrl" [src]="display.primaryPhotoUrl"
+             style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0"/>
+        <svg *ngIf="!display.primaryPhotoUrl" width="100%" height="100%"
+             style="position:absolute;inset:0" preserveAspectRatio="none">
           <defs>
-            <pattern id="pat-{{display.id}}" patternUnits="userSpaceOnUse" width="24" height="24" patternTransform="rotate(45)">
+            <pattern [id]="'pat-'+display.id" patternUnits="userSpaceOnUse" width="24" height="24" patternTransform="rotate(45)">
               <line x1="0" y1="0" x2="0" y2="24" stroke="#dde3ed" stroke-width="1"/>
             </pattern>
           </defs>
           <rect width="100%" height="100%" [attr.fill]="'url(#pat-' + display.id + ')'"/>
         </svg>
-        <span style="position:relative;font-size:11px;color:#9aaabb;font-family:monospace;text-align:center;padding:0 12px;line-height:1.4">photo — {{display.title}}</span>
+        <span *ngIf="!display.primaryPhotoUrl"
+              style="position:relative;font-size:11px;color:#9aaabb;font-family:monospace;text-align:center;padding:0 12px;line-height:1.4">
+          photo — {{display.title}}
+        </span>
       </div>
       <div style="padding:11px 13px 13px">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px">
@@ -35,13 +41,13 @@ import { UpvoteButtonComponent } from '../upvote-button/upvote-button.component'
             {{typeLabel}}
           </span>
         </div>
-        <div style="font-size:12px;color:#9ca3af;margin-bottom:8px">📍 {{display.address}}</div>
+        <div style="font-size:12px;color:#9ca3af;margin-bottom:8px">📍 {{display.city}}, {{display.state}}</div>
         <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px">
-          <app-tag-badge *ngFor="let t of display.tags.slice(0,3)" [tag]="t" [small]="true"/>
+          <app-tag-badge *ngFor="let t of display.tags.slice(0,3)" [tag]="t.name" [small]="true"/>
           <span *ngIf="display.tags.length > 3" style="font-size:10px;color:#9ca3af;align-self:center">+{{display.tags.length - 3}}</span>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between">
-          <app-upvote-button [count]="display.upvote_count" [upvoted]="upvoted" size="sm"
+          <app-upvote-button [count]="display.upvoteCount" [upvoted]="upvoted" size="sm"
             (toggled)="upvote.emit()"/>
           <button *ngIf="showDetails" (click)="viewDetails.emit(display); $event.stopPropagation()"
                   style="background:none;border:none;color:var(--accent-dark);font-size:12px;
@@ -54,15 +60,15 @@ import { UpvoteButtonComponent } from '../upvote-button/upvote-button.component'
   `
 })
 export class DisplayCardComponent {
-  @Input() display!: Display;
+  @Input() display!: DisplaySummary;
   @Input() isSelected = false;
   @Input() upvoted = false;
   @Input() showDetails = true;
 
-  @Output() select = new EventEmitter<Display>();
-  @Output() viewDetails = new EventEmitter<Display>();
+  @Output() select = new EventEmitter<DisplaySummary>();
+  @Output() viewDetails = new EventEmitter<DisplaySummary>();
   @Output() upvote = new EventEmitter<void>();
 
-  get typeColors() { return TYPE_COLORS[this.display.display_type]; }
-  get typeLabel() { return TYPE_LABELS[this.display.display_type]; }
+  get typeColors() { return TYPE_COLORS[this.display.displayType] ?? TYPE_COLORS['DRIVE_BY']; }
+  get typeLabel() { return TYPE_LABELS[this.display.displayType] ?? this.display.displayType; }
 }
