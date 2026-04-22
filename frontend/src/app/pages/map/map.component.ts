@@ -35,10 +35,13 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
         <div style="pointer-events:all;background:white;border-radius:12px;
                     box-shadow:0 4px 16px rgba(0,0,0,0.12);border:1px solid #e2e8f0;
                     display:flex;align-items:center;padding:10px 14px;gap:8px">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5" style="flex-shrink:0">
             <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
           </svg>
-          <span style="font-size:14px;color:#94a3b8;flex:1">Search neighbourhood or city…</span>
+          <input [(ngModel)]="searchQuery"
+                 (keydown.enter)="searchLocation()"
+                 placeholder="Search neighbourhood or city…"
+                 style="flex:1;border:none;outline:none;font-size:14px;color:#0f172a;background:transparent"/>
         </div>
         <div style="pointer-events:all;background:white;border-radius:12px;
                     box-shadow:0 4px 16px rgba(0,0,0,0.1);border:1px solid #e2e8f0;
@@ -149,10 +152,14 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
                  width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5">
               <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
             </svg>
-            <input placeholder="Search by neighbourhood or city…"
+            <input [(ngModel)]="searchQuery"
+                   (keydown.enter)="searchLocation()"
+                   placeholder="Search by neighbourhood or city…"
                    style="width:100%;padding:9px 12px 9px 33px;border:1.5px solid #e2e8f0;
                           border-radius:9px;font-size:13px;outline:none;background:#f8fafc;
-                          box-sizing:border-box;color:#0f172a"/>
+                          box-sizing:border-box;color:#0f172a"
+                   (focus)="$any($event.target).style.borderColor='var(--accent)'"
+                   (blur)="$any($event.target).style.borderColor='#e2e8f0'"/>
           </div>
         </div>
         <!-- Filter bar -->
@@ -359,6 +366,7 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
   isMobile = window.innerWidth < 768;
   selected: DisplaySummary | null = null;
   activeType = 'all';
+  searchQuery = '';
   activeTags: string[] = [];
   sortBy = 'popular';
   tagsOpen = false;
@@ -441,6 +449,12 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
     this.map.on('moveend', () => this.loadDisplays());
     this.map.invalidateSize();
     this.loadDisplays();
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        pos => this.map?.setView([pos.coords.latitude, pos.coords.longitude], 13),
+        () => {},
+      );
+    }
   }
 
   private renderMarkers() {
@@ -514,6 +528,18 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
   setTypeFilter(type: string) {
     this.activeType = type;
     this.loadDisplays();
+  }
+
+  searchLocation() {
+    const q = this.searchQuery.trim();
+    if (!q) return;
+    fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`)
+      .then(r => r.json())
+      .then((results: any[]) => {
+        if (results.length > 0) {
+          this.map?.setView([parseFloat(results[0].lat), parseFloat(results[0].lon)], 13);
+        }
+      });
   }
 
   dismissWelcome() {

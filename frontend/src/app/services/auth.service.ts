@@ -37,7 +37,7 @@ export class AuthService {
   }
 
   login(): void {
-    window.location.href = `${environment.apiUrl}/oauth2/authorization/google`;
+    window.location.href = `${environment.apiUrl}/oauth2/authorization/facebook`;
   }
 
   logout(): void {

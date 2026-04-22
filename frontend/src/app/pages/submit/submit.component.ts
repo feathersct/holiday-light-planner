@@ -30,7 +30,7 @@ const TYPES: [string, string][] = [
           </div>
           <div style="font-weight:800;font-size:24px;color:#0f172a;margin-bottom:10px">Display Submitted!</div>
           <div style="font-size:15px;color:#64748b;line-height:1.6;max-width:340px;margin:0 auto 32px">
-            Thanks for adding to the community map. Your display will appear after a quick review.
+            Thanks for adding to the community map. Your display is now live on the map!
           </div>
           <button (click)="goHome.emit()"
                   style="background:var(--accent);color:white;border:none;padding:13px 32px;
@@ -209,11 +209,11 @@ const TYPES: [string, string][] = [
               Back
             </button>
             <button (click)="nextStep()"
-                    [disabled]="!canAdvance()"
-                    [style.opacity]="canAdvance() ? '1' : '0.5'"
+                    [disabled]="!canAdvance() || geocoding || submitting"
+                    [style.opacity]="(canAdvance() && !geocoding && !submitting) ? '1' : '0.5'"
                     style="flex:2;padding:13px;border-radius:12px;font-size:15px;font-weight:700;
                            background:var(--accent);color:white;border:none;cursor:pointer">
-              {{step() === 'photo' ? (submitting ? 'Submitting…' : 'Submit Display') : 'Continue'}}
+              {{step() === 'photo' ? (submitting ? 'Submitting…' : 'Submit Display') : (geocoding ? 'Locating…' : 'Continue')}}
             </button>
           </div>
         </div>
@@ -233,6 +233,7 @@ export class SubmitComponent {
   photoFile: File | null = null;
   photoPreview: string | null = null;
   submitting = false;
+  geocoding = false;
   error: string | null = null;
 
   form = {
@@ -280,17 +281,25 @@ export class SubmitComponent {
   }
 
   private geocodeAndAdvance() {
-    const query = encodeURIComponent(`${this.form.address}, ${this.form.city}, ${this.form.state}`);
+    this.error = null;
+    this.geocoding = true;
+    const query = encodeURIComponent(`${this.form.address}, ${this.form.city}, ${this.form.state} ${this.form.postcode}`.trim());
     fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`)
       .then(r => r.json())
       .then((results: any[]) => {
+        this.geocoding = false;
         if (results.length > 0) {
           this.form.lat = parseFloat(results[0].lat);
           this.form.lng = parseFloat(results[0].lon);
+          this.step.set('details');
+        } else {
+          this.error = 'Could not find that address. Try adding more detail (e.g. full street number, city, state).';
         }
-        this.step.set('details');
       })
-      .catch(() => this.step.set('details'));
+      .catch(() => {
+        this.geocoding = false;
+        this.error = 'Could not reach the geocoding service. Check your connection and try again.';
+      });
   }
 
   private submitDisplay() {
