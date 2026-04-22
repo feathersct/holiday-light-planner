@@ -103,4 +103,20 @@ public class DisplayController {
         }
         return ResponseEntity.ok(ApiResponse.success(null));
     }
+
+    @GetMapping("/mine")
+    public ResponseEntity<ApiResponse<List<DisplaySummaryResponse>>> getMyDisplays(
+        Authentication authentication
+    ) {
+        Long userId = (Long) authentication.getPrincipal();
+        return ResponseEntity.ok(ApiResponse.success(displayService.getMyDisplays(userId)));
+    }
+
+    @GetMapping("/upvoted")
+    public ResponseEntity<ApiResponse<List<DisplaySummaryResponse>>> getUpvotedDisplays(
+        Authentication authentication
+    ) {
+        Long userId = (Long) authentication.getPrincipal();
+        return ResponseEntity.ok(ApiResponse.success(displayService.getUpvotedDisplays(userId)));
+    }
 }
