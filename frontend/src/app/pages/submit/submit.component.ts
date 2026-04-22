@@ -1,10 +1,15 @@
 import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { User, ALL_TAGS, TYPE_LABELS } from '../../models/display.model';
+import { ALL_TAGS, TYPE_LABELS, Tag } from '../../models/display.model';
+import { DisplayApiService } from '../../services/display-api.service';
 import { TagBadgeComponent } from '../../shared/tag-badge/tag-badge.component';
 
-const TYPES = Object.entries(TYPE_LABELS) as [string, string][];
+const TYPES: [string, string][] = [
+  ['DRIVE_BY', 'Drive-by'],
+  ['WALK_THROUGH', 'Walk-through'],
+  ['BOTH', 'Drive-by & Walk-through'],
+];
 
 @Component({
   selector: 'app-submit',
@@ -96,6 +101,14 @@ const TYPES = Object.entries(TYPE_LABELS) as [string, string][];
                          (focus)="$any($event.target).style.borderColor='var(--accent)'"
                          (blur)="$any($event.target).style.borderColor='#e2e8f0'"/>
                 </div>
+                <div style="flex:1">
+                  <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px">ZIP</label>
+                  <input [(ngModel)]="form.postcode" placeholder="80205"
+                         style="width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;
+                                font-size:14px;color:#0f172a;background:white;box-sizing:border-box;outline:none"
+                         (focus)="$any($event.target).style.borderColor='var(--accent)'"
+                         (blur)="$any($event.target).style.borderColor='#e2e8f0'"/>
+                </div>
               </div>
             </div>
           </div>
@@ -147,23 +160,13 @@ const TYPES = Object.entries(TYPE_LABELS) as [string, string][];
                           (focus)="$any($event.target).style.borderColor='var(--accent)'"
                           (blur)="$any($event.target).style.borderColor='#e2e8f0'"></textarea>
               </div>
-              <div style="display:flex;gap:12px">
-                <div style="flex:1">
-                  <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px">Year Started</label>
-                  <input [(ngModel)]="form.yearStarted" type="number" placeholder="2018"
-                         style="width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;
-                                font-size:14px;color:#0f172a;background:white;box-sizing:border-box;outline:none"
-                         (focus)="$any($event.target).style.borderColor='var(--accent)'"
-                         (blur)="$any($event.target).style.borderColor='#e2e8f0'"/>
-                </div>
-                <div style="flex:1">
-                  <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px">Admission ($)</label>
-                  <input [(ngModel)]="form.admissionPrice" type="number" placeholder="0 = Free"
-                         style="width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;
-                                font-size:14px;color:#0f172a;background:white;box-sizing:border-box;outline:none"
-                         (focus)="$any($event.target).style.borderColor='var(--accent)'"
-                         (blur)="$any($event.target).style.borderColor='#e2e8f0'"/>
-                </div>
+              <div>
+                <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px">Best Viewing Time</label>
+                <input [(ngModel)]="form.bestTime" placeholder="Nightly 5pm–11pm"
+                       style="width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;
+                              font-size:14px;color:#0f172a;background:white;box-sizing:border-box;outline:none"
+                       (focus)="$any($event.target).style.borderColor='var(--accent)'"
+                       (blur)="$any($event.target).style.borderColor='#e2e8f0'"/>
               </div>
             </div>
           </div>
@@ -198,6 +201,7 @@ const TYPES = Object.entries(TYPE_LABELS) as [string, string][];
           </div>
 
           <!-- Navigation -->
+          <div *ngIf="error" style="color:#dc2626;font-size:13px;padding:8px 0">{{error}}</div>
           <div style="display:flex;gap:12px;margin-top:28px">
             <button *ngIf="step() !== 'location'" (click)="prevStep()"
                     style="flex:1;padding:13px;border-radius:12px;font-size:15px;font-weight:600;
@@ -209,7 +213,7 @@ const TYPES = Object.entries(TYPE_LABELS) as [string, string][];
                     [style.opacity]="canAdvance() ? '1' : '0.5'"
                     style="flex:2;padding:13px;border-radius:12px;font-size:15px;font-weight:700;
                            background:var(--accent);color:white;border:none;cursor:pointer">
-              {{step() === 'photo' ? 'Submit Display' : 'Continue'}}
+              {{step() === 'photo' ? (submitting ? 'Submitting…' : 'Submit Display') : 'Continue'}}
             </button>
           </div>
         </div>
@@ -224,15 +228,25 @@ export class SubmitComponent {
   step = signal<'location' | 'details' | 'photo' | 'done'>('location');
   steps = ['location', 'details', 'photo'];
   types = TYPES;
-  allTags = ALL_TAGS;
+  allTags: string[] = ALL_TAGS;
+  availableTags: Tag[] = [];
+  photoFile: File | null = null;
   photoPreview: string | null = null;
+  submitting = false;
+  error: string | null = null;
 
   form = {
-    address: '', city: '', state: '',
-    title: '', displayType: 'residential', tags: [] as string[],
-    description: '', yearStarted: null as number | null,
-    admissionPrice: null as number | null,
+    address: '', city: '', state: '', postcode: '',
+    title: '', displayType: 'DRIVE_BY', tags: [] as string[],
+    description: '', bestTime: '',
+    lat: 0, lng: 0,
   };
+
+  constructor(private displayApi: DisplayApiService) {
+    this.displayApi.getTags().subscribe(tags => {
+      this.availableTags = tags;
+    });
+  }
 
   getStepIndex() {
     return this.steps.indexOf(this.step() as any);
@@ -250,26 +264,81 @@ export class SubmitComponent {
     return true;
   }
 
-  nextStep() {
-    if (this.step() === 'location') this.step.set('details');
-    else if (this.step() === 'details') this.step.set('photo');
-    else if (this.step() === 'photo') this.step.set('done');
-  }
-
   prevStep() {
     if (this.step() === 'details') this.step.set('location');
     else if (this.step() === 'photo') this.step.set('details');
   }
 
+  nextStep() {
+    if (this.step() === 'location') {
+      this.geocodeAndAdvance();
+    } else if (this.step() === 'details') {
+      this.step.set('photo');
+    } else if (this.step() === 'photo') {
+      this.submitDisplay();
+    }
+  }
+
+  private geocodeAndAdvance() {
+    const query = encodeURIComponent(`${this.form.address}, ${this.form.city}, ${this.form.state}`);
+    fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`)
+      .then(r => r.json())
+      .then((results: any[]) => {
+        if (results.length > 0) {
+          this.form.lat = parseFloat(results[0].lat);
+          this.form.lng = parseFloat(results[0].lon);
+        }
+        this.step.set('details');
+      })
+      .catch(() => this.step.set('details'));
+  }
+
+  private submitDisplay() {
+    this.submitting = true;
+    this.error = null;
+    const tagIds = this.form.tags
+      .map(name => this.availableTags.find(t => t.name === name)?.id)
+      .filter((id): id is number => !!id);
+    this.displayApi.create({
+      title: this.form.title,
+      description: this.form.description,
+      address: this.form.address,
+      city: this.form.city,
+      state: this.form.state,
+      postcode: this.form.postcode,
+      lat: this.form.lat,
+      lng: this.form.lng,
+      bestTime: this.form.bestTime,
+      displayType: this.form.displayType,
+      tagIds,
+    }).subscribe({
+      next: display => {
+        if (this.photoFile) {
+          this.displayApi.uploadPhoto(display.id, this.photoFile).subscribe({
+            complete: () => { this.submitting = false; this.step.set('done'); },
+            error: () => { this.submitting = false; this.step.set('done'); },
+          });
+        } else {
+          this.submitting = false;
+          this.step.set('done');
+        }
+      },
+      error: () => {
+        this.submitting = false;
+        this.error = 'Submission failed. Please try again.';
+      },
+    });
+  }
+
   onFileChange(event: Event) {
     const file = (event.target as HTMLInputElement).files?.[0];
-    if (file) this.readFile(file);
+    if (file) { this.photoFile = file; this.readFile(file); }
   }
 
   onDrop(event: DragEvent) {
     event.preventDefault();
     const file = event.dataTransfer?.files?.[0];
-    if (file) this.readFile(file);
+    if (file) { this.photoFile = file; this.readFile(file); }
   }
 
   private readFile(file: File) {
