@@ -164,6 +164,7 @@ public class DisplayService {
             .displayType(display.getDisplayType().name())
             .primaryPhotoUrl(primaryPhotoUrl)
             .tags(display.getTags().stream().map(TagResponse::from).collect(Collectors.toList()))
+            .isActive(display.isActive())
             .build();
     }
 

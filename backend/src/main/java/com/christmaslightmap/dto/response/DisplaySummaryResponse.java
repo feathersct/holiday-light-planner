@@ -19,4 +19,5 @@ public class DisplaySummaryResponse {
     private String displayType;
     private String primaryPhotoUrl;
     private List<TagResponse> tags;
+    private boolean isActive;
 }
