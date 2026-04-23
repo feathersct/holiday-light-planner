@@ -1,5 +1,5 @@
 import { Component, OnInit, signal, computed, effect, HostListener } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DisplaySummary } from './models/display.model';
 import { NavbarComponent } from './shared/navbar/navbar.component';
@@ -147,10 +147,15 @@ export class AppComponent implements OnInit {
   constructor(
     public authService: AuthService,
     public upvoteService: UpvoteService,
+    private location: Location,
   ) {}
 
   ngOnInit() {
     this.authService.init();
+    const path = this.location.path();
+    if (path.startsWith('/submit')) this.screen.set('submit');
+    else if (path.startsWith('/profile')) this.screen.set('profile');
+    else if (path.startsWith('/admin')) this.screen.set('admin');
   }
 
   @HostListener('window:resize')
@@ -165,6 +170,7 @@ export class AppComponent implements OnInit {
     }
     this.screen.set(screen as Screen);
     this.showSettings.set(false);
+    this.location.replaceState(screen === 'map' ? '/' : '/' + screen);
   }
 
   onAuthAction() {
