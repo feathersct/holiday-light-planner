@@ -43,15 +43,22 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
 
       <!-- Floating search bar -->
       <div style="position:absolute;top:10px;left:10px;right:10px;z-index:400;pointer-events:none">
-        <div style="pointer-events:all;background:white;border-radius:12px;
-                    box-shadow:0 4px 16px rgba(0,0,0,0.12);border:1px solid #e2e8f0;
-                    display:flex;align-items:center;padding:10px 14px;gap:8px">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5" style="flex-shrink:0">
+        <div [style.border-color]="searchNotFound ? '#ef4444' : '#e2e8f0'"
+             style="pointer-events:all;background:white;border-radius:12px;
+                    box-shadow:0 4px 16px rgba(0,0,0,0.12);border:1px solid;
+                    display:flex;align-items:center;padding:10px 14px;gap:8px;
+                    transition:border-color 0.2s">
+          <!-- spinner while searching, else search icon -->
+          <div *ngIf="searching" style="width:15px;height:15px;border-radius:50%;flex-shrink:0;
+                      border:2px solid #e2e8f0;border-top-color:#94a3b8;
+                      animation:spin 0.7s linear infinite"></div>
+          <svg *ngIf="!searching" width="15" height="15" viewBox="0 0 24 24" fill="none"
+               [attr.stroke]="searchNotFound ? '#ef4444' : '#94a3b8'" stroke-width="2.5" style="flex-shrink:0">
             <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
           </svg>
           <input [(ngModel)]="searchQuery"
                  (keydown.enter)="searchLocation()"
-                 placeholder="Search neighbourhood or city…"
+                 placeholder="Search by city or zip code…"
                  style="flex:1;border:none;outline:none;font-size:14px;color:#0f172a;background:transparent"/>
           <button (click)="locateMe()" title="Use my location"
                   style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;flex-shrink:0">
@@ -149,18 +156,24 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
         <!-- Search -->
         <div style="padding:11px 13px;background:white;border-bottom:1px solid #e9ecf0">
           <div style="position:relative">
-            <svg style="position:absolute;left:11px;top:50%;transform:translateY(-50%);pointer-events:none"
-                 width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5">
+            <div *ngIf="searching" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);
+                 width:13px;height:13px;border-radius:50%;pointer-events:none;
+                 border:2px solid #e2e8f0;border-top-color:#94a3b8;
+                 animation:spin 0.7s linear infinite"></div>
+            <svg *ngIf="!searching" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);pointer-events:none"
+                 width="15" height="15" viewBox="0 0 24 24" fill="none"
+                 [attr.stroke]="searchNotFound ? '#ef4444' : '#94a3b8'" stroke-width="2.5">
               <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
             </svg>
             <input [(ngModel)]="searchQuery"
                    (keydown.enter)="searchLocation()"
-                   placeholder="Search by neighbourhood or city…"
+                   placeholder="Search by city or zip code…"
+                   [style.border-color]="searchNotFound ? '#ef4444' : undefined"
                    style="width:100%;padding:9px 36px 9px 33px;border:1.5px solid #e2e8f0;
                           border-radius:9px;font-size:13px;outline:none;background:#f8fafc;
-                          box-sizing:border-box;color:#0f172a"
+                          box-sizing:border-box;color:#0f172a;transition:border-color 0.2s"
                    (focus)="$any($event.target).style.borderColor='var(--accent)'"
-                   (blur)="$any($event.target).style.borderColor='#e2e8f0'"/>
+                   (blur)="$any($event.target).style.borderColor=searchNotFound?'#ef4444':'#e2e8f0'"/>
             <button (click)="locateMe()" title="Use my location"
                     style="position:absolute;right:9px;top:50%;transform:translateY(-50%);
                            background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center">
@@ -375,6 +388,8 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
   showTour = false;
   welcomeDismissed = localStorage.getItem('hlp_welcome_dismissed') === '1';
   locating = !!navigator.geolocation && !sessionStorage.getItem('hlp_location_found');
+  searching = false;
+  searchNotFound = false;
 
   typeFilters = [
     { id: 'all', label: 'All' },
@@ -561,13 +576,24 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   searchLocation() {
     const q = this.searchQuery.trim();
-    if (!q) return;
+    if (!q || this.searching) return;
+    this.searching = true;
+    this.searchNotFound = false;
     fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`)
       .then(r => r.json())
       .then((results: any[]) => {
+        this.searching = false;
         if (results.length > 0) {
           this.map?.setView([parseFloat(results[0].lat), parseFloat(results[0].lon)], 13);
+        } else {
+          this.searchNotFound = true;
+          setTimeout(() => { this.searchNotFound = false; }, 2500);
         }
+      })
+      .catch(() => {
+        this.searching = false;
+        this.searchNotFound = true;
+        setTimeout(() => { this.searchNotFound = false; }, 2500);
       });
   }
 
