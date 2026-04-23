@@ -1,3 +1,6 @@
 .env
 .worktrees/
 .superpowers/
+.claude/
+backend/target/
+docs/superpowers/
