@@ -476,7 +476,7 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
           this.locating = false;
         },
         () => { this.locating = false; },
-        { timeout: 8000 }
+        { timeout: 15000, maximumAge: 60000 }
       );
     }
   }
