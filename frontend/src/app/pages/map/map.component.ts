@@ -41,9 +41,8 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
     <div *ngIf="isMobile" style="position:fixed;top:58px;left:0;right:0;bottom:64px;z-index:1">
       <div #mapContainer style="position:absolute;inset:0"></div>
 
-      <!-- Floating search + filters -->
-      <div style="position:absolute;top:10px;left:10px;right:10px;z-index:400;
-                  display:flex;flex-direction:column;gap:8px;pointer-events:none">
+      <!-- Floating search bar -->
+      <div style="position:absolute;top:10px;left:10px;right:10px;z-index:400;pointer-events:none">
         <div style="pointer-events:all;background:white;border-radius:12px;
                     box-shadow:0 4px 16px rgba(0,0,0,0.12);border:1px solid #e2e8f0;
                     display:flex;align-items:center;padding:10px 14px;gap:8px">
@@ -62,29 +61,7 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
             </svg>
           </button>
         </div>
-        <div style="pointer-events:all;background:white;border-radius:12px;
-                    box-shadow:0 4px 16px rgba(0,0,0,0.1);border:1px solid #e2e8f0;
-                    padding-top:10px;overflow:hidden">
-          <ng-container *ngTemplateOutlet="mobileFilters"></ng-container>
-        </div>
       </div>
-
-      <!-- Plan a Tour button -->
-      <button (click)="showTour = true"
-              [style.bottom]="'calc(' + (100 - snaps[snapKey]) + '% + 16px)'"
-              style="position:absolute;left:50%;transform:translateX(-50%);z-index:490;
-                     background:#0f172a;color:white;border:none;padding:9px 20px;
-                     border-radius:99px;font-size:13px;font-weight:700;cursor:pointer;
-                     box-shadow:0 4px 16px rgba(15,23,42,0.3);
-                     display:flex;align-items:center;gap:7px;white-space:nowrap;
-                     transition:bottom 0.32s cubic-bezier(0.32,0.72,0,1)">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-        </svg>
-        Plan a Tour
-        <span style="background:rgba(245,158,11,0.25);color:#f59e0b;font-size:9px;
-                     font-weight:800;padding:2px 5px;border-radius:99px">SOON</span>
-      </button>
 
       <!-- Bottom sheet -->
       <div #sheetEl
@@ -97,20 +74,25 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
                     display:flex;flex-direction:column;overflow:hidden">
           <!-- Handle -->
           <div #handleEl
-               style="padding:10px 0 8px;display:flex;flex-direction:column;
-                      align-items:center;gap:10px;cursor:grab;flex-shrink:0">
-            <div style="width:40px;height:4px;border-radius:99px;background:#cbd5e1"></div>
-            <div style="display:flex;justify-content:space-between;align-items:center;
-                        width:100%;padding:0 16px">
+               style="padding:10px 0 0;display:flex;flex-direction:column;
+                      align-items:center;cursor:grab;flex-shrink:0">
+            <div style="width:40px;height:4px;border-radius:99px;background:#cbd5e1;margin-bottom:8px"></div>
+            <div style="width:100%;padding:0 16px 8px">
               <span style="font-size:13px;font-weight:700;color:#0f172a">
                 {{filtered.length}} {{filtered.length === 1 ? 'display' : 'displays'}}
               </span>
-              <div style="display:flex;gap:6px">
-                <button *ngFor="let k of snapKeys" (click)="snapKey = k"
-                        [style.background]="snapKey === k ? 'var(--accent)' : '#e2e8f0'"
-                        style="width:8px;height:8px;border-radius:50%;border:none;
-                               padding:0;cursor:pointer"></button>
-              </div>
+            </div>
+            <!-- Type filter chips -->
+            <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding:0 12px 10px;
+                        display:flex;gap:6px;scrollbar-width:none;width:100%;box-sizing:border-box">
+              <button *ngFor="let t of typeFilters" (click)="setTypeFilter(t.id)"
+                      [style.border-color]="activeType === t.id ? '#0f172a' : '#e2e8f0'"
+                      [style.background]="activeType === t.id ? '#0f172a' : 'white'"
+                      [style.color]="activeType === t.id ? 'white' : '#475569'"
+                      style="padding:6px 14px;border-radius:99px;font-size:12.5px;font-weight:600;
+                             white-space:nowrap;cursor:pointer;border:1.5px solid;flex-shrink:0">
+                {{t.label}}
+              </button>
             </div>
           </div>
           <!-- Selected card -->
@@ -325,20 +307,6 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
     </div>
 
     <!-- Filter templates -->
-    <ng-template #mobileFilters>
-      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding:0 12px 10px;
-                  display:flex;gap:6px;scrollbar-width:none">
-        <button *ngFor="let t of typeFilters" (click)="setTypeFilter(t.id)"
-                [style.border-color]="activeType === t.id ? '#0f172a' : '#e2e8f0'"
-                [style.background]="activeType === t.id ? '#0f172a' : 'white'"
-                [style.color]="activeType === t.id ? 'white' : '#475569'"
-                style="padding:6px 14px;border-radius:99px;font-size:12.5px;font-weight:600;
-                       white-space:nowrap;cursor:pointer;border:1.5px solid;flex-shrink:0">
-          {{t.label}}
-        </button>
-      </div>
-    </ng-template>
-
     <ng-template #desktopFilters>
       <div style="background:white;border-bottom:1px solid #e9ecf0">
         <div style="padding:10px 14px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
@@ -400,7 +368,6 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
   tagsOpen = false;
   snapKey: 'peek' | 'half' | 'full' = 'peek';
   snaps = SNAPS;
-  snapKeys = Object.keys(SNAPS) as ('peek' | 'half' | 'full')[];
   allTags: string[] = [];
   availableTags: Tag[] = [];
   displays: DisplaySummary[] = [];
