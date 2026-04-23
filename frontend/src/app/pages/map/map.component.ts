@@ -607,7 +607,6 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
     }
     this.zone.run(() => {
       this.snapKey = nearest;
-      if (this.sheetEl) this.sheetEl.nativeElement.style.transform = '';
     });
   }
 }
