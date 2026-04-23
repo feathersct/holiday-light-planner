@@ -32,10 +32,10 @@ import { DisplayApiService } from '../../services/display-api.service';
           <div style="width:100%;height:220px;background:#eef1f6;flex-shrink:0;
                       display:flex;align-items:center;justify-content:center;
                       position:relative;overflow:hidden">
-            <img *ngIf="fullDisplay()!.primaryPhotoUrl"
-                 [src]="fullDisplay()!.primaryPhotoUrl!"
+            <img *ngIf="primaryPhotoUrl"
+                 [src]="primaryPhotoUrl!"
                  style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0"/>
-            <svg *ngIf="!fullDisplay()!.primaryPhotoUrl" width="100%" height="100%"
+            <svg *ngIf="!primaryPhotoUrl" width="100%" height="100%"
                  style="position:absolute;inset:0" preserveAspectRatio="none">
               <defs>
                 <pattern id="det-pat" patternUnits="userSpaceOnUse" width="24" height="24" patternTransform="rotate(45)">
@@ -44,7 +44,7 @@ import { DisplayApiService } from '../../services/display-api.service';
               </defs>
               <rect width="100%" height="100%" fill="url(#det-pat)"/>
             </svg>
-            <span *ngIf="!fullDisplay()!.primaryPhotoUrl"
+            <span *ngIf="!primaryPhotoUrl"
                   style="position:relative;font-size:12px;color:#9aaabb;font-family:monospace">
               photo — {{fullDisplay()!.title}}
             </span>
@@ -144,6 +144,12 @@ export class DisplayDetailComponent implements OnInit {
       },
       error: () => this.loading.set(false),
     });
+  }
+
+  get primaryPhotoUrl(): string | null {
+    const d = this.fullDisplay();
+    if (!d?.photos?.length) return null;
+    return d.photos.find(p => p.isPrimary)?.url ?? d.photos[0].url;
   }
 
   get typeColors() {
