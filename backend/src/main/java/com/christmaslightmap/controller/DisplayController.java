@@ -104,6 +104,16 @@ public class DisplayController {
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteDisplay(
+        @PathVariable Long id,
+        Authentication authentication
+    ) {
+        Long userId = (Long) authentication.getPrincipal();
+        displayService.deleteDisplay(userId, id);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
     @GetMapping("/mine")
     public ResponseEntity<ApiResponse<List<DisplaySummaryResponse>>> getMyDisplays(
         Authentication authentication

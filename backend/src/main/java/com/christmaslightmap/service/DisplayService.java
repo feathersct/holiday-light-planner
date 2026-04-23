@@ -118,6 +118,17 @@ public class DisplayService {
         return DisplayResponse.from(display, List.of());
     }
 
+    @Transactional
+    public void deleteDisplay(Long userId, Long displayId) {
+        Display display = displayRepository.findById(displayId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Display not found"));
+        if (!display.getUser().getId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not your display");
+        }
+        display.setActive(false);
+        displayRepository.save(display);
+    }
+
     public List<DisplaySummaryResponse> getMyDisplays(Long userId) {
         List<Display> displays = displayRepository.findByUserIdAndIsActiveTrue(userId);
         return toSummaries(displays);

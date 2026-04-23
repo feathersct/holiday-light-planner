@@ -14,6 +14,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -37,7 +38,7 @@ public class SecurityConfig {
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/oauth2/**", "/login/**").permitAll()
+                .requestMatchers("/oauth2/**", "/login/**", "/error").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/displays/mine").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/v1/displays/upvoted").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/v1/displays/**").permitAll()
@@ -52,6 +53,11 @@ public class SecurityConfig {
             .exceptionHandling(ex -> ex
                 .defaultAuthenticationEntryPointFor(
                     new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
+                    request -> request.getRequestURI().startsWith("/api/")
+                )
+                .defaultAccessDeniedHandlerFor(
+                    (request, response, accessDeniedException) ->
+                        response.sendError(HttpStatus.FORBIDDEN.value(), "Forbidden"),
                     request -> request.getRequestURI().startsWith("/api/")
                 )
             )
