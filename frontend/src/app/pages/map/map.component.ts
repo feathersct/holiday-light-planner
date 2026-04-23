@@ -196,7 +196,7 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
                 </svg>
               </div>
               <div>
-                <div style="font-weight:800;font-size:14px">Welcome to Luminary</div>
+                <div style="font-weight:800;font-size:14px">Welcome to Holiday Light Planner</div>
                 <div style="font-size:12px;opacity:0.7;margin-top:1px">Community light display map</div>
               </div>
             </div>
@@ -378,7 +378,7 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
   displays: DisplaySummary[] = [];
   loading = false;
   showTour = false;
-  welcomeDismissed = localStorage.getItem('luminary_welcome_dismissed') === '1';
+  welcomeDismissed = localStorage.getItem('hlp_welcome_dismissed') === '1';
 
   typeFilters = [
     { id: 'all', label: 'All' },
@@ -544,7 +544,7 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   dismissWelcome() {
     this.welcomeDismissed = true;
-    localStorage.setItem('luminary_welcome_dismissed', '1');
+    localStorage.setItem('hlp_welcome_dismissed', '1');
   }
 
   onTouchStart(e: TouchEvent) {

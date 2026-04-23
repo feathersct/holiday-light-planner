@@ -24,7 +24,7 @@ import { User, getInitials } from '../../models/display.model';
             <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M17.66 6.34l-1.41 1.41M6.34 17.66l-1.41 1.41" stroke="white" stroke-width="2"/>
           </svg>
         </div>
-        <span style="font-weight:800;font-size:17px;color:#0f172a;letter-spacing:-0.5px">Luminary</span>
+        <span style="font-weight:800;font-size:17px;color:#0f172a;letter-spacing:-0.5px">Holiday Light Planner</span>
       </div>
 
       <!-- Desktop nav links -->
