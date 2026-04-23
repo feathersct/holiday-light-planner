@@ -44,7 +44,7 @@ import { User, getInitials } from '../../models/display.model';
       </div>
 
       <!-- Auth -->
-      <div *ngIf="user; else signInBtn" style="display:flex;align-items:center;gap:10px">
+      <div *ngIf="user; else signInBtn" style="display:flex;align-items:center;gap:10px;margin-left:auto">
         <app-avatar [initials]="getInitials(user.name)" [size]="32"/>
         <button (click)="authAction.emit()"
                 style="background:none;border:1.5px solid #e5e7eb;padding:5px 12px;
@@ -56,7 +56,7 @@ import { User, getInitials } from '../../models/display.model';
         <button (click)="authAction.emit()"
                 style="background:#0f172a;color:white;border:none;padding:7px 18px;
                        border-radius:8px;font-size:13.5px;font-weight:600;cursor:pointer;
-                       display:flex;align-items:center;gap:6px">
+                       display:flex;align-items:center;gap:6px;margin-left:auto">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
             <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
           </svg>
