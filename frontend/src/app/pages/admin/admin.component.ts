@@ -1,10 +1,11 @@
 import { Component, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Report } from '../../models/display.model';
+import { Report, DisplaySummary } from '../../models/display.model';
 import { DisplayApiService } from '../../services/display-api.service';
 
 type StatusFilter = 'OPEN' | 'RESOLVED' | 'ALL';
+type AdminTab = 'reports' | 'displays';
 
 @Component({
   selector: 'app-admin',
@@ -17,98 +18,191 @@ type StatusFilter = 'OPEN' | 'RESOLVED' | 'ALL';
         <!-- Header -->
         <div style="margin-bottom:24px">
           <div style="font-weight:800;font-size:22px;color:#0f172a;margin-bottom:4px">
-            ⚙ Admin Dashboard
+            Admin Dashboard
           </div>
           <div style="font-size:13.5px;color:#64748b">Moderate reports and manage displays</div>
         </div>
 
-        <!-- Stats -->
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px">
-          <div *ngFor="let stat of stats()"
-               style="background:white;border-radius:12px;padding:16px;
-                      box-shadow:0 1px 6px rgba(0,0,0,0.06);text-align:center">
-            <div style="font-weight:800;font-size:24px;color:#0f172a">{{stat.value}}</div>
-            <div style="font-size:12px;color:#64748b;margin-top:2px">{{stat.label}}</div>
-          </div>
+        <!-- Top-level tabs -->
+        <div style="display:flex;background:white;border-radius:12px;padding:4px;margin-bottom:20px;
+                    box-shadow:0 1px 6px rgba(0,0,0,0.06)">
+          <button (click)="adminTab.set('reports')"
+                  [style.background]="adminTab() === 'reports' ? 'var(--accent)' : 'none'"
+                  [style.color]="adminTab() === 'reports' ? 'white' : '#64748b'"
+                  style="flex:1;border:none;padding:9px;border-radius:9px;font-size:13.5px;
+                         font-weight:600;cursor:pointer;transition:all 0.15s">
+            Reports
+          </button>
+          <button (click)="switchToDisplays()"
+                  [style.background]="adminTab() === 'displays' ? 'var(--accent)' : 'none'"
+                  [style.color]="adminTab() === 'displays' ? 'white' : '#64748b'"
+                  style="flex:1;border:none;padding:9px;border-radius:9px;font-size:13.5px;
+                         font-weight:600;cursor:pointer;transition:all 0.15s">
+            Displays
+          </button>
         </div>
 
-        <!-- Reports section -->
-        <div style="background:white;border-radius:16px;overflow:hidden;
-                    box-shadow:0 1px 6px rgba(0,0,0,0.06)">
-          <!-- Tab bar -->
-          <div style="display:flex;border-bottom:1px solid #f1f5f9">
-            <button *ngFor="let f of filters" (click)="setFilter(f.id)"
-                    [style.color]="statusFilter() === f.id ? 'var(--accent-dark)' : '#64748b'"
-                    [style.border-bottom]="statusFilter() === f.id ? '2px solid var(--accent)' : '2px solid transparent'"
-                    style="flex:1;border:none;border-top:none;border-left:none;border-right:none;
-                           background:none;padding:13px;font-size:13.5px;font-weight:600;
-                           cursor:pointer;transition:color 0.15s">
-              {{f.label}}
-              <span style="font-size:11px;color:#94a3b8;font-weight:500"> ({{getCount(f.id)}})</span>
-            </button>
+        <!-- ── Reports tab ── -->
+        <ng-container *ngIf="adminTab() === 'reports'">
+          <!-- Stats -->
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px">
+            <div *ngFor="let stat of stats()"
+                 style="background:white;border-radius:12px;padding:16px;
+                        box-shadow:0 1px 6px rgba(0,0,0,0.06);text-align:center">
+              <div style="font-weight:800;font-size:24px;color:#0f172a">{{stat.value}}</div>
+              <div style="font-size:12px;color:#64748b;margin-top:2px">{{stat.label}}</div>
+            </div>
           </div>
 
-          <!-- Loading -->
-          <div *ngIf="loading()" style="padding:48px;text-align:center;color:#94a3b8;font-size:14px">
+          <div style="background:white;border-radius:16px;overflow:hidden;
+                      box-shadow:0 1px 6px rgba(0,0,0,0.06)">
+            <div style="display:flex;border-bottom:1px solid #f1f5f9">
+              <button *ngFor="let f of filters" (click)="setFilter(f.id)"
+                      [style.color]="statusFilter() === f.id ? 'var(--accent-dark)' : '#64748b'"
+                      [style.border-bottom]="statusFilter() === f.id ? '2px solid var(--accent)' : '2px solid transparent'"
+                      style="flex:1;border:none;border-top:none;border-left:none;border-right:none;
+                             background:none;padding:13px;font-size:13.5px;font-weight:600;
+                             cursor:pointer;transition:color 0.15s">
+                {{f.label}}
+                <span style="font-size:11px;color:#94a3b8;font-weight:500"> ({{getCount(f.id)}})</span>
+              </button>
+            </div>
+
+            <div *ngIf="loadingReports()" style="padding:48px;text-align:center;color:#94a3b8;font-size:14px">
+              Loading…
+            </div>
+
+            <ng-container *ngIf="!loadingReports()">
+              <div *ngFor="let r of filteredReports(); let last = last"
+                   [style.border-bottom]="last ? 'none' : '1px solid #f8fafc'"
+                   style="padding:18px 20px">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+                  <div style="flex:1">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+                      <span [style.background]="getReasonBg(r.reason)"
+                            [style.color]="getReasonColor(r.reason)"
+                            style="font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:99px">
+                        {{r.reason}}
+                      </span>
+                      <span [style.background]="r.status === 'OPEN' ? '#fef3c7' : '#dcfce7'"
+                            [style.color]="r.status === 'OPEN' ? '#92400e' : '#166534'"
+                            style="font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:99px">
+                        {{r.status}}
+                      </span>
+                    </div>
+                    <div style="font-weight:600;font-size:14px;color:#0f172a;margin-bottom:3px">
+                      {{r.displayTitle}}
+                    </div>
+                    <div style="font-size:12.5px;color:#64748b;margin-bottom:6px">{{r.notes}}</div>
+                    <div style="font-size:11.5px;color:#9ca3af">{{r.createdAt}}</div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:7px;flex-shrink:0">
+                    <button *ngIf="r.status === 'OPEN'" (click)="resolve(r)"
+                            style="padding:6px 14px;border-radius:8px;font-size:12.5px;font-weight:600;
+                                   background:#22c55e;color:white;border:none;cursor:pointer">
+                      Resolve
+                    </button>
+                    <button *ngIf="r.status === 'OPEN'" (click)="dismiss(r)"
+                            style="padding:6px 14px;border-radius:8px;font-size:12.5px;font-weight:600;
+                                   background:none;border:1.5px solid #e2e8f0;color:#64748b;cursor:pointer">
+                      Dismiss
+                    </button>
+                    <span *ngIf="r.status !== 'OPEN'"
+                          style="font-size:12px;color:#94a3b8;text-align:center">Done</span>
+                  </div>
+                </div>
+              </div>
+              <div *ngIf="filteredReports().length === 0"
+                   style="padding:48px;text-align:center;color:#94a3b8;font-size:14px">
+                No reports to show
+              </div>
+            </ng-container>
+          </div>
+        </ng-container>
+
+        <!-- ── Displays tab ── -->
+        <ng-container *ngIf="adminTab() === 'displays'">
+          <div *ngIf="loadingDisplays()" style="padding:48px;text-align:center;color:#94a3b8;font-size:14px">
             Loading…
           </div>
 
-          <!-- Report rows -->
-          <ng-container *ngIf="!loading()">
-            <div *ngFor="let r of filteredReports(); let last = last"
+          <div *ngIf="!loadingDisplays()"
+               style="background:white;border-radius:16px;overflow:hidden;
+                      box-shadow:0 1px 6px rgba(0,0,0,0.06)">
+            <div *ngFor="let d of allDisplays(); let last = last"
                  [style.border-bottom]="last ? 'none' : '1px solid #f8fafc'"
-                 style="padding:18px 20px">
-              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
-                <div style="flex:1">
-                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-                    <span [style.background]="getReasonBg(r.reason)"
-                          [style.color]="getReasonColor(r.reason)"
-                          style="font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:99px">
-                      {{r.reason}}
+                 style="padding:16px 20px">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+                <div style="flex:1;min-width:0">
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+                    <span [style.background]="d.isActive ? '#dcfce7' : '#fee2e2'"
+                          [style.color]="d.isActive ? '#166534' : '#991b1b'"
+                          style="font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:99px;flex-shrink:0">
+                      {{d.isActive ? 'Active' : 'Inactive'}}
                     </span>
-                    <span [style.background]="r.status === 'OPEN' ? '#fef3c7' : '#dcfce7'"
-                          [style.color]="r.status === 'OPEN' ? '#92400e' : '#166534'"
-                          style="font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:99px">
-                      {{r.status}}
+                    <span style="font-weight:600;font-size:14px;color:#0f172a;
+                                 white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                      {{d.title}}
                     </span>
                   </div>
-                  <div style="font-weight:600;font-size:14px;color:#0f172a;margin-bottom:3px">
-                    {{r.displayTitle}}
+                  <div style="font-size:12px;color:#64748b">
+                    {{d.city}}{{d.state ? ', ' + d.state : ''}} · {{d.displayType}} · {{d.upvoteCount}} upvotes
                   </div>
-                  <div style="font-size:12.5px;color:#64748b;margin-bottom:6px">{{r.notes}}</div>
-                  <div style="font-size:11.5px;color:#9ca3af">{{r.createdAt}}</div>
                 </div>
-                <div style="display:flex;flex-direction:column;gap:7px;flex-shrink:0">
-                  <button *ngIf="r.status === 'OPEN'" (click)="resolve(r)"
-                          style="padding:6px 14px;border-radius:8px;font-size:12.5px;font-weight:600;
-                                 background:#22c55e;color:white;border:none;cursor:pointer">
-                    Resolve
+                <div style="display:flex;gap:7px;flex-shrink:0;align-items:center">
+                  <!-- Deactivate/Reactivate -->
+                  <button (click)="toggleActive(d)"
+                          [style.background]="d.isActive ? '#fef3c7' : '#dcfce7'"
+                          [style.color]="d.isActive ? '#92400e' : '#166534'"
+                          style="padding:5px 12px;border-radius:8px;font-size:12px;font-weight:600;
+                                 border:none;cursor:pointer">
+                    {{d.isActive ? 'Deactivate' : 'Reactivate'}}
                   </button>
-                  <button *ngIf="r.status === 'OPEN'" (click)="dismiss(r)"
-                          style="padding:6px 14px;border-radius:8px;font-size:12.5px;font-weight:600;
-                                 background:none;border:1.5px solid #e2e8f0;color:#64748b;cursor:pointer">
-                    Dismiss
-                  </button>
-                  <span *ngIf="r.status !== 'OPEN'"
-                        style="font-size:12px;color:#94a3b8;text-align:center">Done</span>
+
+                  <!-- Delete with confirmation -->
+                  <ng-container *ngIf="deletingDisplayId() !== d.id">
+                    <button (click)="confirmDisplayDelete(d.id)"
+                            style="padding:5px 12px;border-radius:8px;font-size:12px;font-weight:600;
+                                   background:#fee2e2;color:#dc2626;border:none;cursor:pointer">
+                      Delete
+                    </button>
+                  </ng-container>
+                  <ng-container *ngIf="deletingDisplayId() === d.id">
+                    <span style="font-size:12px;color:#374151;font-weight:600">Sure?</span>
+                    <button (click)="doDisplayDelete(d.id)"
+                            style="padding:5px 10px;border-radius:7px;font-size:12px;font-weight:700;
+                                   background:#dc2626;color:white;border:none;cursor:pointer">
+                      Yes
+                    </button>
+                    <button (click)="deletingDisplayId.set(null)"
+                            style="padding:5px 10px;border-radius:7px;font-size:12px;font-weight:600;
+                                   background:none;border:1.5px solid #e2e8f0;color:#64748b;cursor:pointer">
+                      No
+                    </button>
+                  </ng-container>
                 </div>
               </div>
             </div>
 
-            <div *ngIf="filteredReports().length === 0"
+            <div *ngIf="allDisplays().length === 0"
                  style="padding:48px;text-align:center;color:#94a3b8;font-size:14px">
-              No reports to show
+              No displays found
             </div>
-          </ng-container>
-        </div>
+          </div>
+        </ng-container>
+
       </div>
     </div>
   `
 })
 export class AdminComponent implements OnInit {
+  adminTab = signal<AdminTab>('reports');
   statusFilter = signal<StatusFilter>('OPEN');
   reports = signal<Report[]>([]);
-  loading = signal(true);
+  loadingReports = signal(true);
+  allDisplays = signal<DisplaySummary[]>([]);
+  loadingDisplays = signal(false);
+  deletingDisplayId = signal<number | null>(null);
 
   filters: { id: StatusFilter; label: string }[] = [
     { id: 'OPEN', label: 'Open' },
@@ -122,16 +216,31 @@ export class AdminComponent implements OnInit {
     this.loadReports();
   }
 
+  switchToDisplays() {
+    this.adminTab.set('displays');
+    if (this.allDisplays().length === 0) {
+      this.loadDisplays();
+    }
+  }
+
   setFilter(id: StatusFilter) {
     this.statusFilter.set(id);
     this.loadReports();
   }
 
   private loadReports() {
-    this.loading.set(true);
+    this.loadingReports.set(true);
     this.displayApi.getReports(this.statusFilter()).subscribe({
-      next: page => { this.reports.set(page.content); this.loading.set(false); },
-      error: () => this.loading.set(false),
+      next: page => { this.reports.set(page.content); this.loadingReports.set(false); },
+      error: () => this.loadingReports.set(false),
+    });
+  }
+
+  private loadDisplays() {
+    this.loadingDisplays.set(true);
+    this.displayApi.adminGetDisplays().subscribe({
+      next: page => { this.allDisplays.set(page.content); this.loadingDisplays.set(false); },
+      error: () => this.loadingDisplays.set(false),
     });
   }
 
@@ -162,6 +271,26 @@ export class AdminComponent implements OnInit {
   dismiss(r: Report) {
     this.displayApi.updateReport(r.id, 'DISMISSED').subscribe({
       next: updated => this.reports.update(list => list.map(x => x.id === r.id ? updated : x)),
+    });
+  }
+
+  toggleActive(d: DisplaySummary) {
+    this.displayApi.adminSetDisplayActive(d.id, !d.isActive).subscribe({
+      next: updated => this.allDisplays.update(list => list.map(x => x.id === d.id ? { ...x, isActive: updated.isActive } : x)),
+    });
+  }
+
+  confirmDisplayDelete(id: number) {
+    this.deletingDisplayId.set(id);
+  }
+
+  doDisplayDelete(id: number) {
+    this.displayApi.adminDeleteDisplay(id).subscribe({
+      next: () => {
+        this.allDisplays.update(list => list.filter(d => d.id !== id));
+        this.deletingDisplayId.set(null);
+      },
+      error: () => this.deletingDisplayId.set(null),
     });
   }
 
