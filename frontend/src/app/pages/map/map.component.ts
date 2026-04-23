@@ -480,7 +480,7 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
     L.control.zoom({ position: 'bottomright' }).addTo(this.map);
     this.tileLayer = L.tileLayer(cfg.url, { attribution: cfg.attr, maxZoom: 19 }).addTo(this.map);
     this.renderMarkers();
-    this.map.on('click', () => { this.selected = null; });
+    this.map.on('click', () => { this.selected = null; if (this.isMobile) this.snapKey = 'peek'; });
     this.map.on('moveend', () => this.loadDisplays());
     this.map.invalidateSize();
     this.loadDisplays();
