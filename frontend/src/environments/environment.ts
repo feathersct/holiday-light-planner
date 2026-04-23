@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://your-production-backend.com',
+  apiUrl: 'https://api.holidaylightplanner.com',
 };
