@@ -24,11 +24,11 @@ import { User, getInitials } from '../../models/display.model';
             <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M17.66 6.34l-1.41 1.41M6.34 17.66l-1.41 1.41" stroke="white" stroke-width="2"/>
           </svg>
         </div>
-        <span style="font-weight:800;font-size:17px;color:#0f172a;letter-spacing:-0.5px">Holiday Light Planner</span>
+        <span [style.font-size]="isMobile ? '14px' : '17px'" style="font-weight:800;color:#0f172a;letter-spacing:-0.5px">Holiday Light Planner</span>
       </div>
 
       <!-- Desktop nav links -->
-      <div style="display:flex;gap:2px;flex:1">
+      <div *ngIf="!isMobile" style="display:flex;gap:2px;flex:1">
         <button *ngFor="let link of navLinks"
                 (click)="navigate.emit(link.id)"
                 [style.background]="currentScreen === link.id ? '#f1f5f9' : 'transparent'"
@@ -66,6 +66,7 @@ import { User, getInitials } from '../../models/display.model';
 export class NavbarComponent {
   @Input() currentScreen = 'map';
   @Input() user: User | null = null;
+  @Input() isMobile = false;
 
   getInitials = getInitials;
 

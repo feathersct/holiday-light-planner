@@ -38,7 +38,7 @@ const TILE_OPTIONS = [
   ],
   template: `
     <!-- Navbar -->
-    <app-navbar [currentScreen]="screen()" [user]="authService.currentUser()"
+    <app-navbar [currentScreen]="screen()" [user]="authService.currentUser()" [isMobile]="isMobile"
       (navigate)="navigate($event)" (authAction)="onAuthAction()"/>
 
     <!-- Main content area (below 58px navbar, above 64px tab bar on mobile) -->
