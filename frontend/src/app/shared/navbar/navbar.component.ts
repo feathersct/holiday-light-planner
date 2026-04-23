@@ -24,7 +24,10 @@ import { User, getInitials } from '../../models/display.model';
             <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M17.66 6.34l-1.41 1.41M6.34 17.66l-1.41 1.41" stroke="white" stroke-width="2"/>
           </svg>
         </div>
-        <span [style.font-size]="isMobile ? '14px' : '17px'" style="font-weight:800;color:#0f172a;letter-spacing:-0.5px">Holiday Light Planner</span>
+        <div style="display:flex;flex-direction:column;line-height:1.1">
+          <span style="font-weight:800;font-size:14px;color:#0f172a;letter-spacing:-0.4px">Holiday Light</span>
+          <span style="font-weight:600;font-size:9px;color:#94a3b8;letter-spacing:0.12em;text-transform:uppercase">Planner</span>
+        </div>
       </div>
 
       <!-- Desktop nav links -->
