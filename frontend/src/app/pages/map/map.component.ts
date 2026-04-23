@@ -392,7 +392,7 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
   loading = false;
   showTour = false;
   welcomeDismissed = localStorage.getItem('hlp_welcome_dismissed') === '1';
-  locating = !!navigator.geolocation;
+  locating = !!navigator.geolocation && !sessionStorage.getItem('hlp_location_found');
 
   typeFilters = [
     { id: 'all', label: 'All' },
@@ -470,14 +470,22 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
     this.map.invalidateSize();
     this.loadDisplays();
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        pos => {
-          this.map?.setView([pos.coords.latitude, pos.coords.longitude], 13);
-          this.locating = false;
-        },
-        () => { this.locating = false; },
-        { timeout: 15000, maximumAge: 60000 }
-      );
+      const cached = sessionStorage.getItem('hlp_location_found');
+      if (cached) {
+        const [lat, lng] = cached.split(',').map(Number);
+        this.map?.setView([lat, lng], 13);
+      } else {
+        navigator.geolocation.getCurrentPosition(
+          pos => {
+            const { latitude, longitude } = pos.coords;
+            sessionStorage.setItem('hlp_location_found', `${latitude},${longitude}`);
+            this.map?.setView([latitude, longitude], 13);
+            this.locating = false;
+          },
+          () => { this.locating = false; },
+          { timeout: 15000, maximumAge: 60000 }
+        );
+      }
     }
   }
 
