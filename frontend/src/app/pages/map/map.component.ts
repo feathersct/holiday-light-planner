@@ -24,7 +24,19 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
   selector: 'app-map',
   standalone: true,
   imports: [CommonModule, FormsModule, DisplayCardComponent, TagBadgeComponent, UpvoteButtonComponent],
+  styles: [`@keyframes spin { to { transform: rotate(360deg); } }`],
   template: `
+    <!-- Locating overlay -->
+    <div *ngIf="locating" style="position:fixed;inset:0;z-index:2000;background:rgba(15,23,42,0.6);
+                display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px">
+      <div style="width:52px;height:52px;border-radius:50%;border:4px solid rgba(255,255,255,0.2);
+                  border-top-color:white;animation:spin 0.8s linear infinite"></div>
+      <div style="color:white;font-size:16px;font-weight:700">Finding your location…</div>
+      <button (click)="locating = false"
+              style="color:rgba(255,255,255,0.6);background:none;border:none;font-size:13px;
+                     cursor:pointer;margin-top:4px">Skip</button>
+    </div>
+
     <!-- ── Mobile layout ── -->
     <div *ngIf="isMobile" style="position:fixed;top:58px;left:0;right:0;bottom:64px;z-index:1">
       <div #mapContainer style="position:absolute;inset:0"></div>
@@ -380,6 +392,7 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
   loading = false;
   showTour = false;
   welcomeDismissed = localStorage.getItem('hlp_welcome_dismissed') === '1';
+  locating = !!navigator.geolocation;
 
   typeFilters = [
     { id: 'all', label: 'All' },
@@ -458,8 +471,12 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
     this.loadDisplays();
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        pos => this.map?.setView([pos.coords.latitude, pos.coords.longitude], 13),
-        () => {},
+        pos => {
+          this.map?.setView([pos.coords.latitude, pos.coords.longitude], 13);
+          this.locating = false;
+        },
+        () => { this.locating = false; },
+        { timeout: 8000 }
       );
     }
   }
