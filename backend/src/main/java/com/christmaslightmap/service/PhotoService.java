@@ -34,6 +34,9 @@ public class PhotoService {
     @Value("${app.r2.endpoint}")
     private String endpoint;
 
+    @Value("${app.r2.public-url}")
+    private String publicUrl;
+
     @Transactional
     public PhotoResponse uploadPhoto(Long displayId, Long userId, MultipartFile file) {
         var display = displayRepository.findById(displayId)
@@ -57,7 +60,7 @@ public class PhotoService {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "File upload failed");
         }
 
-        String url = endpoint + "/" + bucket + "/" + key;
+        String url = publicUrl + "/" + key;
         boolean isPrimary = display.getPhotoCount() == 0;
 
         DisplayPhoto photo = displayPhotoRepository.save(DisplayPhoto.builder()
