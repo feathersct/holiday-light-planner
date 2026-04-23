@@ -83,4 +83,24 @@ export class DisplayApiService {
     return this.http.patch<ApiResponse<Report>>(`${this.base}/admin/reports/${reportId}`, { status })
       .pipe(map(r => r.data));
   }
+
+  deleteDisplay(displayId: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/displays/${displayId}`);
+  }
+
+  adminGetDisplays(active?: boolean, page = 0, size = 50): Observable<PagedResponse<DisplaySummary>> {
+    let p = new HttpParams().set('page', page).set('size', size);
+    if (active !== undefined) p = p.set('active', active);
+    return this.http.get<ApiResponse<PagedResponse<DisplaySummary>>>(`${this.base}/admin/displays`, { params: p })
+      .pipe(map(r => r.data));
+  }
+
+  adminSetDisplayActive(displayId: number, active: boolean): Observable<DisplaySummary> {
+    return this.http.patch<ApiResponse<DisplaySummary>>(`${this.base}/admin/displays/${displayId}/status`, { active })
+      .pipe(map(r => r.data));
+  }
+
+  adminDeleteDisplay(displayId: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/admin/displays/${displayId}`);
+  }
 }

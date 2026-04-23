@@ -1,7 +1,9 @@
 package com.christmaslightmap.controller;
 
+import com.christmaslightmap.dto.request.AdminDisplayRequest;
 import com.christmaslightmap.dto.request.UpdateReportRequest;
 import com.christmaslightmap.dto.response.ApiResponse;
+import com.christmaslightmap.dto.response.DisplaySummaryResponse;
 import com.christmaslightmap.dto.response.PagedResponse;
 import com.christmaslightmap.dto.response.ReportResponse;
 import com.christmaslightmap.model.ReportStatus;
@@ -34,5 +36,28 @@ public class AdminController {
         @RequestBody UpdateReportRequest request
     ) {
         return ResponseEntity.ok(ApiResponse.success(adminService.updateReport(id, request)));
+    }
+
+    @GetMapping("/displays")
+    public ResponseEntity<ApiResponse<PagedResponse<DisplaySummaryResponse>>> getAllDisplays(
+        @RequestParam(required = false) Boolean active,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "50") int size
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(adminService.getAllDisplays(active, page, size)));
+    }
+
+    @PatchMapping("/displays/{id}/status")
+    public ResponseEntity<ApiResponse<DisplaySummaryResponse>> setDisplayActive(
+        @PathVariable Long id,
+        @RequestBody AdminDisplayRequest request
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(adminService.setDisplayActive(id, request.isActive())));
+    }
+
+    @DeleteMapping("/displays/{id}")
+    public ResponseEntity<ApiResponse<Void>> adminDeleteDisplay(@PathVariable Long id) {
+        adminService.adminDeleteDisplay(id);
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

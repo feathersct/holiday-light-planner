@@ -1,6 +1,8 @@
 package com.christmaslightmap.repository;
 
 import com.christmaslightmap.model.Display;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -87,4 +89,8 @@ public interface DisplayRepository extends JpaRepository<Display, Long> {
     List<Display> findByIdInWithTags(@Param("ids") List<Long> ids);
 
     List<Display> findByUserIdAndIsActiveTrue(Long userId);
+
+    Page<Display> findAllByOrderByCreatedAtDesc(Pageable pageable);
+
+    Page<Display> findByIsActiveOrderByCreatedAtDesc(boolean isActive, Pageable pageable);
 }

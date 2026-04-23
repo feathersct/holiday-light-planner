@@ -26,6 +26,7 @@ export interface DisplaySummary {
   displayType: string;
   primaryPhotoUrl: string | null;
   tags: Tag[];
+  isActive: boolean;
 }
 
 /** Returned by GET /displays/:id */

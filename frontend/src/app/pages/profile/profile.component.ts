@@ -64,10 +64,38 @@ import { DisplayApiService } from '../../services/display-api.service';
                style="text-align:center;padding:48px 0;color:#94a3b8">
             <div style="font-size:14px">You haven't submitted any displays yet</div>
           </div>
-          <app-display-card *ngFor="let d of myDisplays()" [display]="d"
-            [upvoted]="upvoteService.isUpvoted(d.id)" [showDetails]="true"
-            (select)="selectDisplay.emit(d)" (upvote)="upvoteService.toggle(d.id)"
-            (viewDetails)="selectDisplay.emit(d)"/>
+          <div *ngFor="let d of myDisplays()" style="position:relative;margin-bottom:12px">
+            <app-display-card [display]="d"
+              [upvoted]="upvoteService.isUpvoted(d.id)" [showDetails]="true"
+              (select)="selectDisplay.emit(d)" (upvote)="upvoteService.toggle(d.id)"
+              (viewDetails)="selectDisplay.emit(d)"/>
+
+            <!-- Delete button -->
+            <button *ngIf="deletingId() !== d.id" (click)="confirmDelete(d.id)"
+                    style="position:absolute;top:12px;right:12px;background:#fee2e2;border:none;
+                           color:#dc2626;border-radius:8px;padding:5px 10px;font-size:12px;
+                           font-weight:600;cursor:pointer">
+              Delete
+            </button>
+
+            <!-- Inline confirmation -->
+            <div *ngIf="deletingId() === d.id"
+                 style="position:absolute;top:12px;right:12px;background:white;border-radius:10px;
+                        padding:10px 14px;box-shadow:0 4px 16px rgba(0,0,0,0.15);
+                        display:flex;align-items:center;gap:10px;z-index:10">
+              <span style="font-size:12.5px;color:#374151;font-weight:600">Delete this display?</span>
+              <button (click)="doDelete(d.id)"
+                      style="background:#dc2626;color:white;border:none;border-radius:7px;
+                             padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer">
+                Yes, delete
+              </button>
+              <button (click)="cancelDelete()"
+                      style="background:none;border:1.5px solid #e2e8f0;border-radius:7px;
+                             padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;color:#64748b">
+                Cancel
+              </button>
+            </div>
+          </div>
         </div>
 
         <!-- Upvoted -->
@@ -125,5 +153,25 @@ export class ProfileComponent implements OnInit {
 
   totalUpvotes() {
     return this.myDisplays().reduce((sum, d) => sum + d.upvoteCount, 0);
+  }
+
+  deletingId = signal<number | null>(null);
+
+  confirmDelete(id: number) {
+    this.deletingId.set(id);
+  }
+
+  cancelDelete() {
+    this.deletingId.set(null);
+  }
+
+  doDelete(id: number) {
+    this.displayApi.deleteDisplay(id).subscribe({
+      next: () => {
+        this.myDisplays.update(list => list.filter(d => d.id !== id));
+        this.deletingId.set(null);
+      },
+      error: () => this.deletingId.set(null),
+    });
   }
 }
