@@ -1,6 +1,6 @@
 import {
   Component, OnInit, OnDestroy, AfterViewInit, Input, Output, EventEmitter,
-  ViewChild, ElementRef, signal, computed, effect, OnChanges, SimpleChanges
+  ViewChild, ElementRef, signal, computed, effect, OnChanges, SimpleChanges, NgZone
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -77,7 +77,7 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
                     box-shadow:0 -4px 24px rgba(0,0,0,0.12);flex:1;
                     display:flex;flex-direction:column;overflow:hidden">
           <!-- Handle -->
-          <div (touchstart)="onTouchStart($event)" (touchmove)="onTouchMove($event)" (touchend)="onTouchEnd($event)"
+          <div #handleEl
                style="padding:10px 0 8px;display:flex;flex-direction:column;
                       align-items:center;gap:10px;cursor:grab;flex-shrink:0">
             <div style="width:40px;height:4px;border-radius:99px;background:#cbd5e1"></div>
@@ -354,6 +354,7 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
 export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
   @ViewChild('mapContainer') mapContainer!: ElementRef;
   @ViewChild('sheetEl') sheetEl!: ElementRef;
+  @ViewChild('handleEl') handleEl!: ElementRef;
 
   @Input() user: User | null = null;
   @Input() upvotedIds: Set<number> = new Set();
@@ -387,7 +388,7 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
     { id: 'BOTH', label: 'Combined' },
   ];
 
-  constructor(private displayApi: DisplayApiService) {}
+  constructor(private displayApi: DisplayApiService, private zone: NgZone) {}
 
   private map: L.Map | null = null;
   private tileLayer: L.TileLayer | null = null;
@@ -417,6 +418,12 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
     this.displayApi.getTags().subscribe(tags => {
       this.availableTags = tags;
       this.allTags = tags.map(t => t.name);
+    });
+    this.zone.runOutsideAngular(() => {
+      const handle = this.handleEl.nativeElement;
+      handle.addEventListener('touchstart', this.onTouchStart.bind(this), { passive: true });
+      handle.addEventListener('touchmove', this.onTouchMove.bind(this), { passive: false });
+      handle.addEventListener('touchend', this.onTouchEnd.bind(this), { passive: true });
     });
   }
 
@@ -548,16 +555,15 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   onTouchStart(e: TouchEvent) {
-    e.stopPropagation();
     this.dragStartY = e.touches[0].clientY;
     this.dragStartSnap = SNAPS[this.snapKey];
     this.dragging = true;
+    if (this.sheetEl) this.sheetEl.nativeElement.style.transition = 'none';
   }
 
   onTouchMove(e: TouchEvent) {
     if (!this.dragging || !this.sheetEl) return;
     e.preventDefault();
-    e.stopPropagation();
     const dy = e.touches[0].clientY - this.dragStartY;
     const pct = this.dragStartSnap + (dy / window.innerHeight) * 100;
     const clamped = Math.max(SNAPS.full - 2, Math.min(98, pct));
@@ -566,7 +572,6 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   onTouchEnd(e: TouchEvent) {
     if (!this.dragging) return;
-    e.stopPropagation();
     this.dragging = false;
     const dy = e.changedTouches[0].clientY - this.dragStartY;
     const pct = this.dragStartSnap + (dy / window.innerHeight) * 100;
@@ -574,7 +579,13 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
     const nearest = vals.reduce((best, cur) =>
       Math.abs(cur[1] - pct) < Math.abs(best[1] - pct) ? cur : best
     )[0] as 'peek' | 'half' | 'full';
-    this.snapKey = nearest;
-    if (this.sheetEl) this.sheetEl.nativeElement.style.transform = '';
+    if (this.sheetEl) {
+      this.sheetEl.nativeElement.style.transition = 'transform 0.32s cubic-bezier(0.32,0.72,0,1)';
+      this.sheetEl.nativeElement.style.transform = `translateY(${SNAPS[nearest]}%)`;
+    }
+    this.zone.run(() => {
+      this.snapKey = nearest;
+      if (this.sheetEl) this.sheetEl.nativeElement.style.transform = '';
+    });
   }
 }
