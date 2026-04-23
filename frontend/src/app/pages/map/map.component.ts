@@ -71,14 +71,14 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
       <div #sheetEl
            [style.transform]="dragging ? '' : 'translateY(' + snaps[snapKey] + '%)'"
            [style.transition]="dragging ? 'none' : 'transform 0.32s cubic-bezier(0.32,0.72,0,1)'"
-           (touchstart)="onTouchStart($event)" (touchmove)="onTouchMove($event)" (touchend)="onTouchEnd($event)"
            style="position:absolute;left:0;right:0;bottom:0;height:96%;z-index:500;
                   display:flex;flex-direction:column">
         <div style="background:white;border-radius:18px 18px 0 0;
                     box-shadow:0 -4px 24px rgba(0,0,0,0.12);flex:1;
                     display:flex;flex-direction:column;overflow:hidden">
           <!-- Handle -->
-          <div style="padding:10px 0 8px;display:flex;flex-direction:column;
+          <div (touchstart)="onTouchStart($event)" (touchmove)="onTouchMove($event)" (touchend)="onTouchEnd($event)"
+               style="padding:10px 0 8px;display:flex;flex-direction:column;
                       align-items:center;gap:10px;cursor:grab;flex-shrink:0">
             <div style="width:40px;height:4px;border-radius:99px;background:#cbd5e1"></div>
             <div style="display:flex;justify-content:space-between;align-items:center;
@@ -548,6 +548,7 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   onTouchStart(e: TouchEvent) {
+    e.stopPropagation();
     this.dragStartY = e.touches[0].clientY;
     this.dragStartSnap = SNAPS[this.snapKey];
     this.dragging = true;
@@ -555,6 +556,8 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   onTouchMove(e: TouchEvent) {
     if (!this.dragging || !this.sheetEl) return;
+    e.preventDefault();
+    e.stopPropagation();
     const dy = e.touches[0].clientY - this.dragStartY;
     const pct = this.dragStartSnap + (dy / window.innerHeight) * 100;
     const clamped = Math.max(SNAPS.full - 2, Math.min(98, pct));
@@ -562,6 +565,8 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   onTouchEnd(e: TouchEvent) {
+    if (!this.dragging) return;
+    e.stopPropagation();
     this.dragging = false;
     const dy = e.changedTouches[0].clientY - this.dragStartY;
     const pct = this.dragStartSnap + (dy / window.innerHeight) * 100;
