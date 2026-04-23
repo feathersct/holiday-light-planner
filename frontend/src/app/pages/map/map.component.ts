@@ -54,6 +54,13 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
                  (keydown.enter)="searchLocation()"
                  placeholder="Search neighbourhood or city…"
                  style="flex:1;border:none;outline:none;font-size:14px;color:#0f172a;background:transparent"/>
+          <button (click)="locateMe()" title="Use my location"
+                  style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;flex-shrink:0">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5">
+              <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+              <circle cx="12" cy="12" r="8" stroke-dasharray="2 2"/>
+            </svg>
+          </button>
         </div>
         <div style="pointer-events:all;background:white;border-radius:12px;
                     box-shadow:0 4px 16px rgba(0,0,0,0.1);border:1px solid #e2e8f0;
@@ -167,11 +174,19 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
             <input [(ngModel)]="searchQuery"
                    (keydown.enter)="searchLocation()"
                    placeholder="Search by neighbourhood or city…"
-                   style="width:100%;padding:9px 12px 9px 33px;border:1.5px solid #e2e8f0;
+                   style="width:100%;padding:9px 36px 9px 33px;border:1.5px solid #e2e8f0;
                           border-radius:9px;font-size:13px;outline:none;background:#f8fafc;
                           box-sizing:border-box;color:#0f172a"
                    (focus)="$any($event.target).style.borderColor='var(--accent)'"
                    (blur)="$any($event.target).style.borderColor='#e2e8f0'"/>
+            <button (click)="locateMe()" title="Use my location"
+                    style="position:absolute;right:9px;top:50%;transform:translateY(-50%);
+                           background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5">
+                <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+                <circle cx="12" cy="12" r="8" stroke-dasharray="2 2"/>
+              </svg>
+            </button>
           </div>
         </div>
         <!-- Filter bar -->
@@ -560,6 +575,21 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
   setTypeFilter(type: string) {
     this.activeType = type;
     this.loadDisplays();
+  }
+
+  locateMe() {
+    if (!navigator.geolocation) return;
+    this.locating = true;
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        const { latitude, longitude } = pos.coords;
+        sessionStorage.setItem('hlp_location_found', `${latitude},${longitude}`);
+        this.map?.setView([latitude, longitude], 13);
+        this.locating = false;
+      },
+      () => { this.locating = false; },
+      { timeout: 15000, maximumAge: 0 }
+    );
   }
 
   searchLocation() {
