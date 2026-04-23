@@ -50,3 +50,6 @@ export $(grep -v '^#' .env | xargs) && mvn spring-boot:run
 cd frontend
 npm start
 ```
+
+## Agent Instructions when running subagent-driven-development
+When we do subagent-driven development, run implementation tasks on Haiku instead of Sonnet
