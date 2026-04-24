@@ -68,7 +68,6 @@ export interface ListingSummary {
 export interface Listing extends ListingSummary {
   submittedBy: number;
   submittedByName: string;
-  submittedByDisplayName: string | null;
   submittedByAvatarUrl: string | null;
   description: string;
   address: string;
