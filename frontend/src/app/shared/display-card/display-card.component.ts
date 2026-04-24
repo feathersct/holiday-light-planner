@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DisplaySummary, TYPE_COLORS, TYPE_LABELS } from '../../models/display.model';
+import { ListingSummary, CATEGORY_COLORS, CATEGORY_LABELS } from '../../models/listing.model';
 import { TagBadgeComponent } from '../tag-badge/tag-badge.component';
 import { UpvoteButtonComponent } from '../upvote-button/upvote-button.component';
 
@@ -60,15 +60,15 @@ import { UpvoteButtonComponent } from '../upvote-button/upvote-button.component'
   `
 })
 export class DisplayCardComponent {
-  @Input() display!: DisplaySummary;
+  @Input() display!: ListingSummary;
   @Input() isSelected = false;
   @Input() upvoted = false;
   @Input() showDetails = true;
 
-  @Output() select = new EventEmitter<DisplaySummary>();
-  @Output() viewDetails = new EventEmitter<DisplaySummary>();
+  @Output() select = new EventEmitter<ListingSummary>();
+  @Output() viewDetails = new EventEmitter<ListingSummary>();
   @Output() upvote = new EventEmitter<void>();
 
-  get typeColors() { return TYPE_COLORS[this.display.displayType] ?? TYPE_COLORS['DRIVE_BY']; }
-  get typeLabel() { return TYPE_LABELS[this.display.displayType] ?? this.display.displayType; }
+  get typeColors() { return CATEGORY_COLORS[this.display.category] ?? CATEGORY_COLORS['CHRISTMAS_LIGHTS']; }
+  get typeLabel() { return CATEGORY_LABELS[this.display.category] ?? this.display.category; }
 }

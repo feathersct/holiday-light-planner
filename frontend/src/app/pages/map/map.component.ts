@@ -1,16 +1,16 @@
 import {
   Component, OnInit, OnDestroy, AfterViewInit, Input, Output, EventEmitter,
-  ViewChild, ElementRef, signal, computed, effect, OnChanges, SimpleChanges, NgZone
+  ViewChild, ElementRef, signal, computed, effect, OnChanges, SimpleChanges, NgZone, inject
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as L from 'leaflet';
-import { DisplaySummary, Tag, TYPE_COLORS } from '../../models/display.model';
 import { DisplayCardComponent } from '../../shared/display-card/display-card.component';
 import { TagBadgeComponent } from '../../shared/tag-badge/tag-badge.component';
 import { UpvoteButtonComponent } from '../../shared/upvote-button/upvote-button.component';
-import { User } from '../../models/display.model';
-import { DisplayApiService } from '../../services/display-api.service';
+import { User } from '../../models/listing.model';
+import { ListingSummary, CATEGORY_COLORS, CATEGORY_LABELS, Category, formatDateRange, isUpcoming, Tag } from '../../models/listing.model';
+import { ListingApiService } from '../../services/listing-api.service';
 
 const TILE_LAYERS: Record<string, { url: string; attr: string }> = {
   light:    { url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',  attr: '© OpenStreetMap © CARTO' },
@@ -86,19 +86,19 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
             <div style="width:40px;height:4px;border-radius:99px;background:#cbd5e1;margin-bottom:8px"></div>
             <div style="width:100%;padding:0 16px 8px">
               <span style="font-size:13px;font-weight:700;color:#0f172a">
-                {{filtered.length}} {{filtered.length === 1 ? 'display' : 'displays'}}
+                {{filtered.length}} {{filtered.length === 1 ? 'listing' : 'listings'}}
               </span>
             </div>
-            <!-- Type filter chips -->
+            <!-- Category filter chips -->
             <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding:0 12px 10px;
                         display:flex;gap:6px;scrollbar-width:none;width:100%;box-sizing:border-box">
-              <button *ngFor="let t of typeFilters" (click)="setTypeFilter(t.id)"
-                      [style.border-color]="activeType === t.id ? '#0f172a' : '#e2e8f0'"
-                      [style.background]="activeType === t.id ? '#0f172a' : 'white'"
-                      [style.color]="activeType === t.id ? 'white' : '#475569'"
-                      style="padding:6px 14px;border-radius:99px;font-size:12.5px;font-weight:600;
-                             white-space:nowrap;cursor:pointer;border:1.5px solid;flex-shrink:0">
-                {{t.label}}
+              <button *ngFor="let cat of categoryOptions"
+                      (click)="selectedCategory = cat.id; loadDisplays()"
+                      [style.background]="selectedCategory === cat.id ? 'var(--accent)' : '#f1f5f9'"
+                      [style.color]="selectedCategory === cat.id ? 'white' : '#374151'"
+                      style="white-space:nowrap;border:none;padding:5px 12px;border-radius:20px;
+                             font-size:12.5px;font-weight:600;cursor:pointer;flex-shrink:0">
+                {{cat.label}}
               </button>
             </div>
           </div>
@@ -111,6 +111,11 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
                              border-radius:50%;width:24px;height:24px;cursor:pointer;
                              font-size:12px;display:flex;align-items:center;justify-content:center">✕</button>
               <div style="font-weight:700;font-size:14px;margin-bottom:2px;padding-right:28px;color:#0f172a">{{selected.title}}</div>
+              <span [style.background]="categoryColors[selected.category]?.bg"
+                    [style.color]="categoryColors[selected.category]?.text"
+                    style="font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:99px;display:inline-block;margin-bottom:4px">
+                {{categoryLabels[selected.category]}}
+              </span>
               <div style="font-size:12px;color:#94a3b8;margin-bottom:8px">📍 {{selected.city}}, {{selected.state}}</div>
               <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px">
                 <app-tag-badge *ngFor="let t of selected.tags.slice(0,3)" [tag]="t.name" [small]="true"/>
@@ -190,7 +195,7 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
         <div style="padding:8px 14px;background:white;border-bottom:1px solid #e9ecf0;
                     display:flex;justify-content:space-between;align-items:center">
           <span style="font-size:12px;color:#94a3b8;font-weight:500">
-            {{filtered.length}} {{filtered.length === 1 ? 'display' : 'displays'}}
+            {{filtered.length}} {{filtered.length === 1 ? 'listing' : 'listings'}}
           </span>
           <select [(ngModel)]="sortBy" style="font-size:12px;border:1.5px solid #e2e8f0;
                   border-radius:7px;padding:4px 8px;background:white;cursor:pointer;
@@ -247,8 +252,8 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
                   <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><line x1="8" y1="11" x2="14" y2="11"/>
                 </svg>
               </div>
-              <div style="font-weight:800;font-size:16px;color:#0f172a;margin-bottom:6px">No displays found</div>
-              <div style="font-size:13.5px;color:#64748b;line-height:1.6;max-width:280px;margin-bottom:20px">No displays match your current filters. Try broadening your search.</div>
+              <div style="font-weight:800;font-size:16px;color:#0f172a;margin-bottom:6px">No listings found</div>
+              <div style="font-size:13.5px;color:#64748b;line-height:1.6;max-width:280px;margin-bottom:20px">No listings match your current filters. Try broadening your search.</div>
               <button (click)="clearFilters()"
                       style="background:#0f172a;color:white;border:none;padding:10px 22px;
                              border-radius:10px;font-size:13.5px;font-weight:700;cursor:pointer">
@@ -301,6 +306,11 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
         </div>
         <div style="padding:12px 14px 14px">
           <div style="font-weight:700;font-size:14px;margin-bottom:3px;color:#0f172a">{{selected.title}}</div>
+          <span [style.background]="categoryColors[selected.category]?.bg"
+                [style.color]="categoryColors[selected.category]?.text"
+                style="font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:99px;display:inline-block;margin-bottom:4px">
+            {{categoryLabels[selected.category]}}
+          </span>
           <div style="font-size:11.5px;color:#94a3b8;margin-bottom:8px">📍 {{selected.city}}, {{selected.state}}</div>
           <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px">
             <app-tag-badge *ngFor="let t of selected.tags.slice(0,3)" [tag]="t.name" [small]="true"/>
@@ -323,15 +333,14 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
     <ng-template #desktopFilters>
       <div style="background:white;border-bottom:1px solid #e9ecf0">
         <div style="padding:10px 14px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-          <button *ngFor="let t of typeFilters" (click)="setTypeFilter(t.id)"
-                  [style.border-color]="activeType === t.id ? '#0f172a' : '#e2e8f0'"
-                  [style.background]="activeType === t.id ? '#0f172a' : 'white'"
-                  [style.color]="activeType === t.id ? 'white' : '#475569'"
-                  style="padding:5px 12px;border-radius:99px;font-size:12px;font-weight:600;
-                         cursor:pointer;border:1.5px solid;transition:all 0.12s">
-            {{t.label}}
+          <button *ngFor="let cat of categoryOptions"
+                  (click)="selectedCategory = cat.id; loadDisplays()"
+                  [style.background]="selectedCategory === cat.id ? 'var(--accent)' : '#f1f5f9'"
+                  [style.color]="selectedCategory === cat.id ? 'white' : '#374151'"
+                  style="white-space:nowrap;border:none;padding:5px 12px;border-radius:20px;
+                         font-size:12.5px;font-weight:600;cursor:pointer;flex-shrink:0">
+            {{cat.label}}
           </button>
-          <div style="width:1px;height:20px;background:#e2e8f0;margin:0 2px"></div>
           <button (click)="tagsOpen = !tagsOpen"
                   [style.border-color]="activeTags.length ? 'var(--accent)' : '#e2e8f0'"
                   [style.background]="activeTags.length ? 'var(--accent-bg)' : 'white'"
@@ -368,13 +377,12 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() upvotedIds: Set<number> = new Set();
   @Input() mapTiles = 'light';
 
-  @Output() viewDetails = new EventEmitter<DisplaySummary>();
+  @Output() viewDetails = new EventEmitter<ListingSummary>();
   @Output() needAuth = new EventEmitter<void>();
   @Output() upvoteToggle = new EventEmitter<number>();
 
   isMobile = window.innerWidth < 768;
-  selected: DisplaySummary | null = null;
-  activeType = 'all';
+  selected: ListingSummary | null = null;
   searchQuery = '';
   activeTags: string[] = [];
   sortBy = 'popular';
@@ -383,7 +391,20 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
   snaps = SNAPS;
   allTags: string[] = [];
   availableTags: Tag[] = [];
-  displays: DisplaySummary[] = [];
+  listings: ListingSummary[] = [];
+  selectedCategory: Category | '' = '';
+  categoryOptions: Array<{ id: Category | ''; label: string }> = [
+    { id: '', label: 'All' },
+    { id: 'CHRISTMAS_LIGHTS', label: 'Christmas Lights' },
+    { id: 'YARD_SALE',        label: 'Yard Sales' },
+    { id: 'ESTATE_SALE',      label: 'Estate Sales' },
+    { id: 'POPUP_MARKET',     label: 'Pop-up Markets' },
+    { id: 'FOOD_TRUCK',       label: 'Food Trucks' },
+  ];
+  categoryColors = CATEGORY_COLORS;
+  categoryLabels = CATEGORY_LABELS;
+  formatDateRange = formatDateRange;
+  isUpcoming = isUpcoming;
   loading = false;
   showTour = false;
   welcomeDismissed = localStorage.getItem('hlp_welcome_dismissed') === '1';
@@ -391,14 +412,8 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
   searching = false;
   searchNotFound = false;
 
-  typeFilters = [
-    { id: 'all', label: 'All' },
-    { id: 'DRIVE_BY', label: 'Drive-by' },
-    { id: 'WALK_THROUGH', label: 'Walk-through' },
-    { id: 'BOTH', label: 'Combined' },
-  ];
-
-  constructor(private displayApi: DisplayApiService, private zone: NgZone) {}
+  private listingApi = inject(ListingApiService);
+  constructor(private zone: NgZone) {}
 
   private map: L.Map | null = null;
   private tileLayer: L.TileLayer | null = null;
@@ -410,9 +425,8 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
   private dragStartY = 0;
   private dragStartSnap = SNAPS.peek;
 
-  get filtered(): DisplaySummary[] {
-    return this.displays.filter(d => {
-      if (this.activeType !== 'all' && d.displayType !== this.activeType) return false;
+  get filtered(): ListingSummary[] {
+    return this.listings.filter(d => {
       if (this.activeTags.length && !this.activeTags.every(t => d.tags.some(tag => tag.name === t))) return false;
       return true;
     }).sort((a, b) => this.sortBy === 'popular' ? b.upvoteCount - a.upvoteCount : b.id - a.id);
@@ -425,7 +439,7 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
   ngAfterViewInit() {
     setTimeout(() => this.initMap(), 100);
     window.addEventListener('resize', this.onResize.bind(this));
-    this.displayApi.getTags().subscribe(tags => {
+    this.listingApi.getTags().subscribe(tags => {
       this.availableTags = tags;
       this.allTags = tags.map(t => t.name);
     });
@@ -489,19 +503,19 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
   private renderMarkers() {
     this.markers.forEach(m => this.map!.removeLayer(m));
     this.markers = [];
-    this.displays.forEach(display => {
-      const tc = TYPE_COLORS[display.displayType] ?? TYPE_COLORS['DRIVE_BY'];
-      const label = display.upvoteCount >= 1000
-        ? (display.upvoteCount / 1000).toFixed(1) + 'k' : String(display.upvoteCount);
+    this.listings.forEach(listing => {
+      const color = CATEGORY_COLORS[listing.category]?.marker ?? '#64748b';
+      const label = listing.upvoteCount >= 1000
+        ? (listing.upvoteCount / 1000).toFixed(1) + 'k' : String(listing.upvoteCount);
       const icon = L.divIcon({
-        html: `<div style="width:42px;height:42px;border-radius:50%;background:${tc.dot};border:3px solid white;box-shadow:0 2px 10px rgba(0,0,0,0.22);display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:800;color:white;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:transform 0.15s">${label}</div>`,
+        html: `<div style="width:42px;height:42px;border-radius:50%;background:${color};border:3px solid white;box-shadow:0 2px 10px rgba(0,0,0,0.22);display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:800;color:white;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:transform 0.15s">${label}</div>`,
         className: '', iconSize: [42, 42], iconAnchor: [21, 21],
       });
-      const marker = L.marker([display.lat, display.lng], { icon })
+      const marker = L.marker([listing.lat, listing.lng], { icon })
         .addTo(this.map!)
         .on('click', (e: L.LeafletEvent) => {
           L.DomEvent.stopPropagation(e);
-          this.selectDisplay(display);
+          this.selectDisplay(listing);
         });
       this.markers.push(marker);
     });
@@ -512,15 +526,15 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
     const center = this.map.getCenter();
     const tagIds = this.activeTags.map(name => this.availableTags.find(t => t.name === name)?.id).filter((id): id is number => !!id);
     this.loading = true;
-    this.displayApi.search({
+    this.listingApi.search({
       lat: center.lat,
       lng: center.lng,
       radiusMiles: 10,
-      displayType: this.activeType !== 'all' ? this.activeType : undefined,
+      category: this.selectedCategory || undefined,
       tags: tagIds.length ? tagIds : undefined,
     }).subscribe({
       next: page => {
-        this.displays = page.content;
+        this.listings = page.content;
         this.loading = false;
         this.renderMarkers();
       },
@@ -528,7 +542,7 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
     });
   }
 
-  selectDisplay(display: DisplaySummary) {
+  selectDisplay(display: ListingSummary) {
     this.selected = display;
     this.map?.panTo([display.lat, display.lng], { animate: true, duration: 0.4 } as any);
     if (this.isMobile) this.snapKey = 'half';
@@ -541,7 +555,7 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   clearFilters() {
     this.activeTags = [];
-    this.activeType = 'all';
+    this.selectedCategory = '';
     this.loadDisplays();
   }
 
@@ -551,11 +565,6 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
     } else {
       this.activeTags = [...this.activeTags, tag];
     }
-    this.loadDisplays();
-  }
-
-  setTypeFilter(type: string) {
-    this.activeType = type;
     this.loadDisplays();
   }
 
