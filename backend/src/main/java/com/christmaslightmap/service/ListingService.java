@@ -144,6 +144,9 @@ public class ListingService {
         if (!listing.getUser().getId().equals(userId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not your listing");
         }
+        if (!listing.isActive()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Listing not found");
+        }
 
         Point location = GEOMETRY_FACTORY.createPoint(new Coordinate(request.getLng(), request.getLat()));
         location.setSRID(4326);
@@ -183,6 +186,10 @@ public class ListingService {
 
         DisplayPhoto photo = displayPhotoRepository.findById(photoId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Photo not found"));
+
+        if (!photo.getDisplay().getId().equals(listingId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Photo not found");
+        }
 
         boolean wasPrimary = photo.isPrimary();
         displayPhotoRepository.delete(photo);
