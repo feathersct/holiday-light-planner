@@ -5,6 +5,7 @@ import com.christmaslightmap.dto.response.ListingSummaryResponse;
 import com.christmaslightmap.dto.response.PagedResponse;
 import com.christmaslightmap.dto.response.TagResponse;
 import com.christmaslightmap.dto.request.CreateListingRequest;
+import com.christmaslightmap.dto.request.UpdateListingRequest;
 import com.christmaslightmap.model.Category;
 import com.christmaslightmap.model.DisplayPhoto;
 import com.christmaslightmap.model.Listing;
@@ -134,6 +135,65 @@ public class ListingService {
         }
         listing.setActive(false);
         listingRepository.save(listing);
+    }
+
+    @Transactional
+    public ListingResponse updateListing(Long userId, Long listingId, UpdateListingRequest request) {
+        Listing listing = listingRepository.findById(listingId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Listing not found"));
+        if (!listing.getUser().getId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not your listing");
+        }
+
+        Point location = GEOMETRY_FACTORY.createPoint(new Coordinate(request.getLng(), request.getLat()));
+        location.setSRID(4326);
+
+        var tags = new HashSet<>(tagRepository.findAllById(
+            request.getTagIds() != null ? request.getTagIds() : List.of()));
+
+        listing.setTitle(request.getTitle());
+        listing.setDescription(request.getDescription());
+        listing.setAddress(request.getAddress());
+        listing.setCity(request.getCity());
+        listing.setState(request.getState());
+        listing.setPostcode(request.getPostcode());
+        listing.setLocation(location);
+        listing.setCategory(request.getCategory());
+        listing.setStartDatetime(request.getStartDatetime());
+        listing.setEndDatetime(request.getEndDatetime());
+        listing.setBestTime(request.getBestTime());
+        listing.setDisplayType(request.getDisplayType());
+        listing.setCuisineType(request.getCuisineType());
+        listing.setOrganizer(request.getOrganizer());
+        listing.setWebsiteUrl(request.getWebsiteUrl());
+        listing.setPriceInfo(request.getPriceInfo());
+        listing.setTags(tags);
+
+        listing = listingRepository.save(listing);
+        return ListingResponse.from(listing, displayPhotoRepository.findByDisplay_Id(listingId));
+    }
+
+    @Transactional
+    public void deletePhoto(Long userId, Long listingId, Long photoId) {
+        Listing listing = listingRepository.findById(listingId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Listing not found"));
+        if (!listing.getUser().getId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not your listing");
+        }
+
+        DisplayPhoto photo = displayPhotoRepository.findById(photoId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Photo not found"));
+
+        boolean wasPrimary = photo.isPrimary();
+        displayPhotoRepository.delete(photo);
+
+        if (wasPrimary) {
+            List<DisplayPhoto> remaining = displayPhotoRepository.findByDisplay_Id(listingId);
+            if (!remaining.isEmpty()) {
+                remaining.get(0).setPrimary(true);
+                displayPhotoRepository.save(remaining.get(0));
+            }
+        }
     }
 
     public List<ListingSummaryResponse> getMyListings(Long userId) {
