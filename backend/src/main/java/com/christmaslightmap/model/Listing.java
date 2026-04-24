@@ -29,6 +29,7 @@ public class Listing {
     private String title;
 
     private String description;
+    @Column(name = "address", length = 500)
     private String address;
     private String city;
     private String state;
@@ -56,7 +57,7 @@ public class Listing {
     private DisplayType displayType;
 
     // Food Truck only
-    @Column(name = "cuisine_type")
+    @Column(name = "cuisine_type", length = 100)
     private String cuisineType;
 
     // Estate Sale only
@@ -64,7 +65,7 @@ public class Listing {
     private String organizer;
 
     // Christmas Lights + Food Truck only
-    @Column(name = "website_url")
+    @Column(name = "website_url", length = 500)
     private String websiteUrl;
 
     // Optional for all categories
