@@ -262,6 +262,10 @@ public class ListingService {
     }
 
     private ListingSummaryResponse buildSummary(Listing listing, String primaryPhotoUrl) {
+        String hostName = listing.getHostName();
+        String displayName = listing.getUser().getDisplayName();
+        String userName = listing.getUser().getName();
+        String resolvedHostName = hostName != null ? hostName : (displayName != null ? displayName : userName);
         return ListingSummaryResponse.builder()
             .id(listing.getId())
             .title(listing.getTitle())
@@ -282,11 +286,16 @@ public class ListingService {
             .cuisineType(listing.getCuisineType())
             .organizer(listing.getOrganizer())
             .websiteUrl(listing.getWebsiteUrl())
+            .resolvedHostName(resolvedHostName)
             .build();
     }
 
     private ListingSummaryResponse mapRowToSummary(Object[] row) {
         String categoryStr = (String) row[11];
+        String hostName = (String) row[18];
+        String displayName = (String) row[19];
+        String userName = (String) row[20];
+        String resolvedHostName = hostName != null ? hostName : (displayName != null ? displayName : userName);
         return ListingSummaryResponse.builder()
             .id(((Number) row[0]).longValue())
             .title((String) row[1])
@@ -297,7 +306,6 @@ public class ListingService {
             .upvoteCount(((Number) row[6]).intValue())
             .photoCount(((Number) row[7]).intValue())
             .displayType((String) row[8])
-            // row[9] is created_at — not included in summary DTO
             .primaryPhotoUrl((String) row[10])
             .category(categoryStr != null ? Category.valueOf(categoryStr) : null)
             .startDatetime(row[12] != null ? ((java.sql.Timestamp) row[12]).toLocalDateTime() : null)
@@ -306,6 +314,7 @@ public class ListingService {
             .cuisineType((String) row[15])
             .organizer((String) row[16])
             .websiteUrl((String) row[17])
+            .resolvedHostName(resolvedHostName)
             .tags(List.of())
             .build();
     }

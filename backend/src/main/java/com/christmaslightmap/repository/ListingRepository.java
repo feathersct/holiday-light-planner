@@ -19,8 +19,10 @@ public interface ListingRepository extends JpaRepository<Listing, Long> {
                (SELECT p.url FROM display_photos p
                 WHERE p.display_id = d.id AND p.is_primary = true LIMIT 1) AS primary_photo_url,
                d.category, d.start_datetime, d.end_datetime, d.price_info,
-               d.cuisine_type, d.organizer, d.website_url
+               d.cuisine_type, d.organizer, d.website_url,
+               d.host_name, u.display_name, u.name AS user_name
         FROM listings d
+        JOIN users u ON u.id = d.user_id
         WHERE d.is_active = true
           AND ST_DWithin(d.location, ST_MakePoint(:lng, :lat)::geography, :radiusMetres)
           AND (:category IS NULL OR d.category = :category)
@@ -60,8 +62,10 @@ public interface ListingRepository extends JpaRepository<Listing, Long> {
                (SELECT p.url FROM display_photos p
                 WHERE p.display_id = d.id AND p.is_primary = true LIMIT 1) AS primary_photo_url,
                d.category, d.start_datetime, d.end_datetime, d.price_info,
-               d.cuisine_type, d.organizer, d.website_url
+               d.cuisine_type, d.organizer, d.website_url,
+               d.host_name, u.display_name, u.name AS user_name
         FROM listings d
+        JOIN users u ON u.id = d.user_id
         WHERE d.is_active = true
           AND ST_DWithin(d.location, ST_MakePoint(:lng, :lat)::geography, :radiusMetres)
           AND (:category IS NULL OR d.category = :category)
