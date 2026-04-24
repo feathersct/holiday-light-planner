@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HostUser, HostListingsResponse, ListingSummary, CATEGORY_COLORS, CATEGORY_LABELS, formatDateRange, getInitials } from '../../models/listing.model';
+import { HostUser, HostListingsResponse, ListingSummary, getInitials } from '../../models/listing.model';
 import { ListingApiService } from '../../services/listing-api.service';
 import { DisplayCardComponent } from '../../shared/display-card/display-card.component';
 import { AvatarComponent } from '../../shared/avatar/avatar.component';
@@ -39,7 +39,7 @@ import { AvatarComponent } from '../../shared/avatar/avatar.component';
                         [initials]="getInitials(host.name)" [size]="60"/>
             <div>
               <div style="font-weight:800;font-size:19px;color:#0f172a">{{host.name}}</div>
-              <div style="font-size:13px;color:#64748b;margin-top:2px">
+              <div *ngIf="!loading()" style="font-size:13px;color:#64748b;margin-top:2px">
                 {{listings().length}} upcoming event{{listings().length === 1 ? '' : 's'}}
               </div>
             </div>
