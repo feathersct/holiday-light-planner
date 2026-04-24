@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {
   Listing, ListingSummary, Tag, Report,
-  PagedResponse, SearchParams, CreateListingRequest
+  PagedResponse, SearchParams, CreateListingRequest, UpdateListingRequest
 } from '../models/listing.model';
 import { environment } from '../../environments/environment';
 
@@ -36,6 +36,15 @@ export class ListingApiService {
   create(request: CreateListingRequest): Observable<Listing> {
     return this.http.post<ApiResponse<Listing>>(`${this.base}/listings`, request, { withCredentials: true })
       .pipe(map(r => r.data));
+  }
+
+  update(id: number, request: UpdateListingRequest): Observable<Listing> {
+    return this.http.patch<ApiResponse<Listing>>(`${this.base}/listings/${id}`, request, { withCredentials: true })
+      .pipe(map(r => r.data));
+  }
+
+  deletePhoto(listingId: number, photoId: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/listings/${listingId}/photos/${photoId}`, { withCredentials: true });
   }
 
   uploadPhoto(listingId: number, file: File): Observable<{ id: number; url: string; isPrimary: boolean }> {

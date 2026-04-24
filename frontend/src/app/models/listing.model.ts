@@ -138,6 +138,27 @@ export interface CreateListingRequest {
   websiteUrl: string;
 }
 
+export interface UpdateListingRequest {
+  category: Category;
+  title: string;
+  description: string;
+  address: string;
+  city: string;
+  state: string;
+  postcode: string;
+  lat: number;
+  lng: number;
+  startDatetime: string;
+  endDatetime: string;
+  priceInfo: string;
+  bestTime: string;
+  displayType: string;
+  tagIds: number[];
+  cuisineType: string;
+  organizer: string;
+  websiteUrl: string;
+}
+
 export const TAG_STYLES: Record<string, { bg: string; text: string }> = {
   'animated':        { bg: '#e0e7ff', text: '#3730a3' },
   'music-synced':    { bg: '#fce7f3', text: '#9d174d' },
