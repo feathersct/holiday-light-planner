@@ -141,7 +141,8 @@ import { ListingApiService } from '../../services/listing-api.service';
 
             <!-- Action buttons -->
             <div style="display:flex;gap:10px;margin-top:4px">
-              <button style="flex:1;padding:11px;border-radius:10px;font-size:13.5px;font-weight:600;
+              <button (click)="getDirections()"
+                      style="flex:1;padding:11px;border-radius:10px;font-size:13.5px;font-weight:600;
                              background:var(--accent);color:white;border:none;cursor:pointer">
                 Get Directions
               </button>
@@ -175,6 +176,12 @@ export class DisplayDetailComponent implements OnInit {
   categoryColors = CATEGORY_COLORS;
   categoryLabels = CATEGORY_LABELS;
   formatDateRange = formatDateRange;
+
+  getDirections() {
+    const d = this.fullDisplay();
+    if (!d) return;
+    window.open(`https://www.google.com/maps/dir/?api=1&destination=${d.lat},${d.lng}`, '_blank');
+  }
 
   onViewHost() {
     const d = this.fullDisplay();
