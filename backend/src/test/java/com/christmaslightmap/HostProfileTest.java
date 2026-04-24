@@ -109,4 +109,55 @@ class HostProfileTest extends BaseIntegrationTest {
         assertThat(response.getBody()).contains("Named Host");
         assertThat(response.getBody()).contains("submittedByAvatarUrl");
     }
+
+    @Test
+    void getListingById_usesHostNameOverDisplayName() {
+        User host = userRepository.save(User.builder()
+            .provider("facebook").providerId("fb-hostname1")
+            .email("hostname@test.com").name("OAuth Name")
+            .displayName("Profile Display Name")
+            .role(UserRole.USER).build());
+
+        Listing listing = listingRepository.save(Listing.builder()
+            .user(host).title("Override Event")
+            .city("Austin").state("TX")
+            .location(point(-97.7, 30.2))
+            .category(Category.FOOD_TRUCK)
+            .startDatetime(LocalDateTime.now().minusDays(1))
+            .endDatetime(LocalDateTime.now().plusDays(30))
+            .hostName("Per-Listing Name")
+            .build());
+
+        ResponseEntity<String> response = restTemplate.getForEntity(
+            "/api/v1/listings/" + listing.getId(), String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).contains("Per-Listing Name");
+        assertThat(response.getBody()).doesNotContain("Profile Display Name");
+    }
+
+    @Test
+    void getListingById_fallsBackToDisplayNameWhenNoHostName() {
+        User host = userRepository.save(User.builder()
+            .provider("facebook").providerId("fb-hostname2")
+            .email("hostname2@test.com").name("OAuth Name")
+            .displayName("Profile Display Name")
+            .role(UserRole.USER).build());
+
+        Listing listing = listingRepository.save(Listing.builder()
+            .user(host).title("Fallback Event")
+            .city("Austin").state("TX")
+            .location(point(-97.7, 30.2))
+            .category(Category.FOOD_TRUCK)
+            .startDatetime(LocalDateTime.now().minusDays(1))
+            .endDatetime(LocalDateTime.now().plusDays(30))
+            .build());
+
+        ResponseEntity<String> response = restTemplate.getForEntity(
+            "/api/v1/listings/" + listing.getId(), String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).contains("Profile Display Name");
+        assertThat(response.getBody()).doesNotContain("OAuth Name");
+    }
 }

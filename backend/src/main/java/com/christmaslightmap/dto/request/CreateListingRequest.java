@@ -31,4 +31,5 @@ public class CreateListingRequest {
     private String organizer;
     // Christmas Lights + Food Truck only
     private String websiteUrl;
+    private String hostName;
 }

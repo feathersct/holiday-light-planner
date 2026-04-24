@@ -120,6 +120,9 @@ public class ListingService {
             .organizer(request.getOrganizer())
             .websiteUrl(request.getWebsiteUrl())
             .priceInfo(request.getPriceInfo())
+            .hostName(request.getHostName() != null && !request.getHostName().isBlank()
+                ? request.getHostName().trim().substring(0, Math.min(request.getHostName().trim().length(), 100))
+                : null)
             .tags(tags)
             .build());
 
@@ -153,6 +156,9 @@ public class ListingService {
         listing.setOrganizer(request.getOrganizer());
         listing.setWebsiteUrl(request.getWebsiteUrl());
         listing.setPriceInfo(request.getPriceInfo());
+        listing.setHostName(request.getHostName() != null && !request.getHostName().isBlank()
+            ? request.getHostName().trim().substring(0, Math.min(request.getHostName().trim().length(), 100))
+            : null);
         listing.setTags(tags);
 
         listing = listingRepository.save(listing);
@@ -203,6 +209,9 @@ public class ListingService {
         listing.setOrganizer(request.getOrganizer());
         listing.setWebsiteUrl(request.getWebsiteUrl());
         listing.setPriceInfo(request.getPriceInfo());
+        listing.setHostName(request.getHostName() != null && !request.getHostName().isBlank()
+            ? request.getHostName().trim().substring(0, Math.min(request.getHostName().trim().length(), 100))
+            : null);
         listing.setTags(tags);
 
         listing = listingRepository.save(listing);

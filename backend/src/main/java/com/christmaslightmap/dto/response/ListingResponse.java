@@ -46,7 +46,7 @@ public class ListingResponse {
         return ListingResponse.builder()
             .id(listing.getId())
             .submittedBy(listing.getUser().getId())
-            .submittedByName(listing.getUser().getName())
+            .submittedByName(resolveHostName(listing))
             .submittedByAvatarUrl(listing.getUser().getAvatarUrl())
             .title(listing.getTitle())
             .description(listing.getDescription())

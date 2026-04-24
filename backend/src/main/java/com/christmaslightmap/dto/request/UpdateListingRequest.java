@@ -27,4 +27,5 @@ public class UpdateListingRequest {
     private String cuisineType;
     private String organizer;
     private String websiteUrl;
+    private String hostName;
 }
