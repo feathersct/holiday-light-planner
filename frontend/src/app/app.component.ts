@@ -73,7 +73,7 @@ const TILE_OPTIONS = [
         style="display:block;height:100%"
         (editListing)="onAdminEditListing($event)"/>
 
-      <app-host-profile *ngIf="screen() === 'host'"
+      <app-host-profile *ngIf="screen() === 'host' && viewingHost()"
         [host]="viewingHost()!"
         style="display:block;height:100%"
         (back)="navigate('map')"
