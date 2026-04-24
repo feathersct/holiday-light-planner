@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 public class ListingResponse {
     private Long id;
     private Long submittedBy;
+    private String submittedByName;
+    private String submittedByAvatarUrl;
     private String title;
     private String description;
     private String address;
@@ -43,6 +45,8 @@ public class ListingResponse {
         return ListingResponse.builder()
             .id(listing.getId())
             .submittedBy(listing.getUser().getId())
+            .submittedByName(listing.getUser().getName())
+            .submittedByAvatarUrl(listing.getUser().getAvatarUrl())
             .title(listing.getTitle())
             .description(listing.getDescription())
             .address(listing.getAddress())
