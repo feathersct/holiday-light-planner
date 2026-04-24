@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, effect, HostListener } from '@angular/core';
+import { Component, OnInit, signal, computed, effect, HostListener, inject } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ListingSummary, HostUser, InitialFilters, FilterState, Category, CATEGORY_LABELS } from './models/listing.model';
@@ -14,6 +14,7 @@ import { HostProfileComponent } from './pages/host-profile/host-profile.componen
 import { HostSearchComponent } from './pages/host-search/host-search.component';
 import { AuthService } from './services/auth.service';
 import { UpvoteService } from './services/upvote.service';
+import { ListingApiService } from './services/listing-api.service';
 
 type Screen = 'map' | 'submit' | 'profile' | 'admin' | 'host' | 'hosts';
 
@@ -174,6 +175,8 @@ export class AppComponent implements OnInit {
     private location: Location,
   ) {}
 
+  private listingApi = inject(ListingApiService);
+
   private parseInitialFilters(): InitialFilters | null {
     const params = new URLSearchParams(window.location.search);
     const result: InitialFilters = {};
@@ -197,7 +200,18 @@ export class AppComponent implements OnInit {
     else if (path.startsWith('/profile')) this.screen.set('profile');
     else if (path.startsWith('/admin')) this.screen.set('admin');
     else if (path.startsWith('/hosts')) this.location.replaceState('/');
-    else if (path.startsWith('/host')) this.location.replaceState('/');
+    else if (path.startsWith('/host/')) {
+      const handle = path.split('/')[2];
+      if (handle) {
+        this.listingApi.getHostListingsByHandle(handle).subscribe({
+          next: (resp: any) => {
+            this.viewingHost.set({ id: resp.user.id, name: resp.user.name, displayName: resp.user.displayName, avatarUrl: resp.user.avatarUrl, handle: resp.user.handle ?? null });
+            this.screen.set('host');
+          },
+          error: () => this.location.replaceState('/'),
+        });
+      }
+    }
   }
 
   @HostListener('window:resize')
@@ -238,7 +252,7 @@ export class AppComponent implements OnInit {
     this.selectedDisplay.set(null);
     this.viewingHost.set(host);
     this.screen.set('host');
-    this.location.replaceState('/host');
+    this.location.replaceState('/host/' + (host.handle ?? host.id));
   }
 
   onSubmitDone() {
