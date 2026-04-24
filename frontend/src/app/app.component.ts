@@ -56,13 +56,16 @@ const TILE_OPTIONS = [
 
       <app-submit *ngIf="screen() === 'submit'"
         [user]="authService.currentUser()"
+        [editListing]="editingListing()"
         style="display:block;height:100%"
-        (goHome)="screen.set('map')"/>
+        (goHome)="onSubmitDone()"
+        (cancel)="onSubmitCancel()"/>
 
       <app-profile *ngIf="screen() === 'profile'"
         [user]="authService.currentUser()"
         style="display:block;height:100%"
-        (selectDisplay)="openDetail($event)"/>
+        (selectDisplay)="openDetail($event)"
+        (editListing)="onEditListing($event)"/>
 
       <app-admin *ngIf="screen() === 'admin'"
         style="display:block;height:100%"/>
@@ -139,6 +142,7 @@ export class AppComponent implements OnInit {
   showSignIn = signal(false);
   showSettings = signal(false);
   selectedDisplay = signal<ListingSummary | null>(null);
+  editingListing = signal<ListingSummary | null>(null);
   isMobile = window.innerWidth < 768;
 
   accentOptions = ACCENT_OPTIONS;
@@ -168,6 +172,7 @@ export class AppComponent implements OnInit {
       this.showSignIn.set(true);
       return;
     }
+    if (screen !== 'submit') this.editingListing.set(null);
     this.screen.set(screen as Screen);
     this.showSettings.set(false);
     this.location.replaceState(screen === 'map' ? '/' : '/' + screen);
@@ -188,6 +193,21 @@ export class AppComponent implements OnInit {
 
   openDetail(display: ListingSummary) {
     this.selectedDisplay.set(display);
+  }
+
+  onSubmitDone() {
+    this.editingListing.set(null);
+    this.screen.set('map');
+  }
+
+  onSubmitCancel() {
+    this.editingListing.set(null);
+    this.screen.set('profile');
+  }
+
+  onEditListing(listing: ListingSummary) {
+    this.editingListing.set(listing);
+    this.screen.set('submit');
   }
 
   isUpvoted(id: number) {
