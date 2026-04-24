@@ -79,6 +79,7 @@ export class NavbarComponent {
   get navLinks() {
     return [
       { id: 'map', label: 'Explore' },
+      { id: 'hosts', label: 'Hosts' },
       ...(this.user ? [{ id: 'submit', label: 'Add Display' }] : []),
       ...(this.user ? [{ id: 'profile', label: 'My Displays' }] : []),
       ...(this.user?.role === 'ADMIN' ? [{ id: 'admin', label: '⚙ Admin' }] : []),
