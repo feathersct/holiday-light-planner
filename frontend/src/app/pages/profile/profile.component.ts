@@ -82,8 +82,8 @@ import { ListingApiService } from '../../services/listing-api.service';
                    style="flex:1;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:9px;
                           font-size:13.5px;color:#0f172a;outline:none;background:white"/>
             <button (click)="saveHandle()"
-                    [disabled]="savingHandle()"
-                    [style.opacity]="savingHandle() ? '0.6' : '1'"
+                    [disabled]="savingHandle() || handleLoading()"
+                    [style.opacity]="savingHandle() || handleLoading() ? '0.6' : '1'"
                     style="padding:9px 16px;background:var(--accent);color:white;border:none;
                            border-radius:9px;font-size:13px;font-weight:700;cursor:pointer">
               {{savingHandle() ? 'Saving…' : handleSaved() ? 'Saved!' : 'Save'}}
@@ -227,7 +227,11 @@ export class ProfileComponent implements OnInit {
     }
     if (this.user) {
       this.listingApi.getHostListings(this.user.id).subscribe({
-        next: resp => this.handle.set(resp.user.handle ?? ''),
+        next: resp => {
+          this.handle.set(resp.user.handle ?? '');
+          this.handleLoading.set(false);
+        },
+        error: () => this.handleLoading.set(false),
       });
     }
   }
@@ -248,6 +252,7 @@ export class ProfileComponent implements OnInit {
   savingHandle = signal(false);
   handleSaved = signal(false);
   handleError = signal('');
+  handleLoading = signal(true);
 
   confirmDelete(id: number) {
     this.deletingId.set(id);
@@ -282,7 +287,18 @@ export class ProfileComponent implements OnInit {
 
   saveHandle() {
     const h = this.handle().trim().toLowerCase();
-    if (!h || h.length < 3) return;
+    if (!h || h.length < 3) {
+      this.handleError.set('Handle must be at least 3 characters.');
+      return;
+    }
+    if (h.length > 30) {
+      this.handleError.set('Handle must be 30 characters or fewer.');
+      return;
+    }
+    if (!/^[a-z0-9-]+$/.test(h)) {
+      this.handleError.set('Handle may only contain lowercase letters, numbers, and hyphens.');
+      return;
+    }
     this.savingHandle.set(true);
     this.handleError.set('');
     this.listingApi.updateHandle(h).subscribe({
