@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TAG_STYLES } from '../../models/display.model';
+import { TAG_STYLES } from '../../models/listing.model';
 
 @Component({
   selector: 'app-tag-badge',

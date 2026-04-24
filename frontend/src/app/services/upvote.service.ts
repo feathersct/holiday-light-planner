@@ -1,9 +1,9 @@
 import { Injectable, signal, inject } from '@angular/core';
-import { DisplayApiService } from './display-api.service';
+import { ListingApiService } from './listing-api.service';
 
 @Injectable({ providedIn: 'root' })
 export class UpvoteService {
-  private displayApi = inject(DisplayApiService);
+  private listingApi = inject(ListingApiService);
   readonly upvotedIds = signal<Set<number>>(new Set());
 
   isUpvoted(id: number): boolean {
@@ -20,7 +20,7 @@ export class UpvoteService {
     if (wasUpvoted) {
       next.delete(id);
       this.upvotedIds.set(next);
-      this.displayApi.removeUpvote(id).subscribe({
+      this.listingApi.removeUpvote(id).subscribe({
         error: () => {
           const rollback = new Set(this.upvotedIds());
           rollback.add(id);
@@ -30,7 +30,7 @@ export class UpvoteService {
     } else {
       next.add(id);
       this.upvotedIds.set(next);
-      this.displayApi.upvote(id).subscribe({
+      this.listingApi.upvote(id).subscribe({
         error: () => {
           const rollback = new Set(this.upvotedIds());
           rollback.delete(id);

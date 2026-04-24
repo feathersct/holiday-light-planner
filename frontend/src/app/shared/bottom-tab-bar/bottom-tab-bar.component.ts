@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { User } from '../../models/display.model';
+import { User } from '../../models/listing.model';
 
 @Component({
   selector: 'app-bottom-tab-bar',

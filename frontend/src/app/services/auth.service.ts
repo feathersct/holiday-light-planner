@@ -1,6 +1,6 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { User } from '../models/display.model';
+import { User } from '../models/listing.model';
 import { environment } from '../../environments/environment';
 import { UpvoteService } from './upvote.service';
 

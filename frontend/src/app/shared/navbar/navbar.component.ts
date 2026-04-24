@@ -2,7 +2,7 @@ import { Component, Input, Output, EventEmitter, computed } from '@angular/core'
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AvatarComponent } from '../avatar/avatar.component';
-import { User, getInitials } from '../../models/display.model';
+import { User, getInitials } from '../../models/listing.model';
 
 @Component({
   selector: 'app-navbar',
