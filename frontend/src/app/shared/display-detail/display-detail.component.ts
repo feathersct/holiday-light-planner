@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Listing, ListingSummary, CATEGORY_COLORS, CATEGORY_LABELS, formatDateRange } from '../../models/listing.model';
+import { Listing, ListingSummary, HostUser, CATEGORY_COLORS, CATEGORY_LABELS, formatDateRange } from '../../models/listing.model';
 import { TagBadgeComponent } from '../tag-badge/tag-badge.component';
 import { UpvoteButtonComponent } from '../upvote-button/upvote-button.component';
 import { ListingApiService } from '../../services/listing-api.service';
@@ -66,7 +66,12 @@ import { ListingApiService } from '../../services/listing-api.service';
               <div style="font-weight:800;font-size:20px;color:#0f172a;line-height:1.2;margin-bottom:4px">
                 {{fullDisplay()!.title}}
               </div>
-              <div style="font-size:13px;color:#64748b">📍 {{fullDisplay()!.address}}</div>
+              <div style="font-size:13px;color:#64748b;margin-bottom:4px">📍 {{fullDisplay()!.address}}</div>
+              <div (click)="onViewHost()"
+                   style="font-size:13px;color:var(--accent);cursor:pointer;font-weight:600;
+                          display:inline-block">
+                By {{fullDisplay()!.submittedByName}}
+              </div>
             </div>
 
             <!-- Category badge + date range -->
@@ -160,6 +165,7 @@ export class DisplayDetailComponent implements OnInit {
   @Output() close = new EventEmitter<void>();
   @Output() upvote = new EventEmitter<void>();
   @Output() report = new EventEmitter<void>();
+  @Output() viewHost = new EventEmitter<HostUser>();
 
   loading = signal(true);
   fullDisplay = signal<Listing | null>(null);
@@ -169,6 +175,12 @@ export class DisplayDetailComponent implements OnInit {
   categoryColors = CATEGORY_COLORS;
   categoryLabels = CATEGORY_LABELS;
   formatDateRange = formatDateRange;
+
+  onViewHost() {
+    const d = this.fullDisplay();
+    if (!d) return;
+    this.viewHost.emit({ id: d.submittedBy, name: d.submittedByName, avatarUrl: d.submittedByAvatarUrl });
+  }
 
   ngOnInit() {
     this.listingApi.getById(this.summary.id).subscribe({
