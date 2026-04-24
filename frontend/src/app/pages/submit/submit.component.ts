@@ -1,7 +1,7 @@
-import { Component, Input, Output, EventEmitter, signal, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CATEGORY_LABELS, Category, Tag } from '../../models/listing.model';
+import { CATEGORY_LABELS, Category, Tag, Photo, Listing, ListingSummary, UpdateListingRequest } from '../../models/listing.model';
 import { ListingApiService } from '../../services/listing-api.service';
 import { TagBadgeComponent } from '../../shared/tag-badge/tag-badge.component';
 
@@ -22,7 +22,9 @@ import { TagBadgeComponent } from '../../shared/tag-badge/tag-badge.component';
               <polyline points="20 6 9 17 4 12"/>
             </svg>
           </div>
-          <div style="font-weight:800;font-size:24px;color:#0f172a;margin-bottom:10px">Listing Submitted!</div>
+          <div style="font-weight:800;font-size:24px;color:#0f172a;margin-bottom:10px">
+            {{editListing ? 'Listing Updated!' : 'Listing Submitted!'}}
+          </div>
           <div style="font-size:15px;color:#64748b;line-height:1.6;max-width:340px;margin:0 auto 32px">
             Your listing is now live on the community board!
           </div>
@@ -37,7 +39,9 @@ import { TagBadgeComponent } from '../../shared/tag-badge/tag-badge.component';
         <div *ngIf="step() !== 'done'">
           <!-- Header -->
           <div style="margin-bottom:28px">
-            <div style="font-weight:800;font-size:22px;color:#0f172a;margin-bottom:4px">Add a Listing</div>
+            <div style="font-weight:800;font-size:22px;color:#0f172a;margin-bottom:4px">
+              {{editListing ? 'Edit Listing' : 'Add a Listing'}}
+            </div>
             <div style="font-size:13.5px;color:#64748b">Share an event or attraction with the community</div>
           </div>
 
@@ -104,6 +108,13 @@ import { TagBadgeComponent } from '../../shared/tag-badge/tag-badge.component';
                          (blur)="$any($event.target).style.borderColor='#e2e8f0'"/>
                 </div>
               </div>
+            </div>
+            <div *ngIf="editListing" style="margin-top:8px;text-align:center">
+              <button (click)="cancel.emit()"
+                      style="background:none;border:none;color:#94a3b8;font-size:13px;
+                             cursor:pointer;text-decoration:underline">
+                Cancel editing
+              </button>
             </div>
           </div>
 
@@ -232,6 +243,28 @@ import { TagBadgeComponent } from '../../shared/tag-badge/tag-badge.component';
             <div style="font-weight:700;font-size:16px;color:#0f172a;margin-bottom:16px">
               3 of 3 — Add a Photo (optional)
             </div>
+            <!-- Existing photos (edit mode) -->
+            <div *ngIf="existingPhotos().length > 0" style="margin-bottom:16px">
+              <div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:8px">
+                Current Photos
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <div *ngFor="let p of existingPhotos()" style="position:relative">
+                  <img [src]="p.url"
+                       style="width:80px;height:80px;object-fit:cover;border-radius:8px;display:block"/>
+                  <button (click)="removeExistingPhoto(p.id)"
+                          style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;
+                                 background:#dc2626;color:white;border:none;border-radius:50%;
+                                 cursor:pointer;font-size:13px;line-height:1;display:flex;
+                                 align-items:center;justify-content:center">
+                    ×
+                  </button>
+                </div>
+              </div>
+              <div *ngIf="photoError" style="color:#dc2626;font-size:12px;margin-top:6px">
+                {{photoError}}
+              </div>
+            </div>
             <div style="border:2px dashed #d1d5db;border-radius:16px;padding:48px 24px;
                         text-align:center;background:white;cursor:pointer"
                  (click)="photoInput.click()"
@@ -269,7 +302,7 @@ import { TagBadgeComponent } from '../../shared/tag-badge/tag-badge.component';
                     [style.opacity]="(canAdvance() && !geocoding && !submitting) ? '1' : '0.5'"
                     style="flex:2;padding:13px;border-radius:12px;font-size:15px;font-weight:700;
                            background:var(--accent);color:white;border:none;cursor:pointer">
-              {{step() === 'photo' ? 'Done' : step() === 'details' ? (submitting ? 'Submitting…' : 'Submit & Continue') : (geocoding ? 'Locating…' : 'Continue')}}
+              {{step() === 'photo' ? 'Done' : step() === 'details' ? (submitting ? (editListing ? 'Updating…' : 'Submitting…') : (editListing ? 'Update & Continue' : 'Submit & Continue')) : (geocoding ? 'Locating…' : 'Continue')}}
             </button>
           </div>
         </div>
@@ -277,7 +310,7 @@ import { TagBadgeComponent } from '../../shared/tag-badge/tag-badge.component';
     </div>
   `
 })
-export class SubmitComponent {
+export class SubmitComponent implements OnInit {
   @Input() user: any = null;
   @Output() goHome = new EventEmitter<void>();
 
@@ -293,6 +326,11 @@ export class SubmitComponent {
   geocoding = false;
   error: string | null = null;
   createdListingId = signal<number | null>(null);
+  @Input() editListing: ListingSummary | null = null;
+  @Output() cancel = new EventEmitter<void>();
+
+  existingPhotos = signal<Photo[]>([]);
+  photoError: string | null = null;
 
   categoryOptions: Array<{ id: Category; label: string }> = [
     { id: 'CHRISTMAS_LIGHTS', label: '🎄 Christmas Lights' },
@@ -333,6 +371,42 @@ export class SubmitComponent {
     });
   }
 
+  private toDatetimeLocal(dt: string | null): string {
+    return dt ? dt.substring(0, 16) : '';
+  }
+
+  ngOnInit() {
+    if (this.editListing) {
+      const d = this.editListing;
+      this.form.category = d.category;
+      this.form.title = d.title;
+      this.form.description = '';
+      this.form.city = d.city;
+      this.form.state = d.state;
+      this.form.lat = d.lat;
+      this.form.lng = d.lng;
+      this.form.startDatetime = this.toDatetimeLocal(d.startDatetime);
+      this.form.endDatetime = this.toDatetimeLocal(d.endDatetime);
+      this.form.priceInfo = d.priceInfo ?? '';
+      this.form.displayType = d.displayType ?? 'DRIVE_BY';
+      this.form.cuisineType = d.cuisineType ?? '';
+      this.form.organizer = d.organizer ?? '';
+      this.form.websiteUrl = d.websiteUrl ?? '';
+      this.form.tagIds = d.tags.map(t => t.id);
+      this.createdListingId.set(d.id);
+
+      this.listingApi.getById(d.id).subscribe({
+        next: (full: Listing) => {
+          this.form.description = full.description ?? '';
+          this.form.address = full.address ?? '';
+          this.form.postcode = full.postcode ?? '';
+          this.form.bestTime = full.bestTime ?? '';
+          this.existingPhotos.set(full.photos ?? []);
+        },
+      });
+    }
+  }
+
   getStepIndex() {
     return this.steps.indexOf(this.step() as any);
   }
@@ -348,6 +422,17 @@ export class SubmitComponent {
   isTagSelected(tagName: string) {
     const tag = this.availableTags.find(t => t.name === tagName);
     return tag ? this.form.tagIds.includes(tag.id) : false;
+  }
+
+  removeExistingPhoto(photoId: number) {
+    const listingId = this.createdListingId()!;
+    this.listingApi.deletePhoto(listingId, photoId).subscribe({
+      next: () => {
+        this.existingPhotos.update(photos => photos.filter(p => p.id !== photoId));
+        this.photoError = null;
+      },
+      error: () => { this.photoError = 'Could not remove photo. Try again.'; },
+    });
   }
 
   canAdvance() {
@@ -403,7 +488,8 @@ export class SubmitComponent {
   private submitListing() {
     this.submitting = true;
     this.error = null;
-    this.listingApi.create({
+
+    const payload = {
       category: this.form.category as Category,
       title: this.form.title,
       description: this.form.description,
@@ -422,7 +508,13 @@ export class SubmitComponent {
       cuisineType: this.form.cuisineType,
       organizer: this.form.organizer,
       websiteUrl: this.form.websiteUrl,
-    }).subscribe({
+    };
+
+    const call = this.editListing
+      ? this.listingApi.update(this.editListing.id, payload as UpdateListingRequest)
+      : this.listingApi.create(payload);
+
+    call.subscribe({
       next: listing => {
         this.createdListingId.set(listing.id);
         this.submitting = false;
@@ -430,7 +522,7 @@ export class SubmitComponent {
       },
       error: () => {
         this.submitting = false;
-        this.error = 'Submission failed. Please try again.';
+        this.error = this.editListing ? 'Update failed. Please try again.' : 'Submission failed. Please try again.';
       },
     });
   }
