@@ -1,15 +1,15 @@
 package com.christmaslightmap.service;
 
 import com.christmaslightmap.dto.request.UpdateReportRequest;
-import com.christmaslightmap.dto.response.DisplaySummaryResponse;
+import com.christmaslightmap.dto.response.ListingSummaryResponse;
 import com.christmaslightmap.dto.response.PagedResponse;
 import com.christmaslightmap.dto.response.ReportResponse;
 import com.christmaslightmap.dto.response.TagResponse;
-import com.christmaslightmap.model.Display;
 import com.christmaslightmap.model.DisplayPhoto;
+import com.christmaslightmap.model.Listing;
 import com.christmaslightmap.model.ReportStatus;
 import com.christmaslightmap.repository.DisplayPhotoRepository;
-import com.christmaslightmap.repository.DisplayRepository;
+import com.christmaslightmap.repository.ListingRepository;
 import com.christmaslightmap.repository.ReportRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 public class AdminService {
 
     private final ReportRepository reportRepository;
-    private final DisplayRepository displayRepository;
+    private final ListingRepository listingRepository;
     private final DisplayPhotoRepository displayPhotoRepository;
 
     public PagedResponse<ReportResponse> getReports(ReportStatus status, int page, int size) {
@@ -44,9 +44,7 @@ public class AdminService {
             .collect(Collectors.toList());
 
         return PagedResponse.<ReportResponse>builder()
-            .content(content)
-            .page(page)
-            .size(size)
+            .content(content).page(page).size(size)
             .totalElements(reports.getTotalElements())
             .totalPages(reports.getTotalPages())
             .last(reports.isLast())
@@ -61,19 +59,19 @@ public class AdminService {
         return ReportResponse.from(reportRepository.save(report));
     }
 
-    public PagedResponse<DisplaySummaryResponse> getAllDisplays(Boolean active, int page, int size) {
+    public PagedResponse<ListingSummaryResponse> getAllListings(Boolean active, int page, int size) {
         var pageable = PageRequest.of(page, size);
-        Page<Display> displays = (active != null)
-            ? displayRepository.findByIsActiveOrderByCreatedAtDesc(active, pageable)
-            : displayRepository.findAllByOrderByCreatedAtDesc(pageable);
+        Page<Listing> listings = (active != null)
+            ? listingRepository.findByIsActiveOrderByCreatedAtDesc(active, pageable)
+            : listingRepository.findAllByOrderByCreatedAtDesc(pageable);
 
-        List<Long> ids = displays.getContent().stream().map(Display::getId).collect(Collectors.toList());
+        List<Long> ids = listings.getContent().stream().map(Listing::getId).collect(Collectors.toList());
         Map<Long, String> primaryUrls = ids.isEmpty() ? Map.of() :
             displayPhotoRepository.findPrimaryByDisplayIdIn(ids).stream()
                 .collect(Collectors.toMap(p -> p.getDisplay().getId(), DisplayPhoto::getUrl));
 
-        List<DisplaySummaryResponse> content = displays.getContent().stream()
-            .map(d -> DisplaySummaryResponse.builder()
+        List<ListingSummaryResponse> content = listings.getContent().stream()
+            .map(d -> ListingSummaryResponse.builder()
                 .id(d.getId())
                 .title(d.getTitle())
                 .city(d.getCity())
@@ -82,30 +80,31 @@ public class AdminService {
                 .lng(d.getLocation().getX())
                 .upvoteCount(d.getUpvoteCount())
                 .photoCount(d.getPhotoCount())
-                .displayType(d.getDisplayType().name())
+                .category(d.getCategory())
+                .displayType(d.getDisplayType() != null ? d.getDisplayType().name() : null)
                 .primaryPhotoUrl(primaryUrls.get(d.getId()))
                 .tags(d.getTags().stream().map(TagResponse::from).collect(Collectors.toList()))
                 .isActive(d.isActive())
+                .startDatetime(d.getStartDatetime())
+                .endDatetime(d.getEndDatetime())
                 .build())
             .collect(Collectors.toList());
 
-        return PagedResponse.<DisplaySummaryResponse>builder()
-            .content(content)
-            .page(page)
-            .size(size)
-            .totalElements(displays.getTotalElements())
-            .totalPages(displays.getTotalPages())
-            .last(displays.isLast())
+        return PagedResponse.<ListingSummaryResponse>builder()
+            .content(content).page(page).size(size)
+            .totalElements(listings.getTotalElements())
+            .totalPages(listings.getTotalPages())
+            .last(listings.isLast())
             .build();
     }
 
     @Transactional
-    public DisplaySummaryResponse setDisplayActive(Long displayId, boolean active) {
-        Display display = displayRepository.findById(displayId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Display not found"));
-        display.setActive(active);
-        Display saved = displayRepository.save(display);
-        return DisplaySummaryResponse.builder()
+    public ListingSummaryResponse setListingActive(Long listingId, boolean active) {
+        Listing listing = listingRepository.findById(listingId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Listing not found"));
+        listing.setActive(active);
+        Listing saved = listingRepository.save(listing);
+        return ListingSummaryResponse.builder()
             .id(saved.getId())
             .title(saved.getTitle())
             .city(saved.getCity())
@@ -114,16 +113,17 @@ public class AdminService {
             .lng(saved.getLocation().getX())
             .upvoteCount(saved.getUpvoteCount())
             .photoCount(saved.getPhotoCount())
-            .displayType(saved.getDisplayType().name())
+            .category(saved.getCategory())
+            .displayType(saved.getDisplayType() != null ? saved.getDisplayType().name() : null)
             .isActive(saved.isActive())
             .tags(saved.getTags().stream().map(TagResponse::from).collect(Collectors.toList()))
             .build();
     }
 
     @Transactional
-    public void adminDeleteDisplay(Long displayId) {
-        Display display = displayRepository.findById(displayId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Display not found"));
-        displayRepository.delete(display);
+    public void adminDeleteListing(Long listingId) {
+        Listing listing = listingRepository.findById(listingId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Listing not found"));
+        listingRepository.delete(listing);
     }
 }

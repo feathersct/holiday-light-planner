@@ -3,7 +3,7 @@ package com.christmaslightmap.controller;
 import com.christmaslightmap.dto.request.AdminDisplayRequest;
 import com.christmaslightmap.dto.request.UpdateReportRequest;
 import com.christmaslightmap.dto.response.ApiResponse;
-import com.christmaslightmap.dto.response.DisplaySummaryResponse;
+import com.christmaslightmap.dto.response.ListingSummaryResponse;
 import com.christmaslightmap.dto.response.PagedResponse;
 import com.christmaslightmap.dto.response.ReportResponse;
 import com.christmaslightmap.model.ReportStatus;
@@ -38,26 +38,26 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.success(adminService.updateReport(id, request)));
     }
 
-    @GetMapping("/displays")
-    public ResponseEntity<ApiResponse<PagedResponse<DisplaySummaryResponse>>> getAllDisplays(
+    @GetMapping("/listings")
+    public ResponseEntity<ApiResponse<PagedResponse<ListingSummaryResponse>>> getAllListings(
         @RequestParam(required = false) Boolean active,
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "50") int size
     ) {
-        return ResponseEntity.ok(ApiResponse.success(adminService.getAllDisplays(active, page, size)));
+        return ResponseEntity.ok(ApiResponse.success(adminService.getAllListings(active, page, size)));
     }
 
-    @PatchMapping("/displays/{id}/status")
-    public ResponseEntity<ApiResponse<DisplaySummaryResponse>> setDisplayActive(
+    @PatchMapping("/listings/{id}/status")
+    public ResponseEntity<ApiResponse<ListingSummaryResponse>> setListingActive(
         @PathVariable Long id,
         @RequestBody AdminDisplayRequest request
     ) {
-        return ResponseEntity.ok(ApiResponse.success(adminService.setDisplayActive(id, request.isActive())));
+        return ResponseEntity.ok(ApiResponse.success(adminService.setListingActive(id, request.isActive())));
     }
 
-    @DeleteMapping("/displays/{id}")
-    public ResponseEntity<ApiResponse<Void>> adminDeleteDisplay(@PathVariable Long id) {
-        adminService.adminDeleteDisplay(id);
+    @DeleteMapping("/listings/{id}")
+    public ResponseEntity<ApiResponse<Void>> adminDeleteListing(@PathVariable Long id) {
+        adminService.adminDeleteListing(id);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }
