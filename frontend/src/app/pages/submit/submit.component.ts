@@ -253,6 +253,18 @@ import { TagBadgeComponent } from '../../shared/tag-badge/tag-badge.component';
                        style="width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;
                               font-size:14px;color:#0f172a;background:white;box-sizing:border-box;outline:none"/>
               </div>
+              <!-- Host name override (all categories) -->
+              <div>
+                <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px">
+                  Host name for this listing
+                  <span style="font-weight:400;color:#94a3b8">(optional — overrides your profile name)</span>
+                </label>
+                <input [(ngModel)]="form.hostName" placeholder="Leave blank to use your profile name"
+                       style="width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;
+                              font-size:14px;color:#0f172a;background:white;box-sizing:border-box;outline:none"
+                       (focus)="$any($event.target).style.borderColor='var(--accent)'"
+                       (blur)="$any($event.target).style.borderColor='#e2e8f0'"/>
+              </div>
             </div>
           </div>
 
