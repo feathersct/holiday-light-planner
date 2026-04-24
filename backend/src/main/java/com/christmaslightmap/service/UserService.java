@@ -1,5 +1,6 @@
 package com.christmaslightmap.service;
 
+import com.christmaslightmap.dto.request.UpdateDisplayNameRequest;
 import com.christmaslightmap.dto.response.*;
 import com.christmaslightmap.model.DisplayPhoto;
 import com.christmaslightmap.model.Listing;
@@ -80,5 +81,14 @@ public class UserService {
             .limit(10)
             .map(HostUserResponse::from)
             .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public HostUserResponse updateDisplayName(Long userId, UpdateDisplayNameRequest request) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        String name = request.getDisplayName();
+        user.setDisplayName((name == null || name.isBlank()) ? null : name.trim().substring(0, Math.min(name.trim().length(), 100)));
+        return HostUserResponse.from(userRepository.save(user));
     }
 }

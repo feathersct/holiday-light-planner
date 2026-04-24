@@ -112,4 +112,33 @@ class HostSearchTest extends BaseIntegrationTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).contains("[]");
     }
+
+    @Test
+    void updateDisplayName_savesValueAndReturnsIt() {
+        User host = userRepository.save(User.builder()
+            .provider("facebook").providerId("fb-update1")
+            .email("update@test.com").name("Update User")
+            .role(UserRole.USER).build());
+
+        host.setDisplayName("My Business Name");
+        userRepository.save(host);
+
+        User found = userRepository.findById(host.getId()).orElseThrow();
+        assertThat(found.getDisplayName()).isEqualTo("My Business Name");
+    }
+
+    @Test
+    void updateDisplayName_emptyStringStoresNull() {
+        User host = userRepository.save(User.builder()
+            .provider("facebook").providerId("fb-update2")
+            .email("update2@test.com").name("Clear Name User")
+            .displayName("Old Name")
+            .role(UserRole.USER).build());
+
+        host.setDisplayName(null);
+        userRepository.save(host);
+
+        User found = userRepository.findById(host.getId()).orElseThrow();
+        assertThat(found.getDisplayName()).isNull();
+    }
 }
