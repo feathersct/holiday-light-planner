@@ -11,10 +11,11 @@ import { SubmitComponent } from './pages/submit/submit.component';
 import { ProfileComponent } from './pages/profile/profile.component';
 import { AdminComponent } from './pages/admin/admin.component';
 import { HostProfileComponent } from './pages/host-profile/host-profile.component';
+import { HostSearchComponent } from './pages/host-search/host-search.component';
 import { AuthService } from './services/auth.service';
 import { UpvoteService } from './services/upvote.service';
 
-type Screen = 'map' | 'submit' | 'profile' | 'admin' | 'host';
+type Screen = 'map' | 'submit' | 'profile' | 'admin' | 'host' | 'hosts';
 
 const ACCENT_OPTIONS = [
   { id: 'amber',  label: 'Warm Amber',  color: '#f59e0b' },
@@ -35,7 +36,7 @@ const TILE_OPTIONS = [
     CommonModule, FormsModule,
     NavbarComponent, BottomTabBarComponent,
     SignInModalComponent, DisplayDetailComponent,
-    MapComponent, SubmitComponent, ProfileComponent, AdminComponent, HostProfileComponent,
+    MapComponent, SubmitComponent, ProfileComponent, AdminComponent, HostProfileComponent, HostSearchComponent,
   ],
   template: `
     <!-- Navbar -->
@@ -78,6 +79,10 @@ const TILE_OPTIONS = [
         style="display:block;height:100%"
         (back)="navigate('map')"
         (viewDetails)="openDetail($event)"/>
+
+      <app-host-search *ngIf="screen() === 'hosts'"
+        style="display:block;height:100%"
+        (viewHost)="openHostProfile($event)"/>
     </div>
 
     <!-- Mobile bottom tab bar -->
@@ -172,6 +177,7 @@ export class AppComponent implements OnInit {
     if (path.startsWith('/submit')) this.screen.set('submit');
     else if (path.startsWith('/profile')) this.screen.set('profile');
     else if (path.startsWith('/admin')) this.screen.set('admin');
+    else if (path.startsWith('/hosts')) this.location.replaceState('/');
     else if (path.startsWith('/host')) this.location.replaceState('/');
   }
 
