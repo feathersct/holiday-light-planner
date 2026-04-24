@@ -14,10 +14,10 @@ input, select, textarea, button { font-family: inherit; }
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
 
 :root {
-  --accent:        #0d9488;
-  --accent-bg:     #f0fdfa;
-  --accent-dark:   #0f766e;
-  --accent-shadow: rgba(13,148,136,0.18);
+  --accent:        #e8531a;
+  --accent-bg:     #fff4ef;
+  --accent-dark:   #c94410;
+  --accent-shadow: rgba(232,83,26,0.18);
 }
 
 .leaflet-control-attribution { font-size: 9px !important; }

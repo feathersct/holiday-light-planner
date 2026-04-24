@@ -14,11 +14,11 @@ export const CATEGORY_LABELS: Record<Category, string> = {
 };
 
 export const CATEGORY_COLORS: Record<Category, { bg: string; text: string; dot: string; marker: string }> = {
-  CHRISTMAS_LIGHTS: { bg: '#dcfce7', text: '#166534', dot: '#22c55e', marker: '#22c55e' },
-  YARD_SALE:        { bg: '#fef9c3', text: '#713f12', dot: '#eab308', marker: '#eab308' },
-  ESTATE_SALE:      { bg: '#fce7f3', text: '#9d174d', dot: '#ec4899', marker: '#ec4899' },
-  POPUP_MARKET:     { bg: '#ede9fe', text: '#4c1d95', dot: '#8b5cf6', marker: '#8b5cf6' },
-  FOOD_TRUCK:       { bg: '#ffedd5', text: '#9a3412', dot: '#f97316', marker: '#f97316' },
+  CHRISTMAS_LIGHTS: { bg: '#fee2e2', text: '#991b1b', dot: '#ef4444', marker: '#ef4444' },
+  YARD_SALE:        { bg: '#dcfce7', text: '#166534', dot: '#22c55e', marker: '#22c55e' },
+  ESTATE_SALE:      { bg: '#f3e8ff', text: '#6b21a8', dot: '#a855f7', marker: '#a855f7' },
+  POPUP_MARKET:     { bg: '#dbeafe', text: '#1e40af', dot: '#3b82f6', marker: '#3b82f6' },
+  FOOD_TRUCK:       { bg: '#fff7ed', text: '#9a3412', dot: '#f97316', marker: '#f97316' },
 };
 
 export interface Tag {

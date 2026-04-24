@@ -17,16 +17,16 @@ import { User, getInitials } from '../../models/listing.model';
       <div (click)="navigate.emit('map')"
            style="display:flex;align-items:center;gap:9px;cursor:pointer;margin-right:28px">
         <div style="width:30px;height:30px;border-radius:8px;
-                    background:linear-gradient(135deg,var(--accent) 0%,#ef4444 100%);
+                    background:var(--accent);
                     display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          <svg width="18" height="18" viewBox="0 0 64 64" fill="none">
-            <path d="M32 10C24.27 10 18 16.27 18 24c0 11.25 14 30 14 30s14-18.75 14-30c0-7.73-6.27-14-14-14z" fill="white"/>
-            <circle cx="32" cy="24" r="5.5" fill="rgba(255,255,255,0.4)"/>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+            <circle cx="12" cy="9" r="2.5" fill="rgba(255,255,255,0.35)"/>
           </svg>
         </div>
         <div style="display:flex;flex-direction:column;line-height:1.1">
-          <span style="font-weight:800;font-size:14px;color:#0f172a;letter-spacing:-0.4px">Event</span>
-          <span style="font-weight:600;font-size:9px;color:#94a3b8;letter-spacing:0.12em;text-transform:uppercase">Mapster</span>
+          <span style="font-weight:800;font-size:14px;color:#0f172a;letter-spacing:-0.4px">Event Mapster</span>
+          <span style="font-weight:600;font-size:9px;color:#94a3b8;letter-spacing:0.12em;text-transform:uppercase">eventmapster.com</span>
         </div>
       </div>
 
