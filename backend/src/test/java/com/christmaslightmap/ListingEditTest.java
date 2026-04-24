@@ -125,4 +125,15 @@ class ListingEditTest extends BaseIntegrationTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
+
+    @Test
+    void update_unauthenticated_returns401() {
+        ResponseEntity<String> response = restTemplate.exchange(
+            "/api/v1/listings/99999",
+            HttpMethod.PATCH,
+            new HttpEntity<>(baseUpdateRequest()),
+            String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
 }
