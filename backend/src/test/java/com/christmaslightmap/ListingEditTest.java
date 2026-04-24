@@ -65,7 +65,7 @@ class ListingEditTest extends BaseIntegrationTest {
     void update_owner_returnsUpdatedListing() {
         User owner = userRepository.save(User.builder()
             .provider("facebook").providerId("fb1").email("owner@test.com")
-            .name("Owner").role(UserRole.USER).build());
+            .name("Owner").role(UserRole.USER).handle("listing-edit-1").build());
 
         Listing listing = listingRepository.save(Listing.builder()
             .user(owner).title("Original Title").location(point(-104.979, 39.752))
@@ -90,10 +90,10 @@ class ListingEditTest extends BaseIntegrationTest {
     void update_nonOwner_returns403() {
         User owner = userRepository.save(User.builder()
             .provider("facebook").providerId("fb2").email("owner2@test.com")
-            .name("Owner2").role(UserRole.USER).build());
+            .name("Owner2").role(UserRole.USER).handle("listing-edit-2").build());
         User other = userRepository.save(User.builder()
             .provider("facebook").providerId("fb3").email("other@test.com")
-            .name("Other").role(UserRole.USER).build());
+            .name("Other").role(UserRole.USER).handle("listing-edit-3").build());
 
         Listing listing = listingRepository.save(Listing.builder()
             .user(owner).title("Owner Listing").location(point(-104.979, 39.752))
@@ -115,7 +115,7 @@ class ListingEditTest extends BaseIntegrationTest {
     void update_notFound_returns404() {
         User user = userRepository.save(User.builder()
             .provider("facebook").providerId("fb4").email("u4@test.com")
-            .name("User4").role(UserRole.USER).build());
+            .name("User4").role(UserRole.USER).handle("listing-edit-4").build());
 
         HttpEntity<UpdateListingRequest> entity = new HttpEntity<>(baseUpdateRequest(), authHeaders(user));
 

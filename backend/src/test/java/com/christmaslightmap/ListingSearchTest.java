@@ -53,7 +53,7 @@ class ListingSearchTest extends BaseIntegrationTest {
     void search_withinRadius_returnsOnlyNearbyListings() {
         User user = userRepository.save(User.builder()
             .provider("google").providerId("g1").email("u@test.com")
-            .name("User").role(UserRole.USER).build());
+            .name("User").role(UserRole.USER).handle("listing-search-1").build());
 
         listingRepository.save(baseListing(user, "Seattle Listing 1", point(-122.3321, 47.6062)).build());
         listingRepository.save(baseListing(user, "Seattle Listing 2", point(-122.30, 47.61)).build());
@@ -82,7 +82,7 @@ class ListingSearchTest extends BaseIntegrationTest {
     void search_expiredListing_notReturnedByDefault() {
         User user = userRepository.save(User.builder()
             .provider("google").providerId("g2").email("u2@test.com")
-            .name("User2").role(UserRole.USER).build());
+            .name("User2").role(UserRole.USER).handle("listing-search-2").build());
 
         listingRepository.save(Listing.builder()
             .user(user).title("Expired Yard Sale").location(point(-122.3321, 47.6062))
@@ -102,7 +102,7 @@ class ListingSearchTest extends BaseIntegrationTest {
     void search_categoryFilter_returnsOnlyMatchingCategory() {
         User user = userRepository.save(User.builder()
             .provider("google").providerId("g3").email("u3@test.com")
-            .name("User3").role(UserRole.USER).build());
+            .name("User3").role(UserRole.USER).handle("listing-search-3").build());
 
         listingRepository.save(baseListing(user, "Xmas Lights", point(-122.3321, 47.6062)).build());
         listingRepository.save(baseListing(user, "Yard Sale", point(-122.3321, 47.6062))

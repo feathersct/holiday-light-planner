@@ -39,7 +39,7 @@ class HostSearchTest extends BaseIntegrationTest {
             .provider("facebook").providerId("fb-search1")
             .email("bbq@test.com").name("Joe Smith")
             .displayName("Joe's BBQ Truck")
-            .role(UserRole.USER).build());
+            .role(UserRole.USER).handle("host-search-1").build());
 
         listingRepository.save(Listing.builder()
             .user(host).title("BBQ Stop")
@@ -63,7 +63,7 @@ class HostSearchTest extends BaseIntegrationTest {
         User host = userRepository.save(User.builder()
             .provider("facebook").providerId("fb-search2")
             .email("sarah@test.com").name("Sarah's Market")
-            .role(UserRole.USER).build());
+            .role(UserRole.USER).handle("host-search-2").build());
 
         listingRepository.save(Listing.builder()
             .user(host).title("Saturday Market")
@@ -86,7 +86,7 @@ class HostSearchTest extends BaseIntegrationTest {
         User host = userRepository.save(User.builder()
             .provider("facebook").providerId("fb-search3")
             .email("expired@test.com").name("Expired Vendor")
-            .role(UserRole.USER).build());
+            .role(UserRole.USER).handle("host-search-3").build());
 
         listingRepository.save(Listing.builder()
             .user(host).title("Old Sale")
@@ -118,7 +118,7 @@ class HostSearchTest extends BaseIntegrationTest {
         User host = userRepository.save(User.builder()
             .provider("facebook").providerId("fb-update1")
             .email("update@test.com").name("Update User")
-            .role(UserRole.USER).build());
+            .role(UserRole.USER).handle("host-search-4").build());
 
         host.setDisplayName("My Business Name");
         userRepository.save(host);
@@ -133,7 +133,7 @@ class HostSearchTest extends BaseIntegrationTest {
             .provider("facebook").providerId("fb-update2")
             .email("update2@test.com").name("Clear Name User")
             .displayName("Old Name")
-            .role(UserRole.USER).build());
+            .role(UserRole.USER).handle("host-search-5").build());
 
         host.setDisplayName(null);
         userRepository.save(host);

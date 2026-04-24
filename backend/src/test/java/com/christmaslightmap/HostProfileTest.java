@@ -38,7 +38,7 @@ class HostProfileTest extends BaseIntegrationTest {
         User host = userRepository.save(User.builder()
             .provider("facebook").providerId("fb-host1")
             .email("host@test.com").name("Test Host")
-            .role(UserRole.USER).build());
+            .role(UserRole.USER).handle("host-profile-1").build());
 
         listingRepository.save(Listing.builder()
             .user(host).title("Upcoming Event")
@@ -90,7 +90,7 @@ class HostProfileTest extends BaseIntegrationTest {
         User host = userRepository.save(User.builder()
             .provider("facebook").providerId("fb-host2")
             .email("host2@test.com").name("Named Host")
-            .role(UserRole.USER).build());
+            .role(UserRole.USER).handle("host-profile-2").build());
 
         Listing listing = listingRepository.save(Listing.builder()
             .user(host).title("Named Event")
@@ -116,7 +116,7 @@ class HostProfileTest extends BaseIntegrationTest {
             .provider("facebook").providerId("fb-hostname1")
             .email("hostname@test.com").name("OAuth Name")
             .displayName("Profile Display Name")
-            .role(UserRole.USER).build());
+            .role(UserRole.USER).handle("host-profile-3").build());
 
         Listing listing = listingRepository.save(Listing.builder()
             .user(host).title("Override Event")
@@ -142,7 +142,7 @@ class HostProfileTest extends BaseIntegrationTest {
             .provider("facebook").providerId("fb-hostname2")
             .email("hostname2@test.com").name("OAuth Name")
             .displayName("Profile Display Name")
-            .role(UserRole.USER).build());
+            .role(UserRole.USER).handle("host-profile-4").build());
 
         Listing listing = listingRepository.save(Listing.builder()
             .user(host).title("Fallback Event")

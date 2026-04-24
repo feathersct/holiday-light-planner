@@ -43,6 +43,7 @@ class AuthControllerTest extends BaseIntegrationTest {
             .email("test@example.com")
             .name("Test User")
             .role(UserRole.USER)
+            .handle("auth-user-1")
             .build());
 
         String token = jwtService.generateToken(user);
@@ -67,6 +68,7 @@ class AuthControllerTest extends BaseIntegrationTest {
             .email("logout@example.com")
             .name("Logout User")
             .role(UserRole.USER)
+            .handle("auth-user-2")
             .build());
 
         String token = jwtService.generateToken(user);
