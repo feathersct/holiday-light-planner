@@ -1,10 +1,12 @@
 package com.christmaslightmap.controller;
 
 import com.christmaslightmap.dto.request.UpdateDisplayNameRequest;
+import com.christmaslightmap.dto.request.UpdateHandleRequest;
 import com.christmaslightmap.dto.response.ApiResponse;
 import com.christmaslightmap.dto.response.HostListingsResponse;
 import com.christmaslightmap.dto.response.HostUserResponse;
 import com.christmaslightmap.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -24,6 +26,11 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(userService.getHostListings(userId)));
     }
 
+    @GetMapping("/handle/{handle}")
+    public ResponseEntity<ApiResponse<HostListingsResponse>> getHostByHandle(@PathVariable String handle) {
+        return ResponseEntity.ok(ApiResponse.success(userService.getHostListingsByHandle(handle)));
+    }
+
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<List<HostUserResponse>>> searchHosts(
         @RequestParam String q
@@ -38,5 +45,14 @@ public class UserController {
     ) {
         Long userId = (Long) authentication.getPrincipal();
         return ResponseEntity.ok(ApiResponse.success(userService.updateDisplayName(userId, request)));
+    }
+
+    @PatchMapping("/me/handle")
+    public ResponseEntity<ApiResponse<HostUserResponse>> updateHandle(
+        @Valid @RequestBody UpdateHandleRequest request,
+        Authentication authentication
+    ) {
+        Long userId = (Long) authentication.getPrincipal();
+        return ResponseEntity.ok(ApiResponse.success(userService.updateHandle(userId, request)));
     }
 }
