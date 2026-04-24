@@ -66,6 +66,35 @@ import { ListingApiService } from '../../services/listing-api.service';
           </div>
         </div>
 
+        <!-- Handle / profile URL -->
+        <div style="background:white;border-radius:16px;padding:20px;margin-bottom:16px;
+                    box-shadow:0 1px 6px rgba(0,0,0,0.06)">
+          <div style="font-weight:700;font-size:14px;color:#0f172a;margin-bottom:4px">
+            Profile URL handle
+          </div>
+          <div style="font-size:12.5px;color:#64748b;margin-bottom:12px">
+            Share <strong style="color:#0f172a">eventmapster.com/host/{{handle() || 'yourhandle'}}</strong> to link people directly to your events.
+          </div>
+          <div style="display:flex;gap:8px">
+            <input [ngModel]="handle()"
+                   (ngModelChange)="handle.set($event)"
+                   placeholder="e.g. smithfamilylights"
+                   style="flex:1;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:9px;
+                          font-size:13.5px;color:#0f172a;outline:none;background:white"/>
+            <button (click)="saveHandle()"
+                    [disabled]="savingHandle()"
+                    [style.opacity]="savingHandle() ? '0.6' : '1'"
+                    style="padding:9px 16px;background:var(--accent);color:white;border:none;
+                           border-radius:9px;font-size:13px;font-weight:700;cursor:pointer">
+              {{savingHandle() ? 'Saving…' : handleSaved() ? 'Saved!' : 'Save'}}
+            </button>
+          </div>
+          <div *ngIf="handleError()"
+               style="font-size:12px;color:#ef4444;margin-top:6px">
+            {{handleError()}}
+          </div>
+        </div>
+
         <!-- Tabs -->
         <div style="display:flex;background:white;border-radius:12px;padding:4px;margin-bottom:16px;
                     box-shadow:0 1px 6px rgba(0,0,0,0.06)">
@@ -196,6 +225,11 @@ export class ProfileComponent implements OnInit {
     if (this.user?.displayName) {
       this.displayName.set(this.user.displayName);
     }
+    if (this.user) {
+      this.listingApi.getHostListings(this.user.id).subscribe({
+        next: resp => this.handle.set(resp.user.handle ?? ''),
+      });
+    }
   }
 
   setTab(id: string) {
@@ -210,6 +244,10 @@ export class ProfileComponent implements OnInit {
   displayName = signal('');
   savingDisplayName = signal(false);
   displayNameSaved = signal(false);
+  handle = signal('');
+  savingHandle = signal(false);
+  handleSaved = signal(false);
+  handleError = signal('');
 
   confirmDelete(id: number) {
     this.deletingId.set(id);
@@ -239,6 +277,25 @@ export class ProfileComponent implements OnInit {
         setTimeout(() => this.displayNameSaved.set(false), 2500);
       },
       error: () => this.savingDisplayName.set(false),
+    });
+  }
+
+  saveHandle() {
+    const h = this.handle().trim().toLowerCase();
+    if (!h || h.length < 3) return;
+    this.savingHandle.set(true);
+    this.handleError.set('');
+    this.listingApi.updateHandle(h).subscribe({
+      next: () => {
+        this.savingHandle.set(false);
+        this.handleSaved.set(true);
+        this.handle.set(h);
+        setTimeout(() => this.handleSaved.set(false), 2000);
+      },
+      error: (err) => {
+        this.savingHandle.set(false);
+        this.handleError.set(err.status === 409 ? 'That handle is already taken.' : 'Something went wrong.');
+      },
     });
   }
 }
