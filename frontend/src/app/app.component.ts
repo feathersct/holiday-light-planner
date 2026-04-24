@@ -172,6 +172,7 @@ export class AppComponent implements OnInit {
     if (path.startsWith('/submit')) this.screen.set('submit');
     else if (path.startsWith('/profile')) this.screen.set('profile');
     else if (path.startsWith('/admin')) this.screen.set('admin');
+    else if (path.startsWith('/host')) this.location.replaceState('/');
   }
 
   @HostListener('window:resize')
