@@ -132,7 +132,7 @@ import { ListingApiService } from '../../services/listing-api.service';
             <!-- Best time — Christmas Lights -->
             <div *ngIf="fullDisplay()!.bestTime"
                  style="font-size:13.5px;color:#374151">
-              🕐 {{fullDisplay()!.bestTime}}
+              ✨ {{fullDisplay()!.bestTime}}
             </div>
 
             <!-- Website -->
