@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface ListingRepository extends JpaRepository<Listing, Long> {
@@ -101,6 +102,9 @@ public interface ListingRepository extends JpaRepository<Listing, Long> {
     List<Listing> findByIdInWithTags(@Param("ids") List<Long> ids);
 
     List<Listing> findByUserIdAndIsActiveTrue(Long userId);
+
+    @Query("SELECT l FROM Listing l LEFT JOIN FETCH l.tags WHERE l.user.id = :userId AND l.isActive = true AND l.endDatetime > :now ORDER BY l.startDatetime ASC")
+    List<Listing> findUpcomingByUserId(@Param("userId") Long userId, @Param("now") LocalDateTime now);
 
     Page<Listing> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
