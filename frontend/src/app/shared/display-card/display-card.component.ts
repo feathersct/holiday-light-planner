@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ListingSummary, CATEGORY_COLORS, CATEGORY_LABELS } from '../../models/listing.model';
+import { ListingSummary, CATEGORY_COLORS, CATEGORY_LABELS, formatDateRange } from '../../models/listing.model';
 import { TagBadgeComponent } from '../tag-badge/tag-badge.component';
 import { UpvoteButtonComponent } from '../upvote-button/upvote-button.component';
 
@@ -41,7 +41,8 @@ import { UpvoteButtonComponent } from '../upvote-button/upvote-button.component'
             {{typeLabel}}
           </span>
         </div>
-        <div style="font-size:12px;color:#9ca3af;margin-bottom:8px">📍 {{display.city}}, {{display.state}}</div>
+        <div style="font-size:12px;color:#9ca3af;margin-bottom:4px">📍 {{display.city}}, {{display.state}}</div>
+        <div style="font-size:11.5px;color:#9ca3af;margin-bottom:8px">📅 {{dateRange}}</div>
         <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px">
           <app-tag-badge *ngFor="let t of display.tags.slice(0,3)" [tag]="t.name" [small]="true"/>
           <span *ngIf="display.tags.length > 3" style="font-size:10px;color:#9ca3af;align-self:center">+{{display.tags.length - 3}}</span>
@@ -71,4 +72,5 @@ export class DisplayCardComponent {
 
   get typeColors() { return CATEGORY_COLORS[this.display.category] ?? CATEGORY_COLORS['CHRISTMAS_LIGHTS']; }
   get typeLabel() { return CATEGORY_LABELS[this.display.category] ?? this.display.category; }
+  get dateRange() { return formatDateRange(this.display.startDatetime, this.display.endDatetime); }
 }
