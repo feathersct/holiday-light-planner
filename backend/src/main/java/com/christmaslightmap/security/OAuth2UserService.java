@@ -3,6 +3,7 @@ package com.christmaslightmap.security;
 import com.christmaslightmap.model.User;
 import com.christmaslightmap.model.UserRole;
 import com.christmaslightmap.repository.UserRepository;
+import com.christmaslightmap.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -17,6 +18,7 @@ import java.util.Map;
 public class OAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
+    private final UserService userService;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -54,16 +56,23 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
                 existing.setEmail(finalEmail);
                 existing.setName(finalName);
                 existing.setAvatarUrl(finalAvatarUrl);
+                if (existing.getHandle() == null) {
+                    existing.setHandle(userService.generateUniqueHandle(existing.getDisplayName(), finalName));
+                }
                 return userRepository.save(existing);
             })
-            .orElseGet(() -> userRepository.save(User.builder()
-                .provider(registrationId)
-                .providerId(providerId)
-                .email(finalEmail)
-                .name(finalName)
-                .avatarUrl(finalAvatarUrl)
-                .role(UserRole.USER)
-                .build()));
+            .orElseGet(() -> {
+                String handle = userService.generateUniqueHandle(null, finalName);
+                return userRepository.save(User.builder()
+                    .provider(registrationId)
+                    .providerId(providerId)
+                    .email(finalEmail)
+                    .name(finalName)
+                    .avatarUrl(finalAvatarUrl)
+                    .handle(handle)
+                    .role(UserRole.USER)
+                    .build());
+            });
 
         return new CustomOAuth2User(oauth2User, user);
     }

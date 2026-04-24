@@ -110,7 +110,7 @@ public class UserService {
         return HostUserResponse.from(userRepository.save(user));
     }
 
-    String generateUniqueHandle(String displayName, String fallbackName) {
+    public String generateUniqueHandle(String displayName, String fallbackName) {
         String source = (displayName != null && !displayName.isBlank()) ? displayName : fallbackName;
         if (source == null || source.isBlank()) source = "user";
         String slug = source.toLowerCase()
