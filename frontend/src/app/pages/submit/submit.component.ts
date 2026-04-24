@@ -62,11 +62,29 @@ import { TagBadgeComponent } from '../../shared/tag-badge/tag-badge.component';
                 <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px">
                   Street Address *
                 </label>
-                <input [(ngModel)]="form.address" placeholder="123 Christmas Lane, City, State"
-                       style="width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;
-                              font-size:14px;color:#0f172a;background:white;box-sizing:border-box;outline:none"
-                       (focus)="$any($event.target).style.borderColor='var(--accent)'"
-                       (blur)="$any($event.target).style.borderColor='#e2e8f0'"/>
+                <div style="position:relative">
+                  <input [(ngModel)]="form.address" placeholder="123 Main St"
+                         style="width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;
+                                font-size:14px;color:#0f172a;background:white;box-sizing:border-box;outline:none"
+                         (focus)="$any($event.target).style.borderColor='var(--accent)'"
+                         (blur)="$any($event.target).style.borderColor='#e2e8f0'; dismissAddressSuggestions()"
+                         (input)="onAddressInput()"/>
+                  <div *ngIf="showAddressSuggestions"
+                       style="position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:200;
+                              background:white;border:1.5px solid #e2e8f0;border-radius:10px;
+                              box-shadow:0 4px 20px rgba(0,0,0,0.12);overflow:hidden">
+                    <button *ngFor="let s of addressSuggestions; let last = last"
+                            (mousedown)="selectAddressSuggestion(s)"
+                            [style.border-bottom]="last ? 'none' : '1px solid #f1f5f9'"
+                            style="display:block;width:100%;text-align:left;padding:10px 14px;
+                                   background:none;border-left:none;border-right:none;border-top:none;
+                                   cursor:pointer;font-size:13.5px;color:#0f172a;transition:background 0.1s"
+                            (mouseover)="$any($event.target).style.background='#f8fafc'"
+                            (mouseout)="$any($event.target).style.background='none'">
+                      {{formatAddressSuggestion(s)}}
+                    </button>
+                  </div>
+                </div>
               </div>
 
               <!-- Map placeholder -->
@@ -332,6 +350,10 @@ export class SubmitComponent implements OnInit {
   existingPhotos = signal<Photo[]>([]);
   photoError: string | null = null;
 
+  addressSuggestions: any[] = [];
+  showAddressSuggestions = false;
+  private suggestTimer: any = null;
+
   categoryOptions: Array<{ id: Category; label: string }> = [
     { id: 'CHRISTMAS_LIGHTS', label: '🎄 Christmas Lights' },
     { id: 'YARD_SALE',        label: '🏷️ Yard / Garage Sale' },
@@ -426,6 +448,51 @@ export class SubmitComponent implements OnInit {
   isTagSelected(tagName: string) {
     const tag = this.availableTags.find(t => t.name === tagName);
     return tag ? this.form.tagIds.includes(tag.id) : false;
+  }
+
+  onAddressInput() {
+    const q = this.form.address.trim();
+    clearTimeout(this.suggestTimer);
+    if (q.length < 3) { this.addressSuggestions = []; this.showAddressSuggestions = false; return; }
+    this.suggestTimer = setTimeout(() => this.fetchAddressSuggestions(q), 350);
+  }
+
+  private fetchAddressSuggestions(q: string) {
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=5&addressdetails=1&countrycodes=us`;
+    fetch(url)
+      .then(r => r.json())
+      .then((results: any[]) => {
+        if (this.form.address.trim().length >= 3) {
+          this.addressSuggestions = results;
+          this.showAddressSuggestions = results.length > 0;
+        }
+      })
+      .catch(() => {});
+  }
+
+  selectAddressSuggestion(s: any) {
+    const a = s.address;
+    this.form.address = [a.house_number, a.road].filter(Boolean).join(' ');
+    this.form.city = a.city ?? a.town ?? a.village ?? a.hamlet ?? '';
+    this.form.state = a.state ?? '';
+    this.form.postcode = a.postcode ?? '';
+    this.form.lat = parseFloat(s.lat);
+    this.form.lng = parseFloat(s.lon);
+    this.showAddressSuggestions = false;
+    this.addressSuggestions = [];
+  }
+
+  dismissAddressSuggestions() {
+    setTimeout(() => { this.showAddressSuggestions = false; }, 150);
+  }
+
+  formatAddressSuggestion(s: any): string {
+    const a = s.address;
+    return [
+      [a.house_number, a.road].filter(Boolean).join(' '),
+      a.city ?? a.town ?? a.village ?? a.hamlet ?? '',
+      a.state ?? '',
+    ].filter(Boolean).join(', ');
   }
 
   removeExistingPhoto(photoId: number) {
