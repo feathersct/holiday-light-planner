@@ -107,13 +107,7 @@ export interface HostUser {
   handle: string | null;
 }
 
-export interface HostSearchResult {
-  id: number;
-  name: string;
-  displayName: string | null;
-  avatarUrl: string | null;
-  handle: string | null;
-}
+export type HostSearchResult = HostUser;
 
 export interface HostListingsResponse {
   user: HostUser;
