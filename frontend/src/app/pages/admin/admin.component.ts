@@ -126,7 +126,18 @@ type AdminTab = 'reports' | 'listings';
             Loading…
           </div>
 
-          <div *ngIf="!loadingDisplays()"
+          <div *ngIf="listingsError()"
+               style="padding:16px 20px;background:#fee2e2;border-radius:12px;margin-bottom:12px;
+                      font-size:13.5px;color:#dc2626;font-weight:600">
+            {{listingsError()}}
+            <button (click)="switchToListings()"
+                    style="margin-left:12px;padding:4px 12px;border-radius:8px;font-size:12px;
+                           font-weight:600;background:#dc2626;color:white;border:none;cursor:pointer">
+              Retry
+            </button>
+          </div>
+
+          <div *ngIf="!loadingDisplays() && !listingsError()"
                style="background:white;border-radius:16px;overflow:hidden;
                       box-shadow:0 1px 6px rgba(0,0,0,0.06)">
             <div *ngFor="let d of allListings(); let last = last"
@@ -211,6 +222,7 @@ export class AdminComponent implements OnInit {
   loadingReports = signal(true);
   allListings = signal<ListingSummary[]>([]);
   loadingDisplays = signal(false);
+  listingsError = signal<string | null>(null);
   deletingDisplayId = signal<number | null>(null);
   categoryLabels = CATEGORY_LABELS;
 
@@ -228,7 +240,7 @@ export class AdminComponent implements OnInit {
 
   switchToListings() {
     this.adminTab.set('listings');
-    if (this.allListings().length === 0) {
+    if (this.allListings().length === 0 || this.listingsError()) {
       this.loadListings();
     }
   }
@@ -248,9 +260,13 @@ export class AdminComponent implements OnInit {
 
   private loadListings() {
     this.loadingDisplays.set(true);
+    this.listingsError.set(null);
     this.listingApi.adminGetListings().subscribe({
       next: page => { this.allListings.set(page.content); this.loadingDisplays.set(false); },
-      error: () => this.loadingDisplays.set(false),
+      error: (err) => {
+        this.listingsError.set(`Failed to load listings (${err?.status ?? 'network error'})`);
+        this.loadingDisplays.set(false);
+      },
     });
   }
 
