@@ -157,4 +157,17 @@ class HostHandleTest extends BaseIntegrationTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
+
+    @Test
+    void updateHandle_returns401WhenUnauthenticated() {
+        HttpEntity<Map<String, String>> request = new HttpEntity<>(
+            Map.of("handle", "some-handle"),
+            new HttpHeaders() {{ setContentType(MediaType.APPLICATION_JSON); }}
+        );
+
+        ResponseEntity<String> response = restTemplate.exchange(
+            "/api/v1/users/me/handle", HttpMethod.PATCH, request, String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
 }
