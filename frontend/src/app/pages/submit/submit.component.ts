@@ -393,7 +393,6 @@ export class SubmitComponent implements OnInit {
       this.form.organizer = d.organizer ?? '';
       this.form.websiteUrl = d.websiteUrl ?? '';
       this.form.tagIds = d.tags.map(t => t.id);
-      this.createdListingId.set(d.id);
 
       this.listingApi.getById(d.id).subscribe({
         next: (full: Listing) => {
@@ -402,6 +401,11 @@ export class SubmitComponent implements OnInit {
           this.form.postcode = full.postcode ?? '';
           this.form.bestTime = full.bestTime ?? '';
           this.existingPhotos.set(full.photos ?? []);
+          this.createdListingId.set(d.id);
+        },
+        error: () => {
+          this.error = 'Could not load listing details. Some fields may be incomplete.';
+          this.createdListingId.set(d.id);
         },
       });
     }
@@ -426,12 +430,14 @@ export class SubmitComponent implements OnInit {
 
   removeExistingPhoto(photoId: number) {
     const listingId = this.createdListingId()!;
+    const snapshot = this.existingPhotos();
+    this.existingPhotos.update(photos => photos.filter(p => p.id !== photoId));
     this.listingApi.deletePhoto(listingId, photoId).subscribe({
-      next: () => {
-        this.existingPhotos.update(photos => photos.filter(p => p.id !== photoId));
-        this.photoError = null;
+      next: () => { this.photoError = null; },
+      error: () => {
+        this.existingPhotos.set(snapshot);
+        this.photoError = 'Could not remove photo. Try again.';
       },
-      error: () => { this.photoError = 'Could not remove photo. Try again.'; },
     });
   }
 
