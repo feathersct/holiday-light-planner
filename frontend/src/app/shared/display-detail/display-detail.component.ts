@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Listing, ListingSummary, HostUser, CATEGORY_COLORS, CATEGORY_LABELS, formatDateRange } from '../../models/listing.model';
+import { Listing, ListingSummary, HostUser, CATEGORY_COLORS, CATEGORY_LABELS, formatDateRange, formatTimeRange } from '../../models/listing.model';
 import { TagBadgeComponent } from '../tag-badge/tag-badge.component';
 import { UpvoteButtonComponent } from '../upvote-button/upvote-button.component';
 import { ListingApiService } from '../../services/listing-api.service';
@@ -75,7 +75,7 @@ import { ListingApiService } from '../../services/listing-api.service';
             </div>
 
             <!-- Category badge + date range -->
-            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
               <span [style.background]="categoryColors[fullDisplay()!.category]?.bg"
                     [style.color]="categoryColors[fullDisplay()!.category]?.text"
                     style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px">
@@ -84,6 +84,10 @@ import { ListingApiService } from '../../services/listing-api.service';
               <span style="font-size:12px;color:#64748b">
                 {{formatDateRange(fullDisplay()!.startDatetime, fullDisplay()!.endDatetime)}}
               </span>
+            </div>
+            <!-- Time range -->
+            <div style="font-size:12px;color:#64748b;margin-top:-8px">
+              🕐 {{formatTimeRange(fullDisplay()!.startDatetime, fullDisplay()!.endDatetime) ?? 'All day'}}
             </div>
 
             <!-- Upvote + stats -->
@@ -176,6 +180,7 @@ export class DisplayDetailComponent implements OnInit {
   categoryColors = CATEGORY_COLORS;
   categoryLabels = CATEGORY_LABELS;
   formatDateRange = formatDateRange;
+  formatTimeRange = formatTimeRange;
 
   getDirections() {
     const d = this.fullDisplay();
