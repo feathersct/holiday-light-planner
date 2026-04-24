@@ -74,4 +74,11 @@ public class UserService {
             .listings(summaries)
             .build();
     }
+
+    public List<HostUserResponse> searchHosts(String q) {
+        return userRepository.searchHosts(q.trim(), LocalDateTime.now()).stream()
+            .limit(10)
+            .map(HostUserResponse::from)
+            .collect(Collectors.toList());
+    }
 }
