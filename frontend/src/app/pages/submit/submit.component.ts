@@ -1,15 +1,9 @@
-import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ALL_TAGS, TYPE_LABELS, Tag } from '../../models/display.model';
-import { DisplayApiService } from '../../services/display-api.service';
+import { CATEGORY_LABELS, Category, Tag } from '../../models/listing.model';
+import { ListingApiService } from '../../services/listing-api.service';
 import { TagBadgeComponent } from '../../shared/tag-badge/tag-badge.component';
-
-const TYPES: [string, string][] = [
-  ['DRIVE_BY', 'Drive-by'],
-  ['WALK_THROUGH', 'Walk-through'],
-  ['BOTH', 'Drive-by & Walk-through'],
-];
 
 @Component({
   selector: 'app-submit',
@@ -28,9 +22,9 @@ const TYPES: [string, string][] = [
               <polyline points="20 6 9 17 4 12"/>
             </svg>
           </div>
-          <div style="font-weight:800;font-size:24px;color:#0f172a;margin-bottom:10px">Display Submitted!</div>
+          <div style="font-weight:800;font-size:24px;color:#0f172a;margin-bottom:10px">Listing Submitted!</div>
           <div style="font-size:15px;color:#64748b;line-height:1.6;max-width:340px;margin:0 auto 32px">
-            Thanks for adding to the community map. Your display is now live on the map!
+            Your listing is now live on the community board!
           </div>
           <button (click)="goHome.emit()"
                   style="background:var(--accent);color:white;border:none;padding:13px 32px;
@@ -43,8 +37,8 @@ const TYPES: [string, string][] = [
         <div *ngIf="step() !== 'done'">
           <!-- Header -->
           <div style="margin-bottom:28px">
-            <div style="font-weight:800;font-size:22px;color:#0f172a;margin-bottom:4px">Add a Display</div>
-            <div style="font-size:13.5px;color:#64748b">Share a holiday light display with the community</div>
+            <div style="font-weight:800;font-size:22px;color:#0f172a;margin-bottom:4px">Add a Listing</div>
+            <div style="font-size:13.5px;color:#64748b">Share an event or attraction with the community</div>
           </div>
 
           <!-- Step indicator -->
@@ -116,9 +110,24 @@ const TYPES: [string, string][] = [
           <!-- Step 2: Details -->
           <div *ngIf="step() === 'details'">
             <div style="font-weight:700;font-size:16px;color:#0f172a;margin-bottom:16px">
-              2 of 3 — Display Details
+              2 of 3 — Details
             </div>
             <div style="display:flex;flex-direction:column;gap:14px">
+              <!-- Category picker -->
+              <div>
+                <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:8px">Category *</label>
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <button *ngFor="let cat of categoryOptions"
+                          (click)="form.category = cat.id"
+                          [style.border]="form.category === cat.id ? '2px solid var(--accent)' : '2px solid #e2e8f0'"
+                          [style.background]="form.category === cat.id ? 'var(--accent-bg)' : 'white'"
+                          style="padding:10px 14px;border-radius:10px;text-align:left;cursor:pointer;
+                                 font-size:13.5px;font-weight:500;color:#0f172a;transition:all 0.1s">
+                    {{cat.label}}
+                  </button>
+                </div>
+              </div>
+              <!-- Title -->
               <div>
                 <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px">Title *</label>
                 <input [(ngModel)]="form.title" placeholder="The Johnson Family Christmas Spectacular"
@@ -127,46 +136,93 @@ const TYPES: [string, string][] = [
                        (focus)="$any($event.target).style.borderColor='var(--accent)'"
                        (blur)="$any($event.target).style.borderColor='#e2e8f0'"/>
               </div>
-              <div>
-                <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:8px">Type *</label>
-                <div style="display:flex;flex-wrap:wrap;gap:8px">
-                  <button *ngFor="let t of types" (click)="form.displayType = t[0]"
-                          [style.background]="form.displayType === t[0] ? 'var(--accent)' : 'white'"
-                          [style.color]="form.displayType === t[0] ? 'white' : '#374151'"
-                          [style.border-color]="form.displayType === t[0] ? 'var(--accent)' : '#e2e8f0'"
-                          style="padding:7px 14px;border:1.5px solid;border-radius:99px;font-size:13px;
-                                 font-weight:600;cursor:pointer;transition:all 0.15s">
-                    {{t[1]}}
-                  </button>
-                </div>
-              </div>
-              <div>
-                <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:8px">Tags</label>
-                <div style="display:flex;flex-wrap:wrap;gap:6px">
-                  <button *ngFor="let tag of allTags" (click)="toggleTag(tag)"
-                          [style.opacity]="form.tags.includes(tag) ? '1' : '0.5'"
-                          style="background:none;border:none;cursor:pointer;padding:0;transition:opacity 0.15s">
-                    <app-tag-badge [tag]="tag" [small]="true"/>
-                  </button>
-                </div>
-              </div>
+              <!-- Description -->
               <div>
                 <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px">Description</label>
                 <textarea [(ngModel)]="form.description" rows="3"
-                          placeholder="Tell visitors what to expect — animated displays, music sync, drive-through route…"
+                          placeholder="Tell visitors what to expect…"
                           style="width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;
                                  font-size:14px;color:#0f172a;background:white;box-sizing:border-box;
                                  resize:none;font-family:inherit;outline:none"
                           (focus)="$any($event.target).style.borderColor='var(--accent)'"
                           (blur)="$any($event.target).style.borderColor='#e2e8f0'"></textarea>
               </div>
+              <!-- Start / End dates -->
+              <div style="display:flex;gap:12px">
+                <div style="flex:1">
+                  <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px">Start *</label>
+                  <input type="datetime-local" [(ngModel)]="form.startDatetime"
+                         style="width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;
+                                font-size:13px;color:#0f172a;background:white;box-sizing:border-box"/>
+                </div>
+                <div style="flex:1">
+                  <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px">End *</label>
+                  <input type="datetime-local" [(ngModel)]="form.endDatetime"
+                         style="width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;
+                                font-size:13px;color:#0f172a;background:white;box-sizing:border-box"/>
+                </div>
+              </div>
+              <!-- Price -->
               <div>
-                <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px">Best Viewing Time</label>
-                <input [(ngModel)]="form.bestTime" placeholder="Nightly 5pm–11pm"
+                <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px">Price (optional)</label>
+                <input [(ngModel)]="form.priceInfo" placeholder="e.g. Free, $8 admission"
                        style="width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;
-                              font-size:14px;color:#0f172a;background:white;box-sizing:border-box;outline:none"
-                       (focus)="$any($event.target).style.borderColor='var(--accent)'"
-                       (blur)="$any($event.target).style.borderColor='#e2e8f0'"/>
+                              font-size:14px;color:#0f172a;background:white;box-sizing:border-box;outline:none"/>
+              </div>
+              <!-- Christmas Lights only -->
+              <ng-container *ngIf="isLights">
+                <div>
+                  <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:8px">Type *</label>
+                  <div style="display:flex;flex-wrap:wrap;gap:8px">
+                    <button *ngFor="let t of types" (click)="form.displayType = t[0]"
+                            [style.background]="form.displayType === t[0] ? 'var(--accent)' : 'white'"
+                            [style.color]="form.displayType === t[0] ? 'white' : '#374151'"
+                            [style.border-color]="form.displayType === t[0] ? 'var(--accent)' : '#e2e8f0'"
+                            style="padding:7px 14px;border:1.5px solid;border-radius:99px;font-size:13px;
+                                   font-weight:600;cursor:pointer;transition:all 0.15s">
+                      {{t[1]}}
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px">Best Viewing Time</label>
+                  <input [(ngModel)]="form.bestTime" placeholder="Nightly 5pm–11pm"
+                         style="width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;
+                                font-size:14px;color:#0f172a;background:white;box-sizing:border-box;outline:none"
+                         (focus)="$any($event.target).style.borderColor='var(--accent)'"
+                         (blur)="$any($event.target).style.borderColor='#e2e8f0'"/>
+                </div>
+                <div>
+                  <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:8px">Tags</label>
+                  <div style="display:flex;flex-wrap:wrap;gap:6px">
+                    <button *ngFor="let tag of allTags" (click)="toggleTag(tag)"
+                            [style.opacity]="isTagSelected(tag) ? '1' : '0.5'"
+                            style="background:none;border:none;cursor:pointer;padding:0;transition:opacity 0.15s">
+                      <app-tag-badge [tag]="tag" [small]="true"/>
+                    </button>
+                  </div>
+                </div>
+              </ng-container>
+              <!-- Food Truck -->
+              <div *ngIf="isFoodTruck">
+                <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px">Cuisine Type</label>
+                <input [(ngModel)]="form.cuisineType" placeholder="e.g. Mexican, BBQ, Thai"
+                       style="width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;
+                              font-size:14px;color:#0f172a;background:white;box-sizing:border-box;outline:none"/>
+              </div>
+              <!-- Estate Sale -->
+              <div *ngIf="isEstateSale">
+                <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px">Organizer</label>
+                <input [(ngModel)]="form.organizer" placeholder="e.g. Estate Professionals Inc."
+                       style="width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;
+                              font-size:14px;color:#0f172a;background:white;box-sizing:border-box;outline:none"/>
+              </div>
+              <!-- Website — Christmas Lights + Food Truck -->
+              <div *ngIf="showWebsite">
+                <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px">Website (optional)</label>
+                <input [(ngModel)]="form.websiteUrl" placeholder="https://..."
+                       style="width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;
+                              font-size:14px;color:#0f172a;background:white;box-sizing:border-box;outline:none"/>
               </div>
             </div>
           </div>
@@ -213,7 +269,7 @@ const TYPES: [string, string][] = [
                     [style.opacity]="(canAdvance() && !geocoding && !submitting) ? '1' : '0.5'"
                     style="flex:2;padding:13px;border-radius:12px;font-size:15px;font-weight:700;
                            background:var(--accent);color:white;border:none;cursor:pointer">
-              {{step() === 'photo' ? (submitting ? 'Submitting…' : 'Submit Display') : (geocoding ? 'Locating…' : 'Continue')}}
+              {{step() === 'photo' ? 'Done' : step() === 'details' ? (submitting ? 'Submitting…' : 'Submit & Continue') : (geocoding ? 'Locating…' : 'Continue')}}
             </button>
           </div>
         </div>
@@ -225,27 +281,55 @@ export class SubmitComponent {
   @Input() user: any = null;
   @Output() goHome = new EventEmitter<void>();
 
+  private listingApi = inject(ListingApiService);
+
   step = signal<'location' | 'details' | 'photo' | 'done'>('location');
   steps = ['location', 'details', 'photo'];
-  types = TYPES;
-  allTags: string[] = ALL_TAGS;
   availableTags: Tag[] = [];
+  allTags: string[] = [];
   photoFile: File | null = null;
   photoPreview: string | null = null;
   submitting = false;
   geocoding = false;
   error: string | null = null;
+  createdListingId = signal<number | null>(null);
+
+  categoryOptions: Array<{ id: Category; label: string }> = [
+    { id: 'CHRISTMAS_LIGHTS', label: '🎄 Christmas Lights' },
+    { id: 'YARD_SALE',        label: '🏷️ Yard / Garage Sale' },
+    { id: 'ESTATE_SALE',      label: '🏠 Estate Sale' },
+    { id: 'POPUP_MARKET',     label: '🛍️ Pop-up Market' },
+    { id: 'FOOD_TRUCK',       label: '🚚 Food Truck' },
+  ];
+
+  types: [string, string][] = [
+    ['DRIVE_BY', 'Drive-by'],
+    ['WALK_THROUGH', 'Walk-through'],
+    ['BOTH', 'Drive-by & Walk-through'],
+  ];
 
   form = {
+    category: '' as Category | '',
     address: '', city: '', state: '', postcode: '',
-    title: '', displayType: 'DRIVE_BY', tags: [] as string[],
-    description: '', bestTime: '',
     lat: 0, lng: 0,
+    title: '', description: '',
+    startDatetime: '', endDatetime: '',
+    priceInfo: '',
+    displayType: 'DRIVE_BY', bestTime: '', tagIds: [] as number[],
+    cuisineType: '',
+    organizer: '',
+    websiteUrl: '',
   };
 
-  constructor(private displayApi: DisplayApiService) {
-    this.displayApi.getTags().subscribe(tags => {
+  get isLights() { return this.form.category === 'CHRISTMAS_LIGHTS'; }
+  get isFoodTruck() { return this.form.category === 'FOOD_TRUCK'; }
+  get isEstateSale() { return this.form.category === 'ESTATE_SALE'; }
+  get showWebsite() { return this.isLights || this.isFoodTruck; }
+
+  constructor() {
+    this.listingApi.getTags().subscribe(tags => {
       this.availableTags = tags;
+      this.allTags = tags.map(t => t.name);
     });
   }
 
@@ -253,15 +337,22 @@ export class SubmitComponent {
     return this.steps.indexOf(this.step() as any);
   }
 
-  toggleTag(tag: string) {
-    const idx = this.form.tags.indexOf(tag);
-    if (idx > -1) this.form.tags.splice(idx, 1);
-    else this.form.tags.push(tag);
+  toggleTag(tagName: string) {
+    const tag = this.availableTags.find(t => t.name === tagName);
+    if (!tag) return;
+    const idx = this.form.tagIds.indexOf(tag.id);
+    if (idx > -1) this.form.tagIds.splice(idx, 1);
+    else this.form.tagIds.push(tag.id);
+  }
+
+  isTagSelected(tagName: string) {
+    const tag = this.availableTags.find(t => t.name === tagName);
+    return tag ? this.form.tagIds.includes(tag.id) : false;
   }
 
   canAdvance() {
     if (this.step() === 'location') return this.form.address.trim() && this.form.city.trim();
-    if (this.step() === 'details') return this.form.title.trim() && this.form.displayType;
+    if (this.step() === 'details') return this.form.title.trim() && this.form.category && this.form.startDatetime && this.form.endDatetime;
     return true;
   }
 
@@ -274,9 +365,16 @@ export class SubmitComponent {
     if (this.step() === 'location') {
       this.geocodeAndAdvance();
     } else if (this.step() === 'details') {
-      this.step.set('photo');
+      this.submitListing();
     } else if (this.step() === 'photo') {
-      this.submitDisplay();
+      if (this.photoFile && this.createdListingId()) {
+        this.listingApi.uploadPhoto(this.createdListingId()!, this.photoFile).subscribe({
+          complete: () => { this.step.set('done'); },
+          error: () => { this.step.set('done'); },
+        });
+      } else {
+        this.step.set('done');
+      }
     }
   }
 
@@ -302,13 +400,11 @@ export class SubmitComponent {
       });
   }
 
-  private submitDisplay() {
+  private submitListing() {
     this.submitting = true;
     this.error = null;
-    const tagIds = this.form.tags
-      .map(name => this.availableTags.find(t => t.name === name)?.id)
-      .filter((id): id is number => !!id);
-    this.displayApi.create({
+    this.listingApi.create({
+      category: this.form.category as Category,
       title: this.form.title,
       description: this.form.description,
       address: this.form.address,
@@ -317,20 +413,20 @@ export class SubmitComponent {
       postcode: this.form.postcode,
       lat: this.form.lat,
       lng: this.form.lng,
+      startDatetime: this.form.startDatetime,
+      endDatetime: this.form.endDatetime,
+      priceInfo: this.form.priceInfo,
       bestTime: this.form.bestTime,
       displayType: this.form.displayType,
-      tagIds,
+      tagIds: this.form.tagIds,
+      cuisineType: this.form.cuisineType,
+      organizer: this.form.organizer,
+      websiteUrl: this.form.websiteUrl,
     }).subscribe({
-      next: display => {
-        if (this.photoFile) {
-          this.displayApi.uploadPhoto(display.id, this.photoFile).subscribe({
-            complete: () => { this.submitting = false; this.step.set('done'); },
-            error: () => { this.submitting = false; this.step.set('done'); },
-          });
-        } else {
-          this.submitting = false;
-          this.step.set('done');
-        }
+      next: listing => {
+        this.createdListingId.set(listing.id);
+        this.submitting = false;
+        this.step.set('photo');
       },
       error: () => {
         this.submitting = false;
