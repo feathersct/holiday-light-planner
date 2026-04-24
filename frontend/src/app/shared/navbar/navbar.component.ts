@@ -25,8 +25,8 @@ import { User, getInitials } from '../../models/listing.model';
           </svg>
         </div>
         <div style="display:flex;flex-direction:column;line-height:1.1">
-          <span style="font-weight:800;font-size:14px;color:#0f172a;letter-spacing:-0.4px">Holiday Light</span>
-          <span style="font-weight:600;font-size:9px;color:#94a3b8;letter-spacing:0.12em;text-transform:uppercase">Planner</span>
+          <span style="font-weight:800;font-size:14px;color:#0f172a;letter-spacing:-0.4px">Community</span>
+          <span style="font-weight:600;font-size:9px;color:#94a3b8;letter-spacing:0.12em;text-transform:uppercase">Board</span>
         </div>
       </div>
 
