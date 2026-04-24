@@ -70,7 +70,7 @@ import { ListingApiService } from '../../services/listing-api.service';
               <div (click)="onViewHost()"
                    style="font-size:13px;color:var(--accent);cursor:pointer;font-weight:600;
                           display:inline-block">
-                By {{fullDisplay()!.submittedByName}}
+                By {{fullDisplay()!.resolvedHostName}}
               </div>
             </div>
 
