@@ -9,7 +9,7 @@ import { DisplayCardComponent } from '../../shared/display-card/display-card.com
 import { TagBadgeComponent } from '../../shared/tag-badge/tag-badge.component';
 import { UpvoteButtonComponent } from '../../shared/upvote-button/upvote-button.component';
 import { User } from '../../models/listing.model';
-import { ListingSummary, CATEGORY_COLORS, CATEGORY_LABELS, Category, formatDateRange, isUpcoming, Tag } from '../../models/listing.model';
+import { ListingSummary, CATEGORY_COLORS, CATEGORY_LABELS, Category, formatDateRange, isUpcoming, Tag, InitialFilters, FilterState } from '../../models/listing.model';
 import { ListingApiService } from '../../services/listing-api.service';
 
 const TILE_LAYERS: Record<string, { url: string; attr: string }> = {
@@ -380,6 +380,8 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Output() viewDetails = new EventEmitter<ListingSummary>();
   @Output() needAuth = new EventEmitter<void>();
   @Output() upvoteToggle = new EventEmitter<number>();
+  @Input() initialFilters: InitialFilters | null = null;
+  @Output() filtersChanged = new EventEmitter<FilterState>();
 
   isMobile = window.innerWidth < 768;
   selected: ListingSummary | null = null;
@@ -393,6 +395,7 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
   availableTags: Tag[] = [];
   listings: ListingSummary[] = [];
   selectedCategory: Category | '' = '';
+  radius = 10;
   categoryOptions: Array<{ id: Category | ''; label: string }> = [
     { id: '', label: 'All' },
     { id: 'CHRISTMAS_LIGHTS', label: 'Christmas Lights' },
@@ -472,7 +475,17 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
   private initMap() {
     if (this.map || !this.mapContainer?.nativeElement) return;
     const cfg = TILE_LAYERS[this.mapTiles] || TILE_LAYERS['light'];
-    this.map = L.map(this.mapContainer.nativeElement, { zoomControl: false }).setView([39.752, -104.979], 13);
+    const f = this.initialFilters;
+    const hasUrlLocation = f?.lat != null && f?.lng != null;
+
+    if (f?.category) this.selectedCategory = f.category;
+    if (f?.tags?.length) this.activeTags = [...f.tags];
+    if (f?.radius != null) this.radius = f.radius;
+
+    const initCenter: [number, number] = hasUrlLocation ? [f!.lat!, f!.lng!] : [39.752, -104.979];
+    if (hasUrlLocation) this.locating = false;
+
+    this.map = L.map(this.mapContainer.nativeElement, { zoomControl: false }).setView(initCenter, 13);
     L.control.zoom({ position: 'bottomright' }).addTo(this.map);
     this.tileLayer = L.tileLayer(cfg.url, { attribution: cfg.attr, maxZoom: 19 }).addTo(this.map);
     this.renderMarkers();
@@ -480,7 +493,7 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
     this.map.on('moveend', () => this.loadDisplays());
     this.map.invalidateSize();
     this.loadDisplays();
-    if (navigator.geolocation) {
+    if (!hasUrlLocation && navigator.geolocation) {
       const cached = sessionStorage.getItem('hlp_location_found');
       if (cached) {
         const [lat, lng] = cached.split(',').map(Number);
@@ -521,15 +534,28 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
     });
   }
 
+  private emitFiltersChanged() {
+    if (!this.map) return;
+    const center = this.map.getCenter();
+    this.filtersChanged.emit({
+      category: this.selectedCategory,
+      tags: [...this.activeTags],
+      lat: center.lat,
+      lng: center.lng,
+      radius: this.radius,
+    });
+  }
+
   loadDisplays() {
     if (!this.map) return;
+    this.emitFiltersChanged();
     const center = this.map.getCenter();
     const tagIds = this.activeTags.map(name => this.availableTags.find(t => t.name === name)?.id).filter((id): id is number => !!id);
     this.loading = true;
     this.listingApi.search({
       lat: center.lat,
       lng: center.lng,
-      radiusMiles: 10,
+      radiusMiles: this.radius,
       category: this.selectedCategory || undefined,
       tags: tagIds.length ? tagIds : undefined,
     }).subscribe({
