@@ -32,6 +32,9 @@ public class User {
     @Column(name = "avatar_url")
     private String avatarUrl;
 
+    @Column(name = "display_name", length = 100)
+    private String displayName;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default

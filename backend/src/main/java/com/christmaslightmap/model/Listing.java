@@ -64,6 +64,9 @@ public class Listing {
     @Column(name = "organizer")
     private String organizer;
 
+    @Column(name = "host_name", length = 100)
+    private String hostName;
+
     // Christmas Lights + Food Truck only
     @Column(name = "website_url", length = 500)
     private String websiteUrl;
