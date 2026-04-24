@@ -19,9 +19,9 @@ import { User, getInitials } from '../../models/listing.model';
         <div style="width:30px;height:30px;border-radius:8px;
                     background:linear-gradient(135deg,var(--accent) 0%,#ef4444 100%);
                     display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="white">
-            <circle cx="12" cy="12" r="4"/>
-            <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M17.66 6.34l-1.41 1.41M6.34 17.66l-1.41 1.41" stroke="white" stroke-width="2"/>
+          <svg width="18" height="18" viewBox="0 0 64 64" fill="none">
+            <path d="M32 10C24.27 10 18 16.27 18 24c0 11.25 14 30 14 30s14-18.75 14-30c0-7.73-6.27-14-14-14z" fill="white"/>
+            <circle cx="32" cy="24" r="5.5" fill="rgba(255,255,255,0.4)"/>
           </svg>
         </div>
         <div style="display:flex;flex-direction:column;line-height:1.1">
