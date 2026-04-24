@@ -61,12 +61,14 @@ export interface ListingSummary {
   cuisineType: string | null;
   organizer: string | null;
   websiteUrl: string | null;
+  resolvedHostName: string;
 }
 
 /** Returned by GET /listings/:id */
 export interface Listing extends ListingSummary {
   submittedBy: number;
   submittedByName: string;
+  submittedByDisplayName: string | null;
   submittedByAvatarUrl: string | null;
   description: string;
   address: string;
@@ -81,6 +83,7 @@ export interface User {
   name: string;
   email: string;
   avatarUrl: string | null;
+  displayName: string | null;
   role: 'USER' | 'ADMIN';
 }
 
@@ -99,6 +102,14 @@ export interface Report {
 export interface HostUser {
   id: number;
   name: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+}
+
+export interface HostSearchResult {
+  id: number;
+  name: string;
+  displayName: string | null;
   avatarUrl: string | null;
 }
 
@@ -149,6 +160,7 @@ export interface CreateListingRequest {
   organizer: string;
   // Christmas Lights + Food Truck only
   websiteUrl: string;
+  hostName: string;
 }
 
 export interface UpdateListingRequest {
@@ -170,6 +182,7 @@ export interface UpdateListingRequest {
   cuisineType: string;
   organizer: string;
   websiteUrl: string;
+  hostName: string;
 }
 
 export const TAG_STYLES: Record<string, { bg: string; text: string }> = {

@@ -380,6 +380,7 @@ export class SubmitComponent implements OnInit {
     cuisineType: '',
     organizer: '',
     websiteUrl: '',
+    hostName: '',
   };
 
   get isLights() { return this.form.category === 'CHRISTMAS_LIGHTS'; }
@@ -415,6 +416,7 @@ export class SubmitComponent implements OnInit {
       this.form.cuisineType = d.cuisineType ?? '';
       this.form.organizer = d.organizer ?? '';
       this.form.websiteUrl = d.websiteUrl ?? '';
+      this.form.hostName = d.resolvedHostName ?? '';
       this.form.tagIds = d.tags.map(t => t.id);
 
       this.listingApi.getById(d.id).subscribe({
@@ -582,6 +584,7 @@ export class SubmitComponent implements OnInit {
       cuisineType: this.form.cuisineType,
       organizer: this.form.organizer,
       websiteUrl: this.form.websiteUrl,
+      hostName: this.form.hostName,
     };
 
     const call = this.adminEdit && this.editListing
