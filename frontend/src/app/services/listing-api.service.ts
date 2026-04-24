@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {
-  Listing, ListingSummary, Tag, Report,
+  Listing, ListingSummary, Tag, Report, HostListingsResponse,
   PagedResponse, SearchParams, CreateListingRequest, UpdateListingRequest
 } from '../models/listing.model';
 import { environment } from '../../environments/environment';
@@ -79,6 +79,12 @@ export class ListingApiService {
   getUpvotedListings(): Observable<ListingSummary[]> {
     return this.http.get<ApiResponse<ListingSummary[]>>(`${this.base}/listings/upvoted`, { withCredentials: true })
       .pipe(map(r => r.data));
+  }
+
+  getHostListings(userId: number): Observable<HostListingsResponse> {
+    return this.http.get<ApiResponse<HostListingsResponse>>(
+      `${this.base}/users/${userId}/listings`, { withCredentials: true }
+    ).pipe(map(r => r.data));
   }
 
   getReports(status?: string, page = 0, size = 20): Observable<PagedResponse<Report>> {

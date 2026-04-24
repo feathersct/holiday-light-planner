@@ -66,6 +66,8 @@ export interface ListingSummary {
 /** Returned by GET /listings/:id */
 export interface Listing extends ListingSummary {
   submittedBy: number;
+  submittedByName: string;
+  submittedByAvatarUrl: string | null;
   description: string;
   address: string;
   postcode: string;
@@ -92,6 +94,17 @@ export interface Report {
   notes: string;
   status: string;
   createdAt: string;
+}
+
+export interface HostUser {
+  id: number;
+  name: string;
+  avatarUrl: string | null;
+}
+
+export interface HostListingsResponse {
+  user: HostUser;
+  listings: ListingSummary[];
 }
 
 export interface PagedResponse<T> {
