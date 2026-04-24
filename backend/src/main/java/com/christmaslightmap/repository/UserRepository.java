@@ -12,6 +12,12 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByProviderAndProviderId(String provider, String providerId);
 
+    Optional<User> findByHandle(String handle);
+
+    boolean existsByHandle(String handle);
+
+    boolean existsByHandleAndIdNot(String handle, Long id);
+
     @Query("""
         SELECT DISTINCT u FROM User u
         WHERE (LOWER(u.displayName) LIKE LOWER(CONCAT('%', :q, '%'))
