@@ -1,4 +1,4 @@
-import { Component, signal, computed, OnInit, inject } from '@angular/core';
+import { Component, signal, computed, OnInit, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Report, ListingSummary, CATEGORY_LABELS } from '../../models/listing.model';
@@ -150,6 +150,13 @@ type AdminTab = 'reports' | 'listings';
                   </div>
                 </div>
                 <div style="display:flex;gap:7px;flex-shrink:0;align-items:center">
+                  <!-- Edit -->
+                  <button *ngIf="deletingDisplayId() !== d.id" (click)="editListing.emit(d)"
+                          style="padding:5px 12px;border-radius:8px;font-size:12px;font-weight:600;
+                                 background:#e0f2fe;color:#0369a1;border:none;cursor:pointer">
+                    Edit
+                  </button>
+
                   <!-- Deactivate/Reactivate -->
                   <button (click)="toggleActive(d)"
                           [style.background]="d.isActive ? '#fef3c7' : '#dcfce7'"
@@ -196,6 +203,8 @@ type AdminTab = 'reports' | 'listings';
   `
 })
 export class AdminComponent implements OnInit {
+  @Output() editListing = new EventEmitter<ListingSummary>();
+
   adminTab = signal<AdminTab>('reports');
   statusFilter = signal<StatusFilter>('OPEN');
   reports = signal<Report[]>([]);

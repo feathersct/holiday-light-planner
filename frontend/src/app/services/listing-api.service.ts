@@ -109,6 +109,11 @@ export class ListingApiService {
       .pipe(map(r => r.data));
   }
 
+  adminUpdateListing(id: number, request: UpdateListingRequest): Observable<Listing> {
+    return this.http.patch<ApiResponse<Listing>>(`${this.base}/admin/listings/${id}`, request, { withCredentials: true })
+      .pipe(map(r => r.data));
+  }
+
   adminDeleteListing(listingId: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/admin/listings/${listingId}`, { withCredentials: true });
   }

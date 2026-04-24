@@ -57,6 +57,7 @@ const TILE_OPTIONS = [
       <app-submit *ngIf="screen() === 'submit'"
         [user]="authService.currentUser()"
         [editListing]="editingListing()"
+        [adminEdit]="editSource() === 'admin'"
         style="display:block;height:100%"
         (goHome)="onSubmitDone()"
         (cancel)="onSubmitCancel()"/>
@@ -68,7 +69,8 @@ const TILE_OPTIONS = [
         (editListing)="onEditListing($event)"/>
 
       <app-admin *ngIf="screen() === 'admin'"
-        style="display:block;height:100%"/>
+        style="display:block;height:100%"
+        (editListing)="onAdminEditListing($event)"/>
     </div>
 
     <!-- Mobile bottom tab bar -->
@@ -143,6 +145,7 @@ export class AppComponent implements OnInit {
   showSettings = signal(false);
   selectedDisplay = signal<ListingSummary | null>(null);
   editingListing = signal<ListingSummary | null>(null);
+  editSource = signal<'profile' | 'admin'>('profile');
   isMobile = window.innerWidth < 768;
 
   accentOptions = ACCENT_OPTIONS;
@@ -196,16 +199,25 @@ export class AppComponent implements OnInit {
   }
 
   onSubmitDone() {
+    const source = this.editSource();
     this.editingListing.set(null);
-    this.screen.set('map');
+    this.screen.set(source === 'admin' ? 'admin' : 'map');
   }
 
   onSubmitCancel() {
+    const source = this.editSource();
     this.editingListing.set(null);
-    this.screen.set('profile');
+    this.screen.set(source);
   }
 
   onEditListing(listing: ListingSummary) {
+    this.editSource.set('profile');
+    this.editingListing.set(listing);
+    this.screen.set('submit');
+  }
+
+  onAdminEditListing(listing: ListingSummary) {
+    this.editSource.set('admin');
     this.editingListing.set(listing);
     this.screen.set('submit');
   }

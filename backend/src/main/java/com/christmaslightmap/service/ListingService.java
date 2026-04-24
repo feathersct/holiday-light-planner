@@ -127,6 +127,39 @@ public class ListingService {
     }
 
     @Transactional
+    public ListingResponse adminUpdateListing(Long listingId, UpdateListingRequest request) {
+        Listing listing = listingRepository.findById(listingId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Listing not found"));
+
+        Point location = GEOMETRY_FACTORY.createPoint(new Coordinate(request.getLng(), request.getLat()));
+        location.setSRID(4326);
+
+        var tags = new HashSet<>(tagRepository.findAllById(
+            request.getTagIds() != null ? request.getTagIds() : List.of()));
+
+        listing.setTitle(request.getTitle());
+        listing.setDescription(request.getDescription());
+        listing.setAddress(request.getAddress());
+        listing.setCity(request.getCity());
+        listing.setState(request.getState());
+        listing.setPostcode(request.getPostcode());
+        listing.setLocation(location);
+        listing.setCategory(request.getCategory());
+        listing.setStartDatetime(request.getStartDatetime());
+        listing.setEndDatetime(request.getEndDatetime());
+        listing.setBestTime(request.getBestTime());
+        listing.setDisplayType(request.getDisplayType());
+        listing.setCuisineType(request.getCuisineType());
+        listing.setOrganizer(request.getOrganizer());
+        listing.setWebsiteUrl(request.getWebsiteUrl());
+        listing.setPriceInfo(request.getPriceInfo());
+        listing.setTags(tags);
+
+        listing = listingRepository.save(listing);
+        return ListingResponse.from(listing, displayPhotoRepository.findByDisplay_Id(listingId));
+    }
+
+    @Transactional
     public void deleteListing(Long userId, Long listingId) {
         Listing listing = listingRepository.findById(listingId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Listing not found"));

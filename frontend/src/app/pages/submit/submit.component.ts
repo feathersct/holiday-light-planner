@@ -345,6 +345,7 @@ export class SubmitComponent implements OnInit {
   error: string | null = null;
   createdListingId = signal<number | null>(null);
   @Input() editListing: ListingSummary | null = null;
+  @Input() adminEdit = false;
   @Output() cancel = new EventEmitter<void>();
 
   existingPhotos = signal<Photo[]>([]);
@@ -583,9 +584,11 @@ export class SubmitComponent implements OnInit {
       websiteUrl: this.form.websiteUrl,
     };
 
-    const call = this.editListing
-      ? this.listingApi.update(this.editListing.id, payload as UpdateListingRequest)
-      : this.listingApi.create(payload);
+    const call = this.adminEdit && this.editListing
+      ? this.listingApi.adminUpdateListing(this.editListing.id, payload as UpdateListingRequest)
+      : this.editListing
+        ? this.listingApi.update(this.editListing.id, payload as UpdateListingRequest)
+        : this.listingApi.create(payload);
 
     call.subscribe({
       next: listing => {

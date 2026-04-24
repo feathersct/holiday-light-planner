@@ -1,13 +1,16 @@
 package com.christmaslightmap.controller;
 
 import com.christmaslightmap.dto.request.AdminDisplayRequest;
+import com.christmaslightmap.dto.request.UpdateListingRequest;
 import com.christmaslightmap.dto.request.UpdateReportRequest;
 import com.christmaslightmap.dto.response.ApiResponse;
+import com.christmaslightmap.dto.response.ListingResponse;
 import com.christmaslightmap.dto.response.ListingSummaryResponse;
 import com.christmaslightmap.dto.response.PagedResponse;
 import com.christmaslightmap.dto.response.ReportResponse;
 import com.christmaslightmap.model.ReportStatus;
 import com.christmaslightmap.service.AdminService;
+import com.christmaslightmap.service.ListingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 public class AdminController {
 
     private final AdminService adminService;
+    private final ListingService listingService;
 
     @GetMapping("/reports")
     public ResponseEntity<ApiResponse<PagedResponse<ReportResponse>>> getReports(
@@ -53,6 +57,14 @@ public class AdminController {
         @RequestBody AdminDisplayRequest request
     ) {
         return ResponseEntity.ok(ApiResponse.success(adminService.setListingActive(id, request.isActive())));
+    }
+
+    @PatchMapping("/listings/{id}")
+    public ResponseEntity<ApiResponse<ListingResponse>> adminUpdateListing(
+        @PathVariable Long id,
+        @RequestBody UpdateListingRequest request
+    ) {
+        return ResponseEntity.ok(ApiResponse.success(listingService.adminUpdateListing(id, request)));
     }
 
     @DeleteMapping("/listings/{id}")
