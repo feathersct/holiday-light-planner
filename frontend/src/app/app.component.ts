@@ -1,7 +1,7 @@
 import { Component, OnInit, signal, computed, effect, HostListener } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ListingSummary, HostUser } from './models/listing.model';
+import { ListingSummary, HostUser, InitialFilters, FilterState, Category, CATEGORY_LABELS } from './models/listing.model';
 import { NavbarComponent } from './shared/navbar/navbar.component';
 import { BottomTabBarComponent } from './shared/bottom-tab-bar/bottom-tab-bar.component';
 import { SignInModalComponent } from './shared/sign-in-modal/sign-in-modal.component';
@@ -51,10 +51,12 @@ const TILE_OPTIONS = [
       <app-map *ngIf="screen() === 'map'"
         [user]="authService.currentUser()"
         [mapTiles]="authService.mapTiles()"
+        [initialFilters]="initialFilters"
         style="display:block;height:100%"
         (needAuth)="showSignIn.set(true)"
         (viewDetails)="openDetail($event)"
-        (upvoteToggle)="upvoteService.toggle($event)"/>
+        (upvoteToggle)="upvoteService.toggle($event)"
+        (filtersChanged)="onFiltersChanged($event)"/>
 
       <app-submit *ngIf="screen() === 'submit'"
         [user]="authService.currentUser()"
@@ -160,6 +162,7 @@ export class AppComponent implements OnInit {
   viewingHost = signal<HostUser | null>(null);
   editingListing = signal<ListingSummary | null>(null);
   editSource = signal<'profile' | 'admin'>('profile');
+  initialFilters: InitialFilters | null = null;
   isMobile = window.innerWidth < 768;
 
   accentOptions = ACCENT_OPTIONS;
@@ -171,8 +174,24 @@ export class AppComponent implements OnInit {
     private location: Location,
   ) {}
 
+  private parseInitialFilters(): InitialFilters | null {
+    const params = new URLSearchParams(window.location.search);
+    const result: InitialFilters = {};
+    const cat = params.get('category');
+    if (cat && Object.keys(CATEGORY_LABELS).includes(cat)) result.category = cat as Category;
+    const lat = parseFloat(params.get('lat') ?? '');
+    const lng = parseFloat(params.get('lng') ?? '');
+    if (!isNaN(lat) && !isNaN(lng)) { result.lat = lat; result.lng = lng; }
+    const radius = parseInt(params.get('radius') ?? '', 10);
+    if (!isNaN(radius) && radius >= 1 && radius <= 100) result.radius = radius;
+    const tags = params.get('tags');
+    if (tags) result.tags = tags.split(',').map(t => t.trim()).filter(Boolean);
+    return Object.keys(result).length > 0 ? result : null;
+  }
+
   ngOnInit() {
     this.authService.init();
+    this.initialFilters = this.parseInitialFilters();
     const path = this.location.path();
     if (path.startsWith('/submit')) this.screen.set('submit');
     else if (path.startsWith('/profile')) this.screen.set('profile');
@@ -248,6 +267,18 @@ export class AppComponent implements OnInit {
 
   isUpvoted(id: number) {
     return this.upvoteService.upvotedIds().has(id);
+  }
+
+  onFiltersChanged(state: FilterState) {
+    this.initialFilters = null;
+    if (this.screen() !== 'map') return;
+    const params = new URLSearchParams();
+    if (state.category) params.set('category', state.category);
+    if (state.tags.length) params.set('tags', state.tags.join(','));
+    params.set('lat', state.lat.toFixed(5));
+    params.set('lng', state.lng.toFixed(5));
+    if (state.radius !== 10) params.set('radius', String(state.radius));
+    this.location.replaceState('/', params.toString());
   }
 
   setAccent(id: string) {
