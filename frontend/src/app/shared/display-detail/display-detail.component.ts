@@ -1,9 +1,9 @@
-import { Component, Input, Output, EventEmitter, OnInit, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DisplaySummary, Display, TYPE_COLORS, TYPE_LABELS } from '../../models/display.model';
+import { Listing, ListingSummary, CATEGORY_COLORS, CATEGORY_LABELS, formatDateRange } from '../../models/listing.model';
 import { TagBadgeComponent } from '../tag-badge/tag-badge.component';
 import { UpvoteButtonComponent } from '../upvote-button/upvote-button.component';
-import { DisplayApiService } from '../../services/display-api.service';
+import { ListingApiService } from '../../services/listing-api.service';
 
 @Component({
   selector: 'app-display-detail',
@@ -62,17 +62,22 @@ import { DisplayApiService } from '../../services/display-api.service';
           <!-- Content -->
           <div style="padding:22px 24px 32px;display:flex;flex-direction:column;gap:16px">
             <!-- Header -->
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
-              <div style="flex:1">
-                <div style="font-weight:800;font-size:20px;color:#0f172a;line-height:1.2;margin-bottom:4px">
-                  {{fullDisplay()!.title}}
-                </div>
-                <div style="font-size:13px;color:#64748b">📍 {{fullDisplay()!.address}}</div>
+            <div style="flex:1">
+              <div style="font-weight:800;font-size:20px;color:#0f172a;line-height:1.2;margin-bottom:4px">
+                {{fullDisplay()!.title}}
               </div>
-              <span [style.background]="typeColors.bg" [style.color]="typeColors.text"
-                    style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;
-                           white-space:nowrap;flex-shrink:0;margin-top:2px">
-                {{typeLabel}}
+              <div style="font-size:13px;color:#64748b">📍 {{fullDisplay()!.address}}</div>
+            </div>
+
+            <!-- Category badge + date range -->
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+              <span [style.background]="categoryColors[fullDisplay()!.category]?.bg"
+                    [style.color]="categoryColors[fullDisplay()!.category]?.text"
+                    style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px">
+                {{categoryLabels[fullDisplay()!.category]}}
+              </span>
+              <span style="font-size:12px;color:#64748b">
+                {{formatDateRange(fullDisplay()!.startDatetime, fullDisplay()!.endDatetime)}}
               </span>
             </div>
 
@@ -82,7 +87,7 @@ import { DisplayApiService } from '../../services/display-api.service';
               <app-upvote-button [count]="fullDisplay()!.upvoteCount" [upvoted]="upvoted"
                 (toggled)="upvote.emit()"/>
               <div style="font-size:12.5px;color:#64748b">
-                {{fullDisplay()!.photoCount}} photos · {{fullDisplay()!.bestTime}}
+                {{fullDisplay()!.photoCount}} photos
               </div>
             </div>
 
@@ -97,11 +102,36 @@ import { DisplayApiService } from '../../services/display-api.service';
               {{fullDisplay()!.description}}
             </p>
 
-            <!-- Best time -->
-            <div style="background:#f8fafc;border-radius:10px;padding:14px 16px">
-              <div style="font-size:12px;font-weight:700;color:#94a3b8;text-transform:uppercase;
-                          letter-spacing:0.6px;margin-bottom:6px">Hours</div>
-              <div style="font-size:13.5px;color:#374151">{{fullDisplay()!.bestTime}}</div>
+            <!-- Cuisine type — Food Truck -->
+            <div *ngIf="fullDisplay()!.cuisineType"
+                 style="font-size:13.5px;color:#374151">
+              🍽️ {{fullDisplay()!.cuisineType}}
+            </div>
+
+            <!-- Organizer — Estate Sale -->
+            <div *ngIf="fullDisplay()!.organizer"
+                 style="font-size:13.5px;color:#374151">
+              🏢 {{fullDisplay()!.organizer}}
+            </div>
+
+            <!-- Price info -->
+            <div *ngIf="fullDisplay()!.priceInfo"
+                 style="font-size:13.5px;color:#374151">
+              💰 {{fullDisplay()!.priceInfo}}
+            </div>
+
+            <!-- Best time — Christmas Lights -->
+            <div *ngIf="fullDisplay()!.bestTime"
+                 style="font-size:13.5px;color:#374151">
+              🕐 {{fullDisplay()!.bestTime}}
+            </div>
+
+            <!-- Website -->
+            <div *ngIf="fullDisplay()!.websiteUrl">
+              <a [href]="fullDisplay()!.websiteUrl" target="_blank" rel="noopener"
+                 style="font-size:13.5px;color:var(--accent);text-decoration:none;font-weight:600">
+                🌐 Visit website
+              </a>
             </div>
 
             <!-- Action buttons -->
@@ -123,7 +153,7 @@ import { DisplayApiService } from '../../services/display-api.service';
   `
 })
 export class DisplayDetailComponent implements OnInit {
-  @Input() summary!: DisplaySummary;
+  @Input() summary!: ListingSummary;
   @Input() upvoted = false;
   @Input() isMobile = false;
 
@@ -132,14 +162,18 @@ export class DisplayDetailComponent implements OnInit {
   @Output() report = new EventEmitter<void>();
 
   loading = signal(true);
-  fullDisplay = signal<Display | null>(null);
+  fullDisplay = signal<Listing | null>(null);
 
-  constructor(private displayApi: DisplayApiService) {}
+  private listingApi = inject(ListingApiService);
+
+  categoryColors = CATEGORY_COLORS;
+  categoryLabels = CATEGORY_LABELS;
+  formatDateRange = formatDateRange;
 
   ngOnInit() {
-    this.displayApi.getById(this.summary.id).subscribe({
-      next: display => {
-        this.fullDisplay.set(display);
+    this.listingApi.getById(this.summary.id).subscribe({
+      next: listing => {
+        this.fullDisplay.set(listing);
         this.loading.set(false);
       },
       error: () => this.loading.set(false),
@@ -150,12 +184,5 @@ export class DisplayDetailComponent implements OnInit {
     const d = this.fullDisplay();
     if (!d?.photos?.length) return null;
     return d.photos.find(p => p.isPrimary)?.url ?? d.photos[0].url;
-  }
-
-  get typeColors() {
-    return TYPE_COLORS[this.fullDisplay()?.displayType ?? ''] ?? TYPE_COLORS['DRIVE_BY'];
-  }
-  get typeLabel() {
-    return TYPE_LABELS[this.fullDisplay()?.displayType ?? ''] ?? '';
   }
 }
