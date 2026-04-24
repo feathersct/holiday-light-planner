@@ -45,7 +45,7 @@ public class Listing {
     @Column(name = "start_datetime", nullable = false)
     private LocalDateTime startDatetime;
 
-    @Column(name = "end_datetime")
+    @Column(name = "end_datetime", nullable = false)
     private LocalDateTime endDatetime;
 
     // Christmas Lights only

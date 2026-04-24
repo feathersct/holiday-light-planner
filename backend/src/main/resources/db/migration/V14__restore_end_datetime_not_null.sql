@@ -1,0 +1,1 @@
+ALTER TABLE listings ALTER COLUMN end_datetime SET NOT NULL;

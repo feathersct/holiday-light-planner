@@ -23,7 +23,7 @@ public interface ListingRepository extends JpaRepository<Listing, Long> {
         WHERE d.is_active = true
           AND ST_DWithin(d.location, ST_MakePoint(:lng, :lat)::geography, :radiusMetres)
           AND (:category IS NULL OR d.category = :category)
-          AND (:includeExpired OR d.end_datetime IS NULL OR d.end_datetime >= NOW())
+          AND (:includeExpired OR d.end_datetime >= NOW())
         ORDER BY d.upvote_count DESC
         LIMIT :lim OFFSET :off
         """, nativeQuery = true)
@@ -42,7 +42,7 @@ public interface ListingRepository extends JpaRepository<Listing, Long> {
         WHERE d.is_active = true
           AND ST_DWithin(d.location, ST_MakePoint(:lng, :lat)::geography, :radiusMetres)
           AND (:category IS NULL OR d.category = :category)
-          AND (:includeExpired OR d.end_datetime IS NULL OR d.end_datetime >= NOW())
+          AND (:includeExpired OR d.end_datetime >= NOW())
         """, nativeQuery = true)
     long countSearchListings(
         @Param("lat") double lat,
@@ -64,7 +64,7 @@ public interface ListingRepository extends JpaRepository<Listing, Long> {
         WHERE d.is_active = true
           AND ST_DWithin(d.location, ST_MakePoint(:lng, :lat)::geography, :radiusMetres)
           AND (:category IS NULL OR d.category = :category)
-          AND (:includeExpired OR d.end_datetime IS NULL OR d.end_datetime >= NOW())
+          AND (:includeExpired OR d.end_datetime >= NOW())
           AND EXISTS (SELECT 1 FROM display_tags dt WHERE dt.display_id = d.id AND dt.tag_id IN (:tagIds))
         ORDER BY d.upvote_count DESC
         LIMIT :lim OFFSET :off
@@ -85,7 +85,7 @@ public interface ListingRepository extends JpaRepository<Listing, Long> {
         WHERE d.is_active = true
           AND ST_DWithin(d.location, ST_MakePoint(:lng, :lat)::geography, :radiusMetres)
           AND (:category IS NULL OR d.category = :category)
-          AND (:includeExpired OR d.end_datetime IS NULL OR d.end_datetime >= NOW())
+          AND (:includeExpired OR d.end_datetime >= NOW())
           AND EXISTS (SELECT 1 FROM display_tags dt WHERE dt.display_id = d.id AND dt.tag_id IN (:tagIds))
         """, nativeQuery = true)
     long countSearchListingsWithTags(
