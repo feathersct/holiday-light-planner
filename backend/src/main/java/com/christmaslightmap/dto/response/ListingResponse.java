@@ -17,6 +17,7 @@ public class ListingResponse {
     private Long submittedBy;
     private String submittedByName;
     private String submittedByAvatarUrl;
+    private String submittedByHandle;
     private String title;
     private String description;
     private String address;
@@ -48,6 +49,7 @@ public class ListingResponse {
             .submittedBy(listing.getUser().getId())
             .submittedByName(resolveHostName(listing))
             .submittedByAvatarUrl(listing.getUser().getAvatarUrl())
+            .submittedByHandle(listing.getUser().getHandle())
             .title(listing.getTitle())
             .description(listing.getDescription())
             .address(listing.getAddress())

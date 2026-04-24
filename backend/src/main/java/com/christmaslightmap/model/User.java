@@ -35,6 +35,9 @@ public class User {
     @Column(name = "display_name", length = 100)
     private String displayName;
 
+    @Column(name = "handle", length = 30)
+    private String handle;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default

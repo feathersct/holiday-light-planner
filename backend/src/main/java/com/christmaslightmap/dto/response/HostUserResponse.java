@@ -11,6 +11,7 @@ public class HostUserResponse {
     private String name;
     private String displayName;
     private String avatarUrl;
+    private String handle;
 
     public static HostUserResponse from(User user) {
         return HostUserResponse.builder()
@@ -18,6 +19,7 @@ public class HostUserResponse {
             .name(user.getName())
             .displayName(user.getDisplayName())
             .avatarUrl(user.getAvatarUrl())
+            .handle(user.getHandle())
             .build();
     }
 }
