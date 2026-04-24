@@ -201,7 +201,7 @@ export class AppComponent implements OnInit {
     else if (path.startsWith('/admin')) this.screen.set('admin');
     else if (path.startsWith('/hosts')) this.location.replaceState('/');
     else if (path.startsWith('/host/')) {
-      const handle = path.split('/')[2];
+      const handle = path.split('/')[2]?.split('?')[0];
       if (handle) {
         this.listingApi.getHostListingsByHandle(handle).subscribe({
           next: resp => {
