@@ -235,3 +235,11 @@ export function formatDateRange(start: string, end: string): string {
   if (s.toDateString() === e.toDateString()) return fmt(s);
   return `${fmt(s)} – ${fmt(e)}`;
 }
+
+export function formatTimeRange(start: string, end: string): string | null {
+  const s = new Date(start), e = new Date(end);
+  const midnight = (d: Date) => d.getHours() === 0 && d.getMinutes() === 0;
+  if (midnight(s) && midnight(e)) return null;
+  const fmt = (d: Date) => d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  return `${fmt(s)} – ${fmt(e)}`;
+}
