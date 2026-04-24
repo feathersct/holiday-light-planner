@@ -20,7 +20,7 @@ public class DisplayPhoto {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "display_id", nullable = false)
-    private Display display;
+    private Listing display;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

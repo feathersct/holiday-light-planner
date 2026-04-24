@@ -13,10 +13,10 @@ public interface UpvoteRepository extends JpaRepository<Upvote, Long> {
     long countByUserAndListing(@Param("userId") Long userId, @Param("listingId") Long listingId);
 
     @Transactional
-    @Query("DELETE FROM Upvote u WHERE u.user.id = :userId AND u.display.id = :listingId")
+    @Query("DELETE FROM Upvote u WHERE u.user.id = :userId AND u.listing.id = :listingId")
     @org.springframework.data.jpa.repository.Modifying
     void deleteByUserIdAndListingId(@Param("userId") Long userId, @Param("listingId") Long listingId);
 
-    @Query("SELECT u FROM Upvote u JOIN FETCH u.display d WHERE u.user.id = :userId AND d.isActive = true")
+    @Query("SELECT u FROM Upvote u JOIN FETCH u.listing d WHERE u.user.id = :userId AND d.isActive = true")
     List<Upvote> findByUserIdWithActiveListings(@Param("userId") Long userId);
 }

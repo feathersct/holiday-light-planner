@@ -1,7 +1,7 @@
 package com.christmaslightmap.service;
 
 import com.christmaslightmap.model.Upvote;
-import com.christmaslightmap.repository.DisplayRepository;
+import com.christmaslightmap.repository.ListingRepository;
 import com.christmaslightmap.repository.UpvoteRepository;
 import com.christmaslightmap.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 public class UpvoteService {
 
     private final UpvoteRepository upvoteRepository;
-    private final DisplayRepository displayRepository;
+    private final ListingRepository listingRepository;
     private final UserRepository userRepository;
 
     @Transactional
@@ -23,11 +23,11 @@ public class UpvoteService {
         if (upvoteRepository.countByUserAndListing(userId, displayId) > 0) {
             return false;
         }
-        var display = displayRepository.findById(displayId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Display not found"));
+        var display = listingRepository.findById(displayId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Listing not found"));
         var user = userRepository.findById(userId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-        upvoteRepository.saveAndFlush(Upvote.builder().user(user).display(display).build());
+        upvoteRepository.saveAndFlush(Upvote.builder().user(user).listing(display).build());
         return true;
     }
 

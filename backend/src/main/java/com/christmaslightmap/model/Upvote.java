@@ -24,7 +24,7 @@ public class Upvote {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "display_id", nullable = false)
-    private Display display;
+    private Listing listing;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

@@ -1,0 +1,16 @@
+Maintenance:
+1. add google in the auth
+
+Improvements:
+1. Loading screen when getting the location
+3. On mobile, there's a header and a bottom header, we should decide which one to go with
+4. Add date and times to display show, some people might want to only show it during specific times
+5. Have comments on the houses?
+6. When adding a display, give the user suggestions when filling in street address, city, state, etc
+7. Tap to pin doesn't work in Add a display
+8. The picture doesn't show when clicking on the display modal
+9. Decide between neighbourhood or city on map, it's not very obvious what the user should put in there and there's no immediate feed back
+10. Add some personal metrics? I like grafana and prometheus but open to other ideas
+11. add websites for displays incase others want to put their show selector
+12. We should probably have urls so the state of different pages can be saved.
+13. Announcements on the displays. Maybe pick them up directly from Facebook or do it manually

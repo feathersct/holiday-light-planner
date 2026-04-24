@@ -22,8 +22,8 @@ public class ReportResponse {
     public static ReportResponse from(Report report) {
         return ReportResponse.builder()
             .id(report.getId())
-            .displayId(report.getDisplay().getId())
-            .displayTitle(report.getDisplay().getTitle())
+            .displayId(report.getListing().getId())
+            .displayTitle(report.getListing().getTitle())
             .reporterId(report.getUser().getId())
             .reporterName(report.getUser().getName())
             .reason(report.getReason().name())

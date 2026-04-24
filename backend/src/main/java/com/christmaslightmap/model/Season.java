@@ -20,7 +20,7 @@ public class Season {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "display_id", nullable = false)
-    private Display display;
+    private Listing display;
 
     @Column(nullable = false)
     private int year;

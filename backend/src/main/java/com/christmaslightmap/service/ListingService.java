@@ -11,6 +11,7 @@ import com.christmaslightmap.model.Listing;
 import com.christmaslightmap.repository.DisplayPhotoRepository;
 import com.christmaslightmap.repository.ListingRepository;
 import com.christmaslightmap.repository.TagRepository;
+import com.christmaslightmap.repository.UpvoteRepository;
 import com.christmaslightmap.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.locationtech.jts.geom.Coordinate;
@@ -39,6 +40,7 @@ public class ListingService {
     private final UserRepository userRepository;
     private final TagRepository tagRepository;
     private final DisplayPhotoRepository displayPhotoRepository;
+    private final UpvoteRepository upvoteRepository;
 
     public PagedResponse<ListingSummaryResponse> searchListings(
             double lat, double lng, double radiusMiles,
@@ -140,9 +142,10 @@ public class ListingService {
     }
 
     public List<ListingSummaryResponse> getUpvotedListings(Long userId) {
-        // upvote.display is still Display type; Task 8 changes it to Listing
-        // This method will work correctly after Task 8 completes
-        return List.of();
+        List<Listing> listings = upvoteRepository.findByUserIdWithActiveListings(userId).stream()
+            .map(u -> u.getListing())
+            .collect(Collectors.toList());
+        return toSummaries(listings);
     }
 
     private List<ListingSummaryResponse> toSummaries(List<Listing> listings) {

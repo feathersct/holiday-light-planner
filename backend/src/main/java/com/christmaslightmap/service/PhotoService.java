@@ -3,7 +3,7 @@ package com.christmaslightmap.service;
 import com.christmaslightmap.dto.response.PhotoResponse;
 import com.christmaslightmap.model.DisplayPhoto;
 import com.christmaslightmap.repository.DisplayPhotoRepository;
-import com.christmaslightmap.repository.DisplayRepository;
+import com.christmaslightmap.repository.ListingRepository;
 import com.christmaslightmap.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,7 +24,7 @@ import java.util.UUID;
 public class PhotoService {
 
     private final S3Client s3Client;
-    private final DisplayRepository displayRepository;
+    private final ListingRepository listingRepository;
     private final DisplayPhotoRepository displayPhotoRepository;
     private final UserRepository userRepository;
 
@@ -39,8 +39,8 @@ public class PhotoService {
 
     @Transactional
     public PhotoResponse uploadPhoto(Long displayId, Long userId, MultipartFile file) {
-        var display = displayRepository.findById(displayId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Display not found"));
+        var display = listingRepository.findById(displayId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Listing not found"));
         var user = userRepository.findById(userId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
