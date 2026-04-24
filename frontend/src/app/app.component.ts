@@ -270,14 +270,15 @@ export class AppComponent implements OnInit {
   }
 
   onFiltersChanged(state: FilterState) {
-    this.initialFilters = null;
     if (this.screen() !== 'map') return;
+    this.initialFilters = null;
     const params = new URLSearchParams();
     if (state.category) params.set('category', state.category);
     if (state.tags.length) params.set('tags', state.tags.join(','));
     params.set('lat', state.lat.toFixed(5));
     params.set('lng', state.lng.toFixed(5));
     if (state.radius !== 10) params.set('radius', String(state.radius));
+    // replaceState(path, query) — Angular appends query as ?... when non-empty
     this.location.replaceState('/', params.toString());
   }
 
