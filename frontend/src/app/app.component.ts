@@ -1,7 +1,7 @@
 import { Component, OnInit, signal, computed, effect, HostListener } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ListingSummary } from './models/listing.model';
+import { ListingSummary, HostUser } from './models/listing.model';
 import { NavbarComponent } from './shared/navbar/navbar.component';
 import { BottomTabBarComponent } from './shared/bottom-tab-bar/bottom-tab-bar.component';
 import { SignInModalComponent } from './shared/sign-in-modal/sign-in-modal.component';
@@ -10,10 +10,11 @@ import { MapComponent } from './pages/map/map.component';
 import { SubmitComponent } from './pages/submit/submit.component';
 import { ProfileComponent } from './pages/profile/profile.component';
 import { AdminComponent } from './pages/admin/admin.component';
+import { HostProfileComponent } from './pages/host-profile/host-profile.component';
 import { AuthService } from './services/auth.service';
 import { UpvoteService } from './services/upvote.service';
 
-type Screen = 'map' | 'submit' | 'profile' | 'admin';
+type Screen = 'map' | 'submit' | 'profile' | 'admin' | 'host';
 
 const ACCENT_OPTIONS = [
   { id: 'amber',  label: 'Warm Amber',  color: '#f59e0b' },
@@ -34,7 +35,7 @@ const TILE_OPTIONS = [
     CommonModule, FormsModule,
     NavbarComponent, BottomTabBarComponent,
     SignInModalComponent, DisplayDetailComponent,
-    MapComponent, SubmitComponent, ProfileComponent, AdminComponent,
+    MapComponent, SubmitComponent, ProfileComponent, AdminComponent, HostProfileComponent,
   ],
   template: `
     <!-- Navbar -->
@@ -71,6 +72,12 @@ const TILE_OPTIONS = [
       <app-admin *ngIf="screen() === 'admin'"
         style="display:block;height:100%"
         (editListing)="onAdminEditListing($event)"/>
+
+      <app-host-profile *ngIf="screen() === 'host'"
+        [host]="viewingHost()!"
+        style="display:block;height:100%"
+        (back)="navigate('map')"
+        (viewDetails)="openDetail($event)"/>
     </div>
 
     <!-- Mobile bottom tab bar -->
@@ -90,6 +97,7 @@ const TILE_OPTIONS = [
       [isMobile]="isMobile"
       (close)="selectedDisplay.set(null)"
       (upvote)="upvoteService.toggle(selectedDisplay()!.id)"
+      (viewHost)="openHostProfile($event)"
       (report)="selectedDisplay.set(null)"/>
 
     <!-- Settings panel toggle (bottom-right FAB on desktop) -->
@@ -144,6 +152,7 @@ export class AppComponent implements OnInit {
   showSignIn = signal(false);
   showSettings = signal(false);
   selectedDisplay = signal<ListingSummary | null>(null);
+  viewingHost = signal<HostUser | null>(null);
   editingListing = signal<ListingSummary | null>(null);
   editSource = signal<'profile' | 'admin'>('profile');
   isMobile = window.innerWidth < 768;
@@ -175,6 +184,7 @@ export class AppComponent implements OnInit {
       this.showSignIn.set(true);
       return;
     }
+    if (screen !== 'host') this.viewingHost.set(null);
     if (screen !== 'submit') this.editingListing.set(null);
     this.screen.set(screen as Screen);
     this.showSettings.set(false);
@@ -196,6 +206,13 @@ export class AppComponent implements OnInit {
 
   openDetail(display: ListingSummary) {
     this.selectedDisplay.set(display);
+  }
+
+  openHostProfile(host: HostUser) {
+    this.selectedDisplay.set(null);
+    this.viewingHost.set(host);
+    this.screen.set('host');
+    this.location.replaceState('/host');
   }
 
   onSubmitDone() {
