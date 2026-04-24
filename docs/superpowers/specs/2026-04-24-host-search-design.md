@@ -45,8 +45,8 @@ When displaying the name of a host for a listing:
 - Trimmed and capped at 100 characters before saving.
 
 ### Modified: `ListingSummaryResponse` and `ListingResponse`
-- Add `hostName` field (nullable String) — populated from `listings.host_name`.
-- Frontend applies resolution order client-side using `submittedByName` (already present) as the final fallback.
+- Add `resolvedHostName` field (non-nullable String) — computed server-side using the resolution order: `listings.host_name` → `users.display_name` → `users.name`.
+- This replaces any need for the frontend to perform resolution logic. The existing `submittedByName` field is left as-is for backward compatibility.
 
 ### No changes to `GET /api/v1/users/{userId}/listings`
 - Already returns host user info and their upcoming listings. Works as-is.
@@ -76,9 +76,8 @@ When displaying the name of a host for a listing:
 - Maps to `hostName` in the request body.
 
 ### Modified: Host byline display
-- `DisplayDetailComponent` and `DisplayCardComponent` resolve the display name using the priority order:
-  `listing.hostName` → `listing.submittedByName` resolved via user's `displayName` → `listing.submittedByName`.
-- Since `ListingSummaryResponse` now includes `hostName`, the frontend picks `hostName` if present, otherwise falls back to `submittedByName`.
+- `DisplayDetailComponent` and `DisplayCardComponent` use `listing.resolvedHostName` (non-nullable, server-resolved) instead of `submittedByName` for the host byline.
+- No client-side resolution logic needed.
 
 ### Modified: Bottom tab bar (`BottomTabBarComponent`)
 - Add a "Hosts" tab linking to `/hosts` on mobile alongside existing tabs.
