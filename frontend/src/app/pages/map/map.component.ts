@@ -223,8 +223,8 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
                 </svg>
               </div>
               <div>
-                <div style="font-weight:800;font-size:14px">Welcome to Holiday Light Planner</div>
-                <div style="font-size:12px;opacity:0.7;margin-top:1px">Community light display map</div>
+                <div style="font-weight:800;font-size:14px">Welcome to Event Mapster</div>
+                <div style="font-size:12px;opacity:0.7;margin-top:1px">Your community event map</div>
               </div>
             </div>
             <p style="font-size:12.5px;line-height:1.6;opacity:0.85;margin:0 0 14px">

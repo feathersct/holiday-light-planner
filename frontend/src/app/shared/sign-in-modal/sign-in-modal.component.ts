@@ -21,7 +21,7 @@ import { CommonModule } from '@angular/common';
               <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M17.66 6.34l-1.41 1.41M6.34 17.66l-1.41 1.41" stroke="white" stroke-width="2"/>
             </svg>
           </div>
-          <div style="font-weight:800;font-size:20px;color:#0f172a;margin-bottom:6px">Sign in to Holiday Light Planner</div>
+          <div style="font-weight:800;font-size:20px;color:#0f172a;margin-bottom:6px">Sign in to Event Mapster</div>
           <div style="font-size:13.5px;color:#64748b;line-height:1.5">Upvote your favourites, submit a display,<br>and save your discoveries.</div>
         </div>
         <div style="display:flex;flex-direction:column;gap:10px">
