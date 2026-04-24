@@ -11,7 +11,6 @@ import com.christmaslightmap.model.Listing;
 import com.christmaslightmap.repository.DisplayPhotoRepository;
 import com.christmaslightmap.repository.ListingRepository;
 import com.christmaslightmap.repository.TagRepository;
-import com.christmaslightmap.repository.UpvoteRepository;
 import com.christmaslightmap.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.locationtech.jts.geom.Coordinate;
@@ -40,7 +39,6 @@ public class ListingService {
     private final UserRepository userRepository;
     private final TagRepository tagRepository;
     private final DisplayPhotoRepository displayPhotoRepository;
-    private final UpvoteRepository upvoteRepository;
 
     public PagedResponse<ListingSummaryResponse> searchListings(
             double lat, double lng, double radiusMiles,
@@ -157,7 +155,7 @@ public class ListingService {
             .collect(Collectors.toList());
     }
 
-    public ListingSummaryResponse buildSummary(Listing listing, String primaryPhotoUrl) {
+    private ListingSummaryResponse buildSummary(Listing listing, String primaryPhotoUrl) {
         return ListingSummaryResponse.builder()
             .id(listing.getId())
             .title(listing.getTitle())
@@ -193,6 +191,7 @@ public class ListingService {
             .upvoteCount(((Number) row[6]).intValue())
             .photoCount(((Number) row[7]).intValue())
             .displayType((String) row[8])
+            // row[9] is created_at — not included in summary DTO
             .primaryPhotoUrl((String) row[10])
             .category(categoryStr != null ? Category.valueOf(categoryStr) : null)
             .startDatetime(row[12] != null ? ((java.sql.Timestamp) row[12]).toLocalDateTime() : null)
