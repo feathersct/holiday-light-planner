@@ -33,6 +33,7 @@ public class ListingResponse {
     private String cuisineType;
     private String organizer;
     private String websiteUrl;
+    private String resolvedHostName;
     private String priceInfo;
     private int upvoteCount;
     private int photoCount;
@@ -63,6 +64,7 @@ public class ListingResponse {
             .cuisineType(listing.getCuisineType())
             .organizer(listing.getOrganizer())
             .websiteUrl(listing.getWebsiteUrl())
+            .resolvedHostName(resolveHostName(listing))
             .priceInfo(listing.getPriceInfo())
             .upvoteCount(listing.getUpvoteCount())
             .photoCount(listing.getPhotoCount())
@@ -71,5 +73,11 @@ public class ListingResponse {
             .tags(listing.getTags().stream().map(TagResponse::from).collect(Collectors.toList()))
             .photos(photos.stream().map(PhotoResponse::from).collect(Collectors.toList()))
             .build();
+    }
+
+    private static String resolveHostName(Listing listing) {
+        if (listing.getHostName() != null && !listing.getHostName().isBlank()) return listing.getHostName();
+        if (listing.getUser().getDisplayName() != null && !listing.getUser().getDisplayName().isBlank()) return listing.getUser().getDisplayName();
+        return listing.getUser().getName();
     }
 }

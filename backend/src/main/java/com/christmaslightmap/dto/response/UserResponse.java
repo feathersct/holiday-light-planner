@@ -7,10 +7,10 @@ import lombok.Data;
 @Data
 @Builder
 public class UserResponse {
-
     private Long id;
     private String email;
     private String name;
+    private String displayName;
     private String avatarUrl;
     private String role;
 
@@ -19,6 +19,7 @@ public class UserResponse {
             .id(user.getId())
             .email(user.getEmail())
             .name(user.getName())
+            .displayName(user.getDisplayName())
             .avatarUrl(user.getAvatarUrl())
             .role(user.getRole().name())
             .build();

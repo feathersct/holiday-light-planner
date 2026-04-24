@@ -9,12 +9,14 @@ import lombok.Data;
 public class HostUserResponse {
     private Long id;
     private String name;
+    private String displayName;
     private String avatarUrl;
 
     public static HostUserResponse from(User user) {
         return HostUserResponse.builder()
             .id(user.getId())
             .name(user.getName())
+            .displayName(user.getDisplayName())
             .avatarUrl(user.getAvatarUrl())
             .build();
     }
