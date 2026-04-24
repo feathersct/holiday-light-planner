@@ -136,6 +136,22 @@ export interface SearchParams {
   size?: number;
 }
 
+export interface InitialFilters {
+  category?: Category;
+  lat?: number;
+  lng?: number;
+  radius?: number;
+  tags?: string[];
+}
+
+export interface FilterState {
+  category: Category | '';
+  tags: string[];
+  lat: number;
+  lng: number;
+  radius: number;
+}
+
 export interface CreateListingRequest {
   category: Category;
   title: string;
