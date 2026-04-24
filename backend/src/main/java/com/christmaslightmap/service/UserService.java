@@ -1,6 +1,7 @@
 package com.christmaslightmap.service;
 
 import com.christmaslightmap.dto.request.UpdateDisplayNameRequest;
+import com.christmaslightmap.dto.request.UpdateHandleRequest;
 import com.christmaslightmap.dto.response.*;
 import com.christmaslightmap.model.DisplayPhoto;
 import com.christmaslightmap.model.Listing;
@@ -90,5 +91,38 @@ public class UserService {
         String name = request.getDisplayName();
         user.setDisplayName((name == null || name.isBlank()) ? null : name.trim().substring(0, Math.min(name.trim().length(), 100)));
         return HostUserResponse.from(userRepository.save(user));
+    }
+
+    public HostListingsResponse getHostListingsByHandle(String handle) {
+        User user = userRepository.findByHandle(handle)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Host not found"));
+        return getHostListings(user.getId());
+    }
+
+    @Transactional
+    public HostUserResponse updateHandle(Long userId, UpdateHandleRequest request) {
+        if (userRepository.existsByHandleAndIdNot(request.getHandle(), userId)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Handle already taken");
+        }
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        user.setHandle(request.getHandle());
+        return HostUserResponse.from(userRepository.save(user));
+    }
+
+    String generateUniqueHandle(String displayName, String fallbackName) {
+        String source = (displayName != null && !displayName.isBlank()) ? displayName : fallbackName;
+        if (source == null || source.isBlank()) source = "user";
+        String slug = source.toLowerCase()
+            .replaceAll("[^a-z0-9]+", "-")
+            .replaceAll("^-+|-+$", "");
+        if (slug.length() < 3) slug = "user-" + slug;
+        if (slug.length() > 20) slug = slug.substring(0, 20).replaceAll("-+$", "");
+        if (!userRepository.existsByHandle(slug)) return slug;
+        for (int i = 2; i <= 99; i++) {
+            String candidate = slug + "-" + i;
+            if (!userRepository.existsByHandle(candidate)) return candidate;
+        }
+        return slug + "-" + (System.currentTimeMillis() % 10000);
     }
 }
