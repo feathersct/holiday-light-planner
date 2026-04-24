@@ -1,11 +1,11 @@
-import { Component, signal, computed, OnInit } from '@angular/core';
+import { Component, signal, computed, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Report, DisplaySummary } from '../../models/display.model';
-import { DisplayApiService } from '../../services/display-api.service';
+import { Report, ListingSummary, CATEGORY_LABELS } from '../../models/listing.model';
+import { ListingApiService } from '../../services/listing-api.service';
 
 type StatusFilter = 'OPEN' | 'RESOLVED' | 'ALL';
-type AdminTab = 'reports' | 'displays';
+type AdminTab = 'reports' | 'listings';
 
 @Component({
   selector: 'app-admin',
@@ -20,7 +20,7 @@ type AdminTab = 'reports' | 'displays';
           <div style="font-weight:800;font-size:22px;color:#0f172a;margin-bottom:4px">
             Admin Dashboard
           </div>
-          <div style="font-size:13.5px;color:#64748b">Moderate reports and manage displays</div>
+          <div style="font-size:13.5px;color:#64748b">Moderate reports and manage listings</div>
         </div>
 
         <!-- Top-level tabs -->
@@ -33,12 +33,12 @@ type AdminTab = 'reports' | 'displays';
                          font-weight:600;cursor:pointer;transition:all 0.15s">
             Reports
           </button>
-          <button (click)="switchToDisplays()"
-                  [style.background]="adminTab() === 'displays' ? 'var(--accent)' : 'none'"
-                  [style.color]="adminTab() === 'displays' ? 'white' : '#64748b'"
+          <button (click)="switchToListings()"
+                  [style.background]="adminTab() === 'listings' ? 'var(--accent)' : 'none'"
+                  [style.color]="adminTab() === 'listings' ? 'white' : '#64748b'"
                   style="flex:1;border:none;padding:9px;border-radius:9px;font-size:13.5px;
                          font-weight:600;cursor:pointer;transition:all 0.15s">
-            Displays
+            Listings
           </button>
         </div>
 
@@ -120,8 +120,8 @@ type AdminTab = 'reports' | 'displays';
           </div>
         </ng-container>
 
-        <!-- ── Displays tab ── -->
-        <ng-container *ngIf="adminTab() === 'displays'">
+        <!-- ── Listings tab ── -->
+        <ng-container *ngIf="adminTab() === 'listings'">
           <div *ngIf="loadingDisplays()" style="padding:48px;text-align:center;color:#94a3b8;font-size:14px">
             Loading…
           </div>
@@ -129,7 +129,7 @@ type AdminTab = 'reports' | 'displays';
           <div *ngIf="!loadingDisplays()"
                style="background:white;border-radius:16px;overflow:hidden;
                       box-shadow:0 1px 6px rgba(0,0,0,0.06)">
-            <div *ngFor="let d of allDisplays(); let last = last"
+            <div *ngFor="let d of allListings(); let last = last"
                  [style.border-bottom]="last ? 'none' : '1px solid #f8fafc'"
                  style="padding:16px 20px">
               <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
@@ -146,7 +146,7 @@ type AdminTab = 'reports' | 'displays';
                     </span>
                   </div>
                   <div style="font-size:12px;color:#64748b">
-                    {{d.city}}{{d.state ? ', ' + d.state : ''}} · {{d.displayType}} · {{d.upvoteCount}} upvotes
+                    {{categoryLabels[d.category]}} · {{d.city}}{{d.state ? ', ' + d.state : ''}} · {{d.upvoteCount}} upvotes
                   </div>
                 </div>
                 <div style="display:flex;gap:7px;flex-shrink:0;align-items:center">
@@ -184,9 +184,9 @@ type AdminTab = 'reports' | 'displays';
               </div>
             </div>
 
-            <div *ngIf="allDisplays().length === 0"
+            <div *ngIf="allListings().length === 0"
                  style="padding:48px;text-align:center;color:#94a3b8;font-size:14px">
-              No displays found
+              No listings found
             </div>
           </div>
         </ng-container>
@@ -200,9 +200,10 @@ export class AdminComponent implements OnInit {
   statusFilter = signal<StatusFilter>('OPEN');
   reports = signal<Report[]>([]);
   loadingReports = signal(true);
-  allDisplays = signal<DisplaySummary[]>([]);
+  allListings = signal<ListingSummary[]>([]);
   loadingDisplays = signal(false);
   deletingDisplayId = signal<number | null>(null);
+  categoryLabels = CATEGORY_LABELS;
 
   filters: { id: StatusFilter; label: string }[] = [
     { id: 'OPEN', label: 'Open' },
@@ -210,16 +211,16 @@ export class AdminComponent implements OnInit {
     { id: 'ALL', label: 'All' },
   ];
 
-  constructor(private displayApi: DisplayApiService) {}
+  private listingApi = inject(ListingApiService);
 
   ngOnInit() {
     this.loadReports();
   }
 
-  switchToDisplays() {
-    this.adminTab.set('displays');
-    if (this.allDisplays().length === 0) {
-      this.loadDisplays();
+  switchToListings() {
+    this.adminTab.set('listings');
+    if (this.allListings().length === 0) {
+      this.loadListings();
     }
   }
 
@@ -230,16 +231,16 @@ export class AdminComponent implements OnInit {
 
   private loadReports() {
     this.loadingReports.set(true);
-    this.displayApi.getReports(this.statusFilter()).subscribe({
+    this.listingApi.getReports(this.statusFilter()).subscribe({
       next: page => { this.reports.set(page.content); this.loadingReports.set(false); },
       error: () => this.loadingReports.set(false),
     });
   }
 
-  private loadDisplays() {
+  private loadListings() {
     this.loadingDisplays.set(true);
-    this.displayApi.adminGetDisplays().subscribe({
-      next: page => { this.allDisplays.set(page.content); this.loadingDisplays.set(false); },
+    this.listingApi.adminGetListings().subscribe({
+      next: page => { this.allListings.set(page.content); this.loadingDisplays.set(false); },
       error: () => this.loadingDisplays.set(false),
     });
   }
@@ -263,20 +264,20 @@ export class AdminComponent implements OnInit {
   }
 
   resolve(r: Report) {
-    this.displayApi.updateReport(r.id, 'RESOLVED').subscribe({
+    this.listingApi.updateReport(r.id, 'RESOLVED').subscribe({
       next: updated => this.reports.update(list => list.map(x => x.id === r.id ? updated : x)),
     });
   }
 
   dismiss(r: Report) {
-    this.displayApi.updateReport(r.id, 'DISMISSED').subscribe({
+    this.listingApi.updateReport(r.id, 'DISMISSED').subscribe({
       next: updated => this.reports.update(list => list.map(x => x.id === r.id ? updated : x)),
     });
   }
 
-  toggleActive(d: DisplaySummary) {
-    this.displayApi.adminSetDisplayActive(d.id, !d.isActive).subscribe({
-      next: updated => this.allDisplays.update(list => list.map(x => x.id === d.id ? { ...x, isActive: updated.isActive } : x)),
+  toggleActive(d: ListingSummary) {
+    this.listingApi.adminSetListingActive(d.id, !d.isActive).subscribe({
+      next: updated => this.allListings.update(list => list.map(x => x.id === d.id ? { ...x, isActive: updated.isActive } : x)),
     });
   }
 
@@ -285,9 +286,9 @@ export class AdminComponent implements OnInit {
   }
 
   doDisplayDelete(id: number) {
-    this.displayApi.adminDeleteDisplay(id).subscribe({
+    this.listingApi.adminDeleteListing(id).subscribe({
       next: () => {
-        this.allDisplays.update(list => list.filter(d => d.id !== id));
+        this.allListings.update(list => list.filter(d => d.id !== id));
         this.deletingDisplayId.set(null);
       },
       error: () => this.deletingDisplayId.set(null),
