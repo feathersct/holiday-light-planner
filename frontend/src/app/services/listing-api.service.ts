@@ -87,6 +87,12 @@ export class ListingApiService {
     ).pipe(map(r => r.data));
   }
 
+  getHostListingsByHandle(handle: string): Observable<HostListingsResponse> {
+    return this.http.get<ApiResponse<HostListingsResponse>>(
+      `${this.base}/users/handle/${handle}`, { withCredentials: true }
+    ).pipe(map(r => r.data));
+  }
+
   searchHosts(q: string): Observable<HostSearchResult[]> {
     return this.http.get<ApiResponse<HostSearchResult[]>>(
       `${this.base}/users/search`, { params: { q }, withCredentials: true }
@@ -96,6 +102,12 @@ export class ListingApiService {
   updateDisplayName(displayName: string): Observable<HostSearchResult> {
     return this.http.patch<ApiResponse<HostSearchResult>>(
       `${this.base}/users/me`, { displayName }, { withCredentials: true }
+    ).pipe(map(r => r.data));
+  }
+
+  updateHandle(handle: string): Observable<HostSearchResult> {
+    return this.http.patch<ApiResponse<HostSearchResult>>(
+      `${this.base}/users/me/handle`, { handle }, { withCredentials: true }
     ).pipe(map(r => r.data));
   }
 

@@ -116,7 +116,7 @@ export class HostSearchComponent {
 
   selectHost(result: HostSearchResult) {
     this.showDropdown = false;
-    this.viewHost.emit({ id: result.id, name: result.name, displayName: result.displayName, avatarUrl: result.avatarUrl });
+    this.viewHost.emit({ id: result.id, name: result.name, displayName: result.displayName, avatarUrl: result.avatarUrl, handle: result.handle });
   }
 
   clearQuery() {

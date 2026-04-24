@@ -69,6 +69,7 @@ export interface Listing extends ListingSummary {
   submittedBy: number;
   submittedByName: string;
   submittedByAvatarUrl: string | null;
+  submittedByHandle: string | null;
   description: string;
   address: string;
   postcode: string;
@@ -103,6 +104,7 @@ export interface HostUser {
   name: string;
   displayName: string | null;
   avatarUrl: string | null;
+  handle: string | null;
 }
 
 export interface HostSearchResult {
@@ -110,6 +112,7 @@ export interface HostSearchResult {
   name: string;
   displayName: string | null;
   avatarUrl: string | null;
+  handle: string | null;
 }
 
 export interface HostListingsResponse {
