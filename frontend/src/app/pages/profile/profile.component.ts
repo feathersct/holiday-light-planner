@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter, signal, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ListingSummary, User, CATEGORY_COLORS, CATEGORY_LABELS, isExpired, formatDateRange, getInitials } from '../../models/listing.model';
 import { DisplayCardComponent } from '../../shared/display-card/display-card.component';
 import { AvatarComponent } from '../../shared/avatar/avatar.component';
@@ -9,7 +10,7 @@ import { ListingApiService } from '../../services/listing-api.service';
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, DisplayCardComponent, AvatarComponent],
+  imports: [CommonModule, FormsModule, DisplayCardComponent, AvatarComponent],
   template: `
     <div style="height:100%;overflow-y:auto;background:#f8fafc;padding-bottom:40px">
       <div style="max-width:600px;margin:0 auto;padding:28px 20px 0">
@@ -37,6 +38,31 @@ import { ListingApiService } from '../../services/listing-api.service';
               <div style="font-weight:800;font-size:22px;color:#0f172a">{{upvotedListings().length}}</div>
               <div style="font-size:12px;color:#64748b;margin-top:2px">Upvoted</div>
             </div>
+          </div>
+        </div>
+
+        <!-- Display name setting -->
+        <div style="background:white;border-radius:16px;padding:20px;margin-bottom:16px;
+                    box-shadow:0 1px 6px rgba(0,0,0,0.06)">
+          <div style="font-weight:700;font-size:14px;color:#0f172a;margin-bottom:4px">
+            Business / host name
+          </div>
+          <div style="font-size:12.5px;color:#64748b;margin-bottom:12px">
+            Shown on your listings instead of your Facebook name.
+          </div>
+          <div style="display:flex;gap:8px">
+            <input [ngModel]="displayName()"
+                   (ngModelChange)="displayName.set($event)"
+                   placeholder="e.g. Joe's BBQ Truck"
+                   style="flex:1;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:9px;
+                          font-size:13.5px;color:#0f172a;outline:none;background:white"/>
+            <button (click)="saveDisplayName()"
+                    [disabled]="savingDisplayName()"
+                    [style.opacity]="savingDisplayName() ? '0.6' : '1'"
+                    style="padding:9px 16px;background:var(--accent);color:white;border:none;
+                           border-radius:9px;font-size:13px;font-weight:700;cursor:pointer">
+              {{savingDisplayName() ? 'Saving…' : displayNameSaved() ? 'Saved!' : 'Save'}}
+            </button>
           </div>
         </div>
 
@@ -167,6 +193,9 @@ export class ProfileComponent implements OnInit {
       next: d => { this.upvotedListings.set(d); this.loadingUpvoted.set(false); },
       error: () => this.loadingUpvoted.set(false),
     });
+    if (this.user?.displayName) {
+      this.displayName.set(this.user.displayName);
+    }
   }
 
   setTab(id: string) {
@@ -178,6 +207,9 @@ export class ProfileComponent implements OnInit {
   }
 
   deletingId = signal<number | null>(null);
+  displayName = signal('');
+  savingDisplayName = signal(false);
+  displayNameSaved = signal(false);
 
   confirmDelete(id: number) {
     this.deletingId.set(id);
@@ -194,6 +226,19 @@ export class ProfileComponent implements OnInit {
         this.deletingId.set(null);
       },
       error: () => this.deletingId.set(null),
+    });
+  }
+
+  saveDisplayName() {
+    this.savingDisplayName.set(true);
+    this.displayNameSaved.set(false);
+    this.listingApi.updateDisplayName(this.displayName()).subscribe({
+      next: () => {
+        this.savingDisplayName.set(false);
+        this.displayNameSaved.set(true);
+        setTimeout(() => this.displayNameSaved.set(false), 2500);
+      },
+      error: () => this.savingDisplayName.set(false),
     });
   }
 }
