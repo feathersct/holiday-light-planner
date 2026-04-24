@@ -2,6 +2,7 @@ package com.christmaslightmap.controller;
 
 import com.christmaslightmap.dto.request.CreateListingRequest;
 import com.christmaslightmap.dto.request.ReportRequest;
+import com.christmaslightmap.dto.request.UpdateListingRequest;
 import com.christmaslightmap.dto.response.ApiResponse;
 import com.christmaslightmap.dto.response.ListingResponse;
 import com.christmaslightmap.dto.response.ListingSummaryResponse;
@@ -48,6 +49,16 @@ public class ListingController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ListingResponse>> getById(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(listingService.getById(id)));
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<ApiResponse<ListingResponse>> update(
+        @PathVariable Long id,
+        @RequestBody UpdateListingRequest request,
+        Authentication authentication
+    ) {
+        Long userId = (Long) authentication.getPrincipal();
+        return ResponseEntity.ok(ApiResponse.success(listingService.updateListing(userId, id, request)));
     }
 
     @PostMapping
@@ -102,6 +113,17 @@ public class ListingController {
         if (!upvoteService.removeUpvote(userId, id)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.success(null));
         }
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    @DeleteMapping("/{id}/photos/{photoId}")
+    public ResponseEntity<ApiResponse<Void>> deletePhoto(
+        @PathVariable Long id,
+        @PathVariable Long photoId,
+        Authentication authentication
+    ) {
+        Long userId = (Long) authentication.getPrincipal();
+        listingService.deletePhoto(userId, id, photoId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
