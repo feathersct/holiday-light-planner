@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://api.holidaylightplanner.com',
+  apiUrl: 'https://api.eventmapster.com',
 };

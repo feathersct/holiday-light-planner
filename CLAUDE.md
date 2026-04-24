@@ -7,12 +7,12 @@ Community holiday light display map. Users discover, submit, upvote, and manage 
 - **Frontend:** Angular 17 standalone components, signals, no NgModules. `frontend/`
 - **Backend:** Spring Boot 3.5, Spring Security OAuth2 + JWT HttpOnly cookie. `backend/`
 - **Database:** PostgreSQL + PostGIS (location stored as `GEOGRAPHY(POINT,4326)` column named `location`, NOT `lat`/`lng`)
-- **Storage:** Cloudflare R2, served via `https://cdn.holidaylightplanner.com`
+- **Storage:** Cloudflare R2, served via `https://cdn.eventmapster.com`
 - **Auth:** Facebook OAuth2 only (Google removed). JWT cookie set on login.
 
 ## Deployment
-- **Frontend:** Cloudflare Pages → `holidaylightplanner.com` (build output: `frontend/dist/frontend/browser`)
-- **Backend:** Railway → `api.holidaylightplanner.com` (root dir: `backend/`)
+- **Frontend:** Cloudflare Pages → `eventmapster.com` (build output: `frontend/dist/frontend/browser`)
+- **Backend:** Railway → `api.eventmapster.com` (root dir: `backend/`)
 - **Database:** PostGIS template on Railway (standard Postgres won't work — no PostGIS extension)
 - Railway redeploys automatically on push to `main`
 - Cloudflare Pages redeploys automatically on push to `main`
@@ -27,7 +27,7 @@ Community holiday light display map. Users discover, submit, upvote, and manage 
 
 ## Key Frontend Facts
 - `environment.ts` = production, `environment.development.ts` = local dev
-- Production API: `https://api.holidaylightplanner.com`
+- Production API: `https://api.eventmapster.com`
 - `withCredentials: true` on all HTTP requests (JWT cookie)
 - `isMobile = window.innerWidth < 768` used throughout for responsive layout
 - Bottom tab bar handles mobile navigation — navbar links hidden on mobile
