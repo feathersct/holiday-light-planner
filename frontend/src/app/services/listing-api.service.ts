@@ -1,0 +1,106 @@
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import {
+  Listing, ListingSummary, Tag, Report,
+  PagedResponse, SearchParams, CreateListingRequest
+} from '../models/listing.model';
+import { environment } from '../../environments/environment';
+
+interface ApiResponse<T> { success: boolean; data: T; }
+
+@Injectable({ providedIn: 'root' })
+export class ListingApiService {
+  private http = inject(HttpClient);
+  private base = `${environment.apiUrl}/api/v1`;
+
+  search(params: SearchParams): Observable<PagedResponse<ListingSummary>> {
+    let p = new HttpParams()
+      .set('lat', params.lat)
+      .set('lng', params.lng)
+      .set('radiusMiles', params.radiusMiles ?? 10)
+      .set('page', params.page ?? 0)
+      .set('size', params.size ?? 50);
+    if (params.category) p = p.set('category', params.category);
+    if (params.tags?.length) p = p.set('tags', params.tags.join(','));
+    return this.http.get<ApiResponse<PagedResponse<ListingSummary>>>(`${this.base}/listings/search`, { params: p, withCredentials: true })
+      .pipe(map(r => r.data));
+  }
+
+  getById(id: number): Observable<Listing> {
+    return this.http.get<ApiResponse<Listing>>(`${this.base}/listings/${id}`, { withCredentials: true })
+      .pipe(map(r => r.data));
+  }
+
+  create(request: CreateListingRequest): Observable<Listing> {
+    return this.http.post<ApiResponse<Listing>>(`${this.base}/listings`, request, { withCredentials: true })
+      .pipe(map(r => r.data));
+  }
+
+  uploadPhoto(listingId: number, file: File): Observable<{ id: number; url: string; isPrimary: boolean }> {
+    const fd = new FormData();
+    fd.append('file', file);
+    return this.http.post<ApiResponse<{ id: number; url: string; isPrimary: boolean }>>(`${this.base}/listings/${listingId}/photos`, fd, { withCredentials: true })
+      .pipe(map(r => r.data));
+  }
+
+  upvote(listingId: number): Observable<void> {
+    return this.http.post<void>(`${this.base}/listings/${listingId}/upvote`, {}, { withCredentials: true });
+  }
+
+  removeUpvote(listingId: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/listings/${listingId}/upvote`, { withCredentials: true });
+  }
+
+  report(listingId: number, reason: string, notes: string): Observable<void> {
+    return this.http.post<void>(`${this.base}/listings/${listingId}/report`, { reason, notes }, { withCredentials: true });
+  }
+
+  getTags(): Observable<Tag[]> {
+    return this.http.get<ApiResponse<Tag[]>>(`${this.base}/tags`, { withCredentials: true })
+      .pipe(map(r => r.data));
+  }
+
+  getMyListings(): Observable<ListingSummary[]> {
+    return this.http.get<ApiResponse<ListingSummary[]>>(`${this.base}/listings/mine`, { withCredentials: true })
+      .pipe(map(r => r.data));
+  }
+
+  getUpvotedListings(): Observable<ListingSummary[]> {
+    return this.http.get<ApiResponse<ListingSummary[]>>(`${this.base}/listings/upvoted`, { withCredentials: true })
+      .pipe(map(r => r.data));
+  }
+
+  getReports(status?: string, page = 0, size = 20): Observable<PagedResponse<Report>> {
+    let p = new HttpParams().set('page', page).set('size', size);
+    if (status && status !== 'ALL') p = p.set('status', status);
+    return this.http.get<ApiResponse<PagedResponse<Report>>>(`${this.base}/admin/reports`, { params: p, withCredentials: true })
+      .pipe(map(r => r.data));
+  }
+
+  updateReport(reportId: number, status: string): Observable<Report> {
+    return this.http.patch<ApiResponse<Report>>(`${this.base}/admin/reports/${reportId}`, { status }, { withCredentials: true })
+      .pipe(map(r => r.data));
+  }
+
+  deleteListing(listingId: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/listings/${listingId}`, { withCredentials: true });
+  }
+
+  adminGetListings(active?: boolean, page = 0, size = 50): Observable<PagedResponse<ListingSummary>> {
+    let p = new HttpParams().set('page', page).set('size', size);
+    if (active !== undefined) p = p.set('active', active);
+    return this.http.get<ApiResponse<PagedResponse<ListingSummary>>>(`${this.base}/admin/listings`, { params: p, withCredentials: true })
+      .pipe(map(r => r.data));
+  }
+
+  adminSetListingActive(listingId: number, active: boolean): Observable<ListingSummary> {
+    return this.http.patch<ApiResponse<ListingSummary>>(`${this.base}/admin/listings/${listingId}/status`, { active }, { withCredentials: true })
+      .pipe(map(r => r.data));
+  }
+
+  adminDeleteListing(listingId: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/admin/listings/${listingId}`, { withCredentials: true });
+  }
+}
