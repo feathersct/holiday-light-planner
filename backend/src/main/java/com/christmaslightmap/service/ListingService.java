@@ -183,6 +183,9 @@ public class ListingService {
         if (!listing.getUser().getId().equals(userId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not your listing");
         }
+        if (!listing.isActive()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Listing not found");
+        }
 
         DisplayPhoto photo = displayPhotoRepository.findById(photoId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Photo not found"));
