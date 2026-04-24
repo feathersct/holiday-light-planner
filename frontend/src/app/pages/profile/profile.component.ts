@@ -79,13 +79,20 @@ import { ListingApiService } from '../../services/listing-api.service';
               (select)="selectDisplay.emit(d)" (upvote)="upvoteService.toggle(d.id)"
               (viewDetails)="selectDisplay.emit(d)"/>
 
-            <!-- Delete button -->
-            <button *ngIf="deletingId() !== d.id" (click)="confirmDelete(d.id)"
-                    style="position:absolute;top:12px;right:12px;background:#fee2e2;border:none;
-                           color:#dc2626;border-radius:8px;padding:5px 10px;font-size:12px;
-                           font-weight:600;cursor:pointer">
-              Delete
-            </button>
+            <!-- Edit + Delete buttons -->
+            <div *ngIf="deletingId() !== d.id"
+                 style="position:absolute;top:12px;right:12px;display:flex;gap:6px">
+              <button (click)="editListing.emit(d)"
+                      style="background:#e0f2fe;border:none;color:#0369a1;border-radius:8px;
+                             padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer">
+                Edit
+              </button>
+              <button (click)="confirmDelete(d.id)"
+                      style="background:#fee2e2;border:none;color:#dc2626;border-radius:8px;
+                             padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer">
+                Delete
+              </button>
+            </div>
 
             <!-- Inline confirmation -->
             <div *ngIf="deletingId() === d.id"
@@ -126,6 +133,7 @@ import { ListingApiService } from '../../services/listing-api.service';
 export class ProfileComponent implements OnInit {
   @Input() user: User | null = null;
   @Output() selectDisplay = new EventEmitter<ListingSummary>();
+  @Output() editListing = new EventEmitter<ListingSummary>();
 
   activeTab = signal<'mine' | 'upvoted'>('mine');
   myListings = signal<ListingSummary[]>([]);
