@@ -9,14 +9,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 public interface UpvoteRepository extends JpaRepository<Upvote, Long> {
-    @Query(value = "SELECT COUNT(*) FROM upvotes WHERE user_id = :userId AND display_id = :displayId", nativeQuery = true)
-    long countByUserAndDisplay(@Param("userId") Long userId, @Param("displayId") Long displayId);
+    @Query(value = "SELECT COUNT(*) FROM upvotes WHERE user_id = :userId AND display_id = :listingId", nativeQuery = true)
+    long countByUserAndListing(@Param("userId") Long userId, @Param("listingId") Long listingId);
 
     @Transactional
-    @Query("DELETE FROM Upvote u WHERE u.user.id = :userId AND u.display.id = :displayId")
+    @Query("DELETE FROM Upvote u WHERE u.user.id = :userId AND u.display.id = :listingId")
     @org.springframework.data.jpa.repository.Modifying
-    void deleteByUserIdAndDisplayId(@Param("userId") Long userId, @Param("displayId") Long displayId);
+    void deleteByUserIdAndListingId(@Param("userId") Long userId, @Param("listingId") Long listingId);
 
     @Query("SELECT u FROM Upvote u JOIN FETCH u.display d WHERE u.user.id = :userId AND d.isActive = true")
-    List<Upvote> findByUserIdWithActiveDisplays(@Param("userId") Long userId);
+    List<Upvote> findByUserIdWithActiveListings(@Param("userId") Long userId);
 }

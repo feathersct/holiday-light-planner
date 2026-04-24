@@ -20,7 +20,7 @@ public class UpvoteService {
 
     @Transactional
     public boolean upvote(Long userId, Long displayId) {
-        if (upvoteRepository.countByUserAndDisplay(userId, displayId) > 0) {
+        if (upvoteRepository.countByUserAndListing(userId, displayId) > 0) {
             return false;
         }
         var display = displayRepository.findById(displayId)
@@ -33,10 +33,10 @@ public class UpvoteService {
 
     @Transactional
     public boolean removeUpvote(Long userId, Long displayId) {
-        if (upvoteRepository.countByUserAndDisplay(userId, displayId) == 0) {
+        if (upvoteRepository.countByUserAndListing(userId, displayId) == 0) {
             return false;
         }
-        upvoteRepository.deleteByUserIdAndDisplayId(userId, displayId);
+        upvoteRepository.deleteByUserIdAndListingId(userId, displayId);
         return true;
     }
 }

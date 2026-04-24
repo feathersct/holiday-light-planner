@@ -135,7 +135,7 @@ public class DisplayService {
     }
 
     public List<DisplaySummaryResponse> getUpvotedDisplays(Long userId) {
-        List<Display> displays = upvoteRepository.findByUserIdWithActiveDisplays(userId).stream()
+        List<Display> displays = upvoteRepository.findByUserIdWithActiveListings(userId).stream()
             .map(u -> u.getDisplay())
             .collect(Collectors.toList());
         return toSummaries(displays);
