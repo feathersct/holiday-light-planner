@@ -274,4 +274,25 @@ class HostEntityTest extends BaseIntegrationTest {
 
         assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
+
+    @Test
+    void getHostByHandle_resolvesHostEntityFirst() {
+        User user = savedUser("resolve1");
+        Host host = hostRepository.save(Host.builder()
+            .owner(user).handle("my-brand").displayName("My Brand").build());
+        listingRepository.save(Listing.builder()
+            .user(user).host(host).title("Brand Event")
+            .city("Austin").state("TX").location(point(-97.7, 30.2))
+            .category(Category.FOOD_TRUCK)
+            .startDatetime(LocalDateTime.now().plusDays(1))
+            .endDatetime(LocalDateTime.now().plusDays(2))
+            .build());
+
+        ResponseEntity<String> resp = restTemplate.getForEntity(
+            "/api/v1/users/handle/my-brand", String.class);
+
+        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getBody()).contains("My Brand");
+        assertThat(resp.getBody()).contains("Brand Event");
+    }
 }

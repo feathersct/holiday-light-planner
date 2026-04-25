@@ -1,5 +1,6 @@
 package com.christmaslightmap.dto.response;
 
+import com.christmaslightmap.model.Host;
 import com.christmaslightmap.model.User;
 import lombok.Builder;
 import lombok.Data;
@@ -20,6 +21,16 @@ public class HostUserResponse {
             .displayName(user.getDisplayName())
             .avatarUrl(user.getAvatarUrl())
             .handle(user.getHandle())
+            .build();
+    }
+
+    public static HostUserResponse from(Host host) {
+        return HostUserResponse.builder()
+            .id(host.getId())
+            .name(host.getDisplayName())
+            .displayName(host.getDisplayName())
+            .avatarUrl(host.getAvatarUrl())
+            .handle(host.getHandle())
             .build();
     }
 }

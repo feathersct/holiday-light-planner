@@ -139,13 +139,7 @@ public class UserService {
                 .build())
             .collect(Collectors.toList());
 
-        HostUserResponse hostUser = HostUserResponse.builder()
-            .id(host.getId())
-            .name(host.getDisplayName())
-            .displayName(host.getDisplayName())
-            .avatarUrl(host.getAvatarUrl())
-            .handle(host.getHandle())
-            .build();
+        HostUserResponse hostUser = HostUserResponse.from(host);
 
         return HostListingsResponse.builder()
             .user(hostUser)
