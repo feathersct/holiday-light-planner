@@ -71,11 +71,6 @@ export class ListingApiService {
       .pipe(map(r => r.data));
   }
 
-  getMyListings(): Observable<ListingSummary[]> {
-    return this.http.get<ApiResponse<ListingSummary[]>>(`${this.base}/listings/mine`, { withCredentials: true })
-      .pipe(map(r => r.data));
-  }
-
   getUpvotedListings(): Observable<ListingSummary[]> {
     return this.http.get<ApiResponse<ListingSummary[]>>(`${this.base}/listings/upvoted`, { withCredentials: true })
       .pipe(map(r => r.data));

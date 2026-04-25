@@ -66,10 +66,6 @@ export interface ListingSummary {
 
 /** Returned by GET /listings/:id */
 export interface Listing extends ListingSummary {
-  submittedBy: number;
-  submittedByName: string;
-  submittedByAvatarUrl: string | null;
-  submittedByHandle: string | null;
   hostId: number | null;
   hostHandle: string | null;
   description: string;
