@@ -42,7 +42,7 @@ public class HostController {
     @PatchMapping("/{id}")
     public ResponseEntity<ApiResponse<HostResponse>> updateHost(
         @PathVariable Long id,
-        @RequestBody UpdateHostRequest request,
+        @Valid @RequestBody UpdateHostRequest request,
         Authentication authentication
     ) {
         Long userId = (Long) authentication.getPrincipal();
@@ -72,7 +72,7 @@ public class HostController {
     @PostMapping("/{id}/transfer")
     public ResponseEntity<Void> transferHost(
         @PathVariable Long id,
-        @RequestBody TransferHostRequest request,
+        @Valid @RequestBody TransferHostRequest request,
         Authentication authentication
     ) {
         Long userId = (Long) authentication.getPrincipal();
