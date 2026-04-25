@@ -14,10 +14,6 @@ import java.util.stream.Collectors;
 @Builder
 public class ListingResponse {
     private Long id;
-    private Long submittedBy;
-    private String submittedByName;
-    private String submittedByAvatarUrl;
-    private String submittedByHandle;
     private String title;
     private String description;
     private String address;
@@ -48,10 +44,6 @@ public class ListingResponse {
     public static ListingResponse from(Listing listing, List<DisplayPhoto> photos) {
         return ListingResponse.builder()
             .id(listing.getId())
-            .submittedBy(listing.getUser().getId())
-            .submittedByName(resolveHostName(listing))
-            .submittedByAvatarUrl(listing.getUser().getAvatarUrl())
-            .submittedByHandle(listing.getUser().getHandle())
             .title(listing.getTitle())
             .description(listing.getDescription())
             .address(listing.getAddress())
@@ -82,9 +74,6 @@ public class ListingResponse {
     }
 
     private static String resolveHostName(Listing listing) {
-        if (listing.getHost() != null) return listing.getHost().getDisplayName();
-        if (listing.getHostName() != null && !listing.getHostName().isBlank()) return listing.getHostName();
-        if (listing.getUser().getDisplayName() != null && !listing.getUser().getDisplayName().isBlank()) return listing.getUser().getDisplayName();
-        return listing.getUser().getName();
+        return listing.getHost().getDisplayName();
     }
 }
