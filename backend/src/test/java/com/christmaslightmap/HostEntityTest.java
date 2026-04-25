@@ -209,7 +209,7 @@ class HostEntityTest extends BaseIntegrationTest {
         Host host = hostRepository.save(Host.builder()
             .owner(user).handle("busy-truck").displayName("Busy Truck").build());
         listingRepository.save(Listing.builder()
-            .user(user).host(host).title("Active Event")
+            .host(host).title("Active Event")
             .city("Austin").state("TX").location(point(-97.7, 30.2))
             .category(Category.FOOD_TRUCK)
             .startDatetime(LocalDateTime.now().plusDays(1))
@@ -281,7 +281,7 @@ class HostEntityTest extends BaseIntegrationTest {
         Host host = hostRepository.save(Host.builder()
             .owner(user).handle("my-brand").displayName("My Brand").build());
         listingRepository.save(Listing.builder()
-            .user(user).host(host).title("Brand Event")
+            .host(host).title("Brand Event")
             .city("Austin").state("TX").location(point(-97.7, 30.2))
             .category(Category.FOOD_TRUCK)
             .startDatetime(LocalDateTime.now().plusDays(1))

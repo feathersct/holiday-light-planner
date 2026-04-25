@@ -1,9 +1,11 @@
 package com.christmaslightmap;
 
 import com.christmaslightmap.model.Category;
+import com.christmaslightmap.model.Host;
 import com.christmaslightmap.model.Listing;
 import com.christmaslightmap.model.User;
 import com.christmaslightmap.model.UserRole;
+import com.christmaslightmap.repository.HostRepository;
 import com.christmaslightmap.repository.ListingRepository;
 import com.christmaslightmap.repository.UserRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -28,10 +30,12 @@ class ListingSearchTest extends BaseIntegrationTest {
     @Autowired private TestRestTemplate restTemplate;
     @Autowired private ListingRepository listingRepository;
     @Autowired private UserRepository userRepository;
+    @Autowired private HostRepository hostRepository;
 
     @AfterEach
     void cleanUp() {
         listingRepository.deleteAll();
+        hostRepository.deleteAll();
         userRepository.deleteAll();
     }
 
@@ -41,9 +45,9 @@ class ListingSearchTest extends BaseIntegrationTest {
         return p;
     }
 
-    private Listing.ListingBuilder baseListing(User user, String title, Point location) {
+    private Listing.ListingBuilder baseListing(Host host, String title, Point location) {
         return Listing.builder()
-            .user(user).title(title).location(location)
+            .host(host).title(title).location(location)
             .category(Category.CHRISTMAS_LIGHTS)
             .startDatetime(LocalDateTime.now().minusDays(1))
             .endDatetime(LocalDateTime.now().plusDays(30));
@@ -55,10 +59,13 @@ class ListingSearchTest extends BaseIntegrationTest {
             .provider("google").providerId("g1").email("u@test.com")
             .name("User").role(UserRole.USER).handle("listing-search-1").build());
 
-        listingRepository.save(baseListing(user, "Seattle Listing 1", point(-122.3321, 47.6062)).build());
-        listingRepository.save(baseListing(user, "Seattle Listing 2", point(-122.30, 47.61)).build());
+        Host host = hostRepository.save(Host.builder()
+            .owner(user).handle("listing-search-host-1").displayName("Search Host 1").build());
+
+        listingRepository.save(baseListing(host, "Seattle Listing 1", point(-122.3321, 47.6062)).build());
+        listingRepository.save(baseListing(host, "Seattle Listing 2", point(-122.30, 47.61)).build());
         // Portland ~174 miles away — outside 10-mile radius
-        listingRepository.save(baseListing(user, "Portland Listing", point(-122.6750, 45.5051)).build());
+        listingRepository.save(baseListing(host, "Portland Listing", point(-122.6750, 45.5051)).build());
 
         ResponseEntity<String> response = restTemplate.getForEntity(
             "/api/v1/listings/search?lat=47.6062&lng=-122.3321&radiusMiles=10", String.class);
@@ -84,8 +91,11 @@ class ListingSearchTest extends BaseIntegrationTest {
             .provider("google").providerId("g2").email("u2@test.com")
             .name("User2").role(UserRole.USER).handle("listing-search-2").build());
 
+        Host host = hostRepository.save(Host.builder()
+            .owner(user).handle("listing-search-host-2").displayName("Search Host 2").build());
+
         listingRepository.save(Listing.builder()
-            .user(user).title("Expired Yard Sale").location(point(-122.3321, 47.6062))
+            .host(host).title("Expired Yard Sale").location(point(-122.3321, 47.6062))
             .category(Category.YARD_SALE)
             .startDatetime(LocalDateTime.now().minusDays(10))
             .endDatetime(LocalDateTime.now().minusDays(1))
@@ -104,8 +114,11 @@ class ListingSearchTest extends BaseIntegrationTest {
             .provider("google").providerId("g3").email("u3@test.com")
             .name("User3").role(UserRole.USER).handle("listing-search-3").build());
 
-        listingRepository.save(baseListing(user, "Xmas Lights", point(-122.3321, 47.6062)).build());
-        listingRepository.save(baseListing(user, "Yard Sale", point(-122.3321, 47.6062))
+        Host host = hostRepository.save(Host.builder()
+            .owner(user).handle("listing-search-host-3").displayName("Search Host 3").build());
+
+        listingRepository.save(baseListing(host, "Xmas Lights", point(-122.3321, 47.6062)).build());
+        listingRepository.save(baseListing(host, "Yard Sale", point(-122.3321, 47.6062))
             .category(Category.YARD_SALE).build());
 
         ResponseEntity<String> response = restTemplate.getForEntity(

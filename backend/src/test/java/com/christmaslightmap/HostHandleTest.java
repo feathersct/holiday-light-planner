@@ -22,11 +22,13 @@ class HostHandleTest extends BaseIntegrationTest {
     @Autowired private TestRestTemplate restTemplate;
     @Autowired private ListingRepository listingRepository;
     @Autowired private UserRepository userRepository;
+    @Autowired private HostRepository hostRepository;
     @Autowired private JwtService jwtService;
 
     @AfterEach
     void cleanUp() {
         listingRepository.deleteAll();
+        hostRepository.deleteAll();
         userRepository.deleteAll();
     }
 
@@ -45,14 +47,17 @@ class HostHandleTest extends BaseIntegrationTest {
 
     @Test
     void getHostByHandle_returnsHostAndListings() {
-        User host = userRepository.save(User.builder()
+        User owner = userRepository.save(User.builder()
             .provider("facebook").providerId("fb-handle1")
             .email("handle@test.com").name("Handle Host")
-            .handle("handle-host")
+            .handle("handle-host-user")
             .role(UserRole.USER).build());
 
+        Host host = hostRepository.save(Host.builder()
+            .owner(owner).handle("handle-host").displayName("Handle Host").build());
+
         listingRepository.save(Listing.builder()
-            .user(host).title("Handle Event")
+            .host(host).title("Handle Event")
             .city("Austin").state("TX")
             .location(point(-97.7, 30.2))
             .category(Category.CHRISTMAS_LIGHTS)
@@ -151,7 +156,8 @@ class HostHandleTest extends BaseIntegrationTest {
             .handle("public-host")
             .role(UserRole.USER).build());
 
-        // No auth headers — should still work
+        // No auth headers — should still work (returns 404 since no host entity exists for this handle,
+        // but falls back to user lookup which succeeds)
         ResponseEntity<String> response = restTemplate.getForEntity(
             "/api/v1/users/handle/public-host", String.class);
 

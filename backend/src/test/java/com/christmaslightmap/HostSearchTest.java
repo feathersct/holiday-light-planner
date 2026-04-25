@@ -20,10 +20,12 @@ class HostSearchTest extends BaseIntegrationTest {
     @Autowired private TestRestTemplate restTemplate;
     @Autowired private ListingRepository listingRepository;
     @Autowired private UserRepository userRepository;
+    @Autowired private HostRepository hostRepository;
 
     @AfterEach
     void cleanUp() {
         listingRepository.deleteAll();
+        hostRepository.deleteAll();
         userRepository.deleteAll();
     }
 
@@ -35,14 +37,17 @@ class HostSearchTest extends BaseIntegrationTest {
 
     @Test
     void searchHosts_findsHostByDisplayName() {
-        User host = userRepository.save(User.builder()
+        User hostUser = userRepository.save(User.builder()
             .provider("facebook").providerId("fb-search1")
             .email("bbq@test.com").name("Joe Smith")
             .displayName("Joe's BBQ Truck")
             .role(UserRole.USER).handle("host-search-1").build());
 
+        Host host = hostRepository.save(Host.builder()
+            .owner(hostUser).handle("joes-bbq").displayName("Joe's BBQ Truck").build());
+
         listingRepository.save(Listing.builder()
-            .user(host).title("BBQ Stop")
+            .host(host).title("BBQ Stop")
             .city("Austin").state("TX")
             .location(point(-97.7, 30.2))
             .category(Category.FOOD_TRUCK)
@@ -55,18 +60,21 @@ class HostSearchTest extends BaseIntegrationTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).contains("Joe's BBQ Truck");
-        assertThat(response.getBody()).contains(host.getId().toString());
+        assertThat(response.getBody()).contains(hostUser.getId().toString());
     }
 
     @Test
     void searchHosts_findsHostByOAuthName() {
-        User host = userRepository.save(User.builder()
+        User hostUser = userRepository.save(User.builder()
             .provider("facebook").providerId("fb-search2")
             .email("sarah@test.com").name("Sarah's Market")
             .role(UserRole.USER).handle("host-search-2").build());
 
+        Host host = hostRepository.save(Host.builder()
+            .owner(hostUser).handle("sarahs-market").displayName("Sarah's Market").build());
+
         listingRepository.save(Listing.builder()
-            .user(host).title("Saturday Market")
+            .host(host).title("Saturday Market")
             .city("Dallas").state("TX")
             .location(point(-96.7, 32.7))
             .category(Category.POPUP_MARKET)
@@ -83,13 +91,16 @@ class HostSearchTest extends BaseIntegrationTest {
 
     @Test
     void searchHosts_excludesHostsWithNoUpcomingListings() {
-        User host = userRepository.save(User.builder()
+        User hostUser = userRepository.save(User.builder()
             .provider("facebook").providerId("fb-search3")
             .email("expired@test.com").name("Expired Vendor")
             .role(UserRole.USER).handle("host-search-3").build());
 
+        Host host = hostRepository.save(Host.builder()
+            .owner(hostUser).handle("expired-vendor").displayName("Expired Vendor").build());
+
         listingRepository.save(Listing.builder()
-            .user(host).title("Old Sale")
+            .host(host).title("Old Sale")
             .city("Houston").state("TX")
             .location(point(-95.3, 29.7))
             .category(Category.YARD_SALE)

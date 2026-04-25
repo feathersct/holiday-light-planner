@@ -23,11 +23,13 @@ class ListingEditTest extends BaseIntegrationTest {
     @Autowired private TestRestTemplate restTemplate;
     @Autowired private ListingRepository listingRepository;
     @Autowired private UserRepository userRepository;
+    @Autowired private HostRepository hostRepository;
     @Autowired private JwtService jwtService;
 
     @AfterEach
     void cleanUp() {
         listingRepository.deleteAll();
+        hostRepository.deleteAll();
         userRepository.deleteAll();
     }
 
@@ -67,8 +69,11 @@ class ListingEditTest extends BaseIntegrationTest {
             .provider("facebook").providerId("fb1").email("owner@test.com")
             .name("Owner").role(UserRole.USER).handle("listing-edit-1").build());
 
+        Host host = hostRepository.save(Host.builder()
+            .owner(owner).handle("listing-edit-host-1").displayName("Owner Host").build());
+
         Listing listing = listingRepository.save(Listing.builder()
-            .user(owner).title("Original Title").location(point(-104.979, 39.752))
+            .host(host).title("Original Title").location(point(-104.979, 39.752))
             .category(Category.YARD_SALE)
             .startDatetime(LocalDateTime.now().minusDays(1))
             .endDatetime(LocalDateTime.now().plusDays(30))
@@ -95,8 +100,11 @@ class ListingEditTest extends BaseIntegrationTest {
             .provider("facebook").providerId("fb3").email("other@test.com")
             .name("Other").role(UserRole.USER).handle("listing-edit-3").build());
 
+        Host host = hostRepository.save(Host.builder()
+            .owner(owner).handle("listing-edit-host-2").displayName("Owner Host 2").build());
+
         Listing listing = listingRepository.save(Listing.builder()
-            .user(owner).title("Owner Listing").location(point(-104.979, 39.752))
+            .host(host).title("Owner Listing").location(point(-104.979, 39.752))
             .category(Category.CHRISTMAS_LIGHTS)
             .startDatetime(LocalDateTime.now().minusDays(1))
             .endDatetime(LocalDateTime.now().plusDays(30))

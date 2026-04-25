@@ -24,7 +24,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
             OR LOWER(u.name) LIKE LOWER(CONCAT('%', :q, '%')))
           AND EXISTS (
             SELECT 1 FROM Listing l
-            WHERE l.user = u
+            WHERE l.host.owner = u
               AND l.isActive = true
               AND l.endDatetime > :now
           )
