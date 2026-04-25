@@ -4,9 +4,11 @@ import com.christmaslightmap.dto.request.UpdateDisplayNameRequest;
 import com.christmaslightmap.dto.request.UpdateHandleRequest;
 import com.christmaslightmap.dto.response.*;
 import com.christmaslightmap.model.DisplayPhoto;
+import com.christmaslightmap.model.Host;
 import com.christmaslightmap.model.Listing;
 import com.christmaslightmap.model.User;
 import com.christmaslightmap.repository.DisplayPhotoRepository;
+import com.christmaslightmap.repository.HostRepository;
 import com.christmaslightmap.repository.ListingRepository;
 import com.christmaslightmap.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +30,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final ListingRepository listingRepository;
     private final DisplayPhotoRepository displayPhotoRepository;
+    private final HostRepository hostRepository;
 
     public HostListingsResponse getHostListings(Long userId) {
         User user = userRepository.findById(userId)
@@ -94,9 +97,60 @@ public class UserService {
     }
 
     public HostListingsResponse getHostListingsByHandle(String handle) {
-        User user = userRepository.findByHandle(handle)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Host not found"));
-        return getHostListings(user.getId());
+        return hostRepository.findByHandle(handle)
+            .map(this::getHostListingsForHostEntity)
+            .orElseGet(() -> {
+                User user = userRepository.findByHandle(handle)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Host not found"));
+                return getHostListings(user.getId());
+            });
+    }
+
+    private HostListingsResponse getHostListingsForHostEntity(Host host) {
+        List<Listing> listings = listingRepository.findUpcomingByHostId(host.getId(), LocalDateTime.now());
+
+        List<Long> ids = listings.stream().map(Listing::getId).collect(Collectors.toList());
+        Map<Long, String> primaryUrls = ids.isEmpty() ? Map.of() :
+            displayPhotoRepository.findPrimaryByDisplayIdIn(ids).stream()
+                .collect(Collectors.toMap(p -> p.getDisplay().getId(), DisplayPhoto::getUrl));
+
+        List<ListingSummaryResponse> summaries = listings.stream()
+            .map(l -> ListingSummaryResponse.builder()
+                .id(l.getId())
+                .title(l.getTitle())
+                .city(l.getCity())
+                .state(l.getState())
+                .lat(l.getLocation().getY())
+                .lng(l.getLocation().getX())
+                .upvoteCount(l.getUpvoteCount())
+                .photoCount(l.getPhotoCount())
+                .category(l.getCategory())
+                .displayType(l.getDisplayType() != null ? l.getDisplayType().name() : null)
+                .primaryPhotoUrl(primaryUrls.get(l.getId()))
+                .tags(l.getTags().stream().map(TagResponse::from).collect(Collectors.toList()))
+                .isActive(l.isActive())
+                .startDatetime(l.getStartDatetime())
+                .endDatetime(l.getEndDatetime())
+                .priceInfo(l.getPriceInfo())
+                .cuisineType(l.getCuisineType())
+                .organizer(l.getOrganizer())
+                .websiteUrl(l.getWebsiteUrl())
+                .resolvedHostName(host.getDisplayName())
+                .build())
+            .collect(Collectors.toList());
+
+        HostUserResponse hostUser = HostUserResponse.builder()
+            .id(host.getId())
+            .name(host.getDisplayName())
+            .displayName(host.getDisplayName())
+            .avatarUrl(host.getAvatarUrl())
+            .handle(host.getHandle())
+            .build();
+
+        return HostListingsResponse.builder()
+            .user(hostUser)
+            .listings(summaries)
+            .build();
     }
 
     @Transactional
