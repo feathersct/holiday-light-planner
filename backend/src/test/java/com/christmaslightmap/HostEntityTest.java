@@ -202,4 +202,24 @@ class HostEntityTest extends BaseIntegrationTest {
             new HttpEntity<>(new HttpHeaders()), String.class);
         assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
+
+    @Test
+    void deleteHost_returns409WhenActiveListingsExist() {
+        User user = savedUser("delete2");
+        Host host = hostRepository.save(Host.builder()
+            .owner(user).handle("busy-truck").displayName("Busy Truck").build());
+        listingRepository.save(Listing.builder()
+            .user(user).host(host).title("Active Event")
+            .city("Austin").state("TX").location(point(-97.7, 30.2))
+            .category(Category.FOOD_TRUCK)
+            .startDatetime(LocalDateTime.now().plusDays(1))
+            .endDatetime(LocalDateTime.now().plusDays(2))
+            .build());
+
+        ResponseEntity<String> resp = restTemplate.exchange(
+            "/api/v1/hosts/" + host.getId(), HttpMethod.DELETE,
+            new HttpEntity<>(authHeaders(user)), String.class);
+
+        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+    }
 }

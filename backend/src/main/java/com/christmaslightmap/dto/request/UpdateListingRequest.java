@@ -28,4 +28,5 @@ public class UpdateListingRequest {
     private String organizer;
     private String websiteUrl;
     private String hostName;
+    private Long hostId;
 }

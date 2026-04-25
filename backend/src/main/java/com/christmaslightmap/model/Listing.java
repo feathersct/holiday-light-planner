@@ -25,6 +25,10 @@ public class Listing {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "host_id")
+    private Host host;
+
     @Column(nullable = false)
     private String title;
 

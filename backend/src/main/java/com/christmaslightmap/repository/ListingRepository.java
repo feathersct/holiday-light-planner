@@ -110,6 +110,9 @@ public interface ListingRepository extends JpaRepository<Listing, Long> {
     @Query("SELECT l FROM Listing l LEFT JOIN FETCH l.tags WHERE l.user.id = :userId AND l.isActive = true AND l.endDatetime > :now ORDER BY l.startDatetime ASC")
     List<Listing> findUpcomingByUserId(@Param("userId") Long userId, @Param("now") LocalDateTime now);
 
+    @Query("SELECT l FROM Listing l LEFT JOIN FETCH l.tags WHERE l.host.id = :hostId AND l.isActive = true AND l.endDatetime > :now ORDER BY l.startDatetime ASC")
+    List<Listing> findUpcomingByHostId(@Param("hostId") Long hostId, @Param("now") LocalDateTime now);
+
     Page<Listing> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
     Page<Listing> findByIsActiveOrderByCreatedAtDesc(boolean isActive, Pageable pageable);
