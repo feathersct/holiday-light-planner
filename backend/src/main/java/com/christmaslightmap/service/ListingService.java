@@ -179,6 +179,9 @@ public class ListingService {
     public void deleteListing(Long userId, Long listingId) {
         Listing listing = listingRepository.findById(listingId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Listing not found"));
+        if (listing.getHost() == null) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not your listing");
+        }
         boolean isOwner = listing.getHost().getOwner().getId().equals(userId);
         if (!isOwner) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not your listing");
@@ -191,6 +194,9 @@ public class ListingService {
     public ListingResponse updateListing(Long userId, Long listingId, UpdateListingRequest request) {
         Listing listing = listingRepository.findById(listingId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Listing not found"));
+        if (listing.getHost() == null) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not your listing");
+        }
         boolean isOwner = listing.getHost().getOwner().getId().equals(userId);
         if (!isOwner) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not your listing");
@@ -246,6 +252,9 @@ public class ListingService {
     public void deletePhoto(Long userId, Long listingId, Long photoId) {
         Listing listing = listingRepository.findById(listingId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Listing not found"));
+        if (listing.getHost() == null) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not your listing");
+        }
         boolean isOwner = listing.getHost().getOwner().getId().equals(userId);
         if (!isOwner) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not your listing");
