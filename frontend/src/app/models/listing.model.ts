@@ -40,7 +40,7 @@ export const TYPE_LABELS: Record<string, string> = {
   BOTH:         'Combined',
 };
 
-/** Returned by GET /listings/search, /listings/mine, /listings/upvoted */
+/** Returned by GET /listings/search, /listings/upvoted */
 export interface ListingSummary {
   id: number;
   title: string;
