@@ -113,4 +113,10 @@ public interface ListingRepository extends JpaRepository<Listing, Long> {
     Page<Listing> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
     Page<Listing> findByIsActiveOrderByCreatedAtDesc(boolean isActive, Pageable pageable);
+
+    @Query(value = "SELECT EXISTS(SELECT 1 FROM listings WHERE host_id = :hostId AND is_active = true)", nativeQuery = true)
+    boolean existsByHostIdAndIsActiveTrue(@Param("hostId") Long hostId);
+
+    @Query(value = "SELECT COUNT(*) FROM listings WHERE host_id = :hostId AND is_active = true", nativeQuery = true)
+    int countByHostIdAndIsActiveTrue(@Param("hostId") Long hostId);
 }
