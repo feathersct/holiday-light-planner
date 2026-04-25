@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {
-  Listing, ListingSummary, Tag, Report, HostListingsResponse, HostSearchResult,
+  Listing, ListingSummary, Tag, Report, HostListingsResponse, HostSearchResult, HostEntity,
   PagedResponse, SearchParams, CreateListingRequest, UpdateListingRequest
 } from '../models/listing.model';
 import { environment } from '../../environments/environment';
@@ -146,5 +146,46 @@ export class ListingApiService {
 
   adminDeleteListing(listingId: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/admin/listings/${listingId}`, { withCredentials: true });
+  }
+
+  getMyHosts(): Observable<HostEntity[]> {
+    return this.http.get<ApiResponse<HostEntity[]>>(
+      `${this.base}/hosts/me`, { withCredentials: true }
+    ).pipe(map(r => r.data));
+  }
+
+  createHost(displayName: string, handle: string): Observable<HostEntity> {
+    return this.http.post<ApiResponse<HostEntity>>(
+      `${this.base}/hosts`, { displayName, handle }, { withCredentials: true }
+    ).pipe(map(r => r.data));
+  }
+
+  updateHost(id: number, displayName?: string, handle?: string): Observable<HostEntity> {
+    const body: Record<string, string> = {};
+    if (displayName !== undefined) body['displayName'] = displayName;
+    if (handle !== undefined) body['handle'] = handle;
+    return this.http.patch<ApiResponse<HostEntity>>(
+      `${this.base}/hosts/${id}`, body, { withCredentials: true }
+    ).pipe(map(r => r.data));
+  }
+
+  uploadHostAvatar(id: number, file: File): Observable<HostEntity> {
+    const fd = new FormData();
+    fd.append('file', file);
+    return this.http.post<ApiResponse<HostEntity>>(
+      `${this.base}/hosts/${id}/avatar`, fd, { withCredentials: true }
+    ).pipe(map(r => r.data));
+  }
+
+  deleteHost(id: number): Observable<void> {
+    return this.http.delete<void>(
+      `${this.base}/hosts/${id}`, { withCredentials: true }
+    );
+  }
+
+  transferHost(id: number, targetHandle: string): Observable<void> {
+    return this.http.post<void>(
+      `${this.base}/hosts/${id}/transfer`, { targetHandle }, { withCredentials: true }
+    );
   }
 }

@@ -114,6 +114,15 @@ export interface HostListingsResponse {
   listings: ListingSummary[];
 }
 
+export interface HostEntity {
+  id: number;
+  handle: string;
+  displayName: string;
+  avatarUrl: string | null;
+  listingCount: number;
+  createdAt: string;
+}
+
 export interface PagedResponse<T> {
   content: T[];
   page: number;
@@ -173,6 +182,7 @@ export interface CreateListingRequest {
   // Christmas Lights + Food Truck only
   websiteUrl: string;
   hostName: string;
+  hostId?: number | null;
 }
 
 export interface UpdateListingRequest {
@@ -195,6 +205,7 @@ export interface UpdateListingRequest {
   organizer: string;
   websiteUrl: string;
   hostName: string;
+  hostId?: number | null;
 }
 
 export const TAG_STYLES: Record<string, { bg: string; text: string }> = {
