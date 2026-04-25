@@ -1,0 +1,1 @@
+ALTER TABLE listings ADD COLUMN host_id BIGINT REFERENCES hosts(id);
