@@ -299,7 +299,6 @@ import { ListingApiService } from '../../services/listing-api.service';
 export class ProfileComponent implements OnInit {
   @Input() user: User | null = null;
   @Output() selectDisplay = new EventEmitter<ListingSummary>();
-  @Output() editListing = new EventEmitter<ListingSummary>();
 
   upvotedListings = signal<ListingSummary[]>([]);
   loadingUpvoted = signal(true);
@@ -337,7 +336,6 @@ export class ProfileComponent implements OnInit {
     }
   }
 
-  deletingId = signal<number | null>(null);
   displayName = signal('');
   savingDisplayName = signal(false);
   displayNameSaved = signal(false);
@@ -365,23 +363,6 @@ export class ProfileComponent implements OnInit {
   transferError = signal('');
   confirmDeleteHostId = signal<number | null>(null);
   deletingHost = signal(false);
-
-  confirmDelete(id: number) {
-    this.deletingId.set(id);
-  }
-
-  cancelDelete() {
-    this.deletingId.set(null);
-  }
-
-  doDelete(id: number) {
-    this.listingApi.deleteListing(id).subscribe({
-      next: () => {
-        this.deletingId.set(null);
-      },
-      error: () => this.deletingId.set(null),
-    });
-  }
 
   saveDisplayName() {
     this.savingDisplayName.set(true);

@@ -70,8 +70,7 @@ const TILE_OPTIONS = [
       <app-profile *ngIf="screen() === 'profile'"
         [user]="authService.currentUser()"
         style="display:block;height:100%"
-        (selectDisplay)="openDetail($event)"
-        (editListing)="onEditListing($event)"/>
+        (selectDisplay)="openDetail($event)"/>
 
       <app-admin *ngIf="screen() === 'admin'"
         style="display:block;height:100%"
@@ -271,12 +270,6 @@ export class AppComponent implements OnInit {
     const source = this.editSource();
     this.editingListing.set(null);
     this.screen.set(source);
-  }
-
-  onEditListing(listing: ListingSummary) {
-    this.editSource.set('profile');
-    this.editingListing.set(listing);
-    this.screen.set('submit');
   }
 
   onAdminEditListing(listing: ListingSummary) {
