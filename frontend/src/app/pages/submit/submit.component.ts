@@ -185,7 +185,7 @@ import { TagBadgeComponent } from '../../shared/tag-badge/tag-badge.component';
                                 font-size:13px;color:#0f172a;background:white;box-sizing:border-box"/>
                 </div>
                 <div style="flex:1">
-                  <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px">End *</label>
+                  <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px">End {{form.category !== 'YARD_SALE' ? '*' : '(optional)'}}</label>
                   <input type="datetime-local" [(ngModel)]="form.endDatetime"
                          style="width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;
                                 font-size:13px;color:#0f172a;background:white;box-sizing:border-box"/>
@@ -525,7 +525,7 @@ export class SubmitComponent implements OnInit {
 
   canAdvance() {
     if (this.step() === 'location') return this.form.address.trim() && this.form.city.trim();
-    if (this.step() === 'details') return this.form.title.trim() && this.form.category && this.form.startDatetime && this.form.endDatetime;
+    if (this.step() === 'details') return this.form.title.trim() && this.form.category && this.form.startDatetime && (this.form.category === 'YARD_SALE' || this.form.endDatetime);
     return true;
   }
 
