@@ -107,7 +107,7 @@ public class UserService {
     }
 
     private HostListingsResponse getHostListingsForHostEntity(Host host) {
-        List<Listing> listings = listingRepository.findUpcomingByHostId(host.getId(), LocalDateTime.now());
+        List<Listing> listings = listingRepository.findActiveByHostId(host.getId());
 
         List<Long> ids = listings.stream().map(Listing::getId).collect(Collectors.toList());
         Map<Long, String> primaryUrls = ids.isEmpty() ? Map.of() :
