@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, forkJoin, of } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import {
   Listing, ListingSummary, Tag, Report, HostListingsResponse, HostSearchResult, HostEntity,
@@ -89,18 +89,12 @@ export class ListingApiService {
   }
 
   searchHosts(q: string): Observable<HostSearchResult[]> {
-    const users$ = this.http.get<ApiResponse<HostSearchResult[]>>(
-      `${this.base}/users/search`, { params: { q }, withCredentials: true }
-    ).pipe(map(r => r.data), catchError(() => of([] as HostSearchResult[])));
-
-    const hostEntities$ = this.http.get<ApiResponse<HostEntity[]>>(
+    return this.http.get<ApiResponse<HostEntity[]>>(
       `${this.base}/hosts`, { params: { q }, withCredentials: true }
     ).pipe(
       map(r => r.data.map(h => ({ id: h.id, name: h.displayName, displayName: h.displayName, avatarUrl: h.avatarUrl, handle: h.handle } as HostSearchResult))),
       catchError(() => of([] as HostSearchResult[]))
     );
-
-    return forkJoin([users$, hostEntities$]).pipe(map(([users, hosts]) => [...users, ...hosts]));
   }
 
   updateDisplayName(displayName: string): Observable<HostSearchResult> {
