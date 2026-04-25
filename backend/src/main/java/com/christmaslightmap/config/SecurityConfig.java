@@ -42,7 +42,6 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/displays/mine").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/v1/displays/upvoted").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/v1/displays/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/listings/mine").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/v1/listings/upvoted").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/v1/listings/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/tags").permitAll()

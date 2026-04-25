@@ -137,14 +137,6 @@ public class ListingController {
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
-    @GetMapping("/mine")
-    public ResponseEntity<ApiResponse<List<ListingSummaryResponse>>> getMyListings(
-        Authentication authentication
-    ) {
-        Long userId = (Long) authentication.getPrincipal();
-        return ResponseEntity.ok(ApiResponse.success(listingService.getMyListings(userId)));
-    }
-
     @GetMapping("/upvoted")
     public ResponseEntity<ApiResponse<List<ListingSummaryResponse>>> getUpvotedListings(
         Authentication authentication
