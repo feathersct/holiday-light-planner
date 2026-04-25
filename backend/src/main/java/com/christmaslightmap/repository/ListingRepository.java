@@ -20,9 +20,8 @@ public interface ListingRepository extends JpaRepository<Listing, Long> {
                 WHERE p.display_id = d.id AND p.is_primary = true LIMIT 1) AS primary_photo_url,
                d.category, d.start_datetime, d.end_datetime, d.price_info,
                d.cuisine_type, d.organizer, d.website_url,
-               COALESCE(h.display_name, d.host_name) AS host_name, u.display_name, u.name AS user_name
+               h.display_name AS host_name
         FROM listings d
-        JOIN users u ON u.id = d.user_id
         LEFT JOIN hosts h ON h.id = d.host_id
         WHERE d.is_active = true
           AND d.host_id IS NOT NULL
@@ -66,9 +65,8 @@ public interface ListingRepository extends JpaRepository<Listing, Long> {
                 WHERE p.display_id = d.id AND p.is_primary = true LIMIT 1) AS primary_photo_url,
                d.category, d.start_datetime, d.end_datetime, d.price_info,
                d.cuisine_type, d.organizer, d.website_url,
-               COALESCE(h.display_name, d.host_name) AS host_name, u.display_name, u.name AS user_name
+               h.display_name AS host_name
         FROM listings d
-        JOIN users u ON u.id = d.user_id
         LEFT JOIN hosts h ON h.id = d.host_id
         WHERE d.is_active = true
           AND d.host_id IS NOT NULL
@@ -110,11 +108,6 @@ public interface ListingRepository extends JpaRepository<Listing, Long> {
 
     @Query("SELECT d FROM Listing d LEFT JOIN FETCH d.tags WHERE d.id IN :ids")
     List<Listing> findByIdInWithTags(@Param("ids") List<Long> ids);
-
-    List<Listing> findByUserIdAndIsActiveTrue(Long userId);
-
-    @Query("SELECT l FROM Listing l LEFT JOIN FETCH l.tags WHERE l.user.id = :userId AND l.isActive = true AND l.endDatetime > :now ORDER BY l.startDatetime ASC")
-    List<Listing> findUpcomingByUserId(@Param("userId") Long userId, @Param("now") LocalDateTime now);
 
     @Query("SELECT l FROM Listing l LEFT JOIN FETCH l.tags WHERE l.host.id = :hostId AND l.isActive = true AND l.endDatetime >= :now ORDER BY l.startDatetime ASC")
     List<Listing> findActiveByHostId(@Param("hostId") Long hostId, @Param("now") LocalDateTime now);
