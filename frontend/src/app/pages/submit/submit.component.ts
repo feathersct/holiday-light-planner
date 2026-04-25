@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CATEGORY_LABELS, Category, Tag, Photo, Listing, ListingSummary, UpdateListingRequest } from '../../models/listing.model';
+import { CATEGORY_LABELS, Category, Tag, Photo, Listing, ListingSummary, HostEntity, UpdateListingRequest } from '../../models/listing.model';
 import { ListingApiService } from '../../services/listing-api.service';
 import { TagBadgeComponent } from '../../shared/tag-badge/tag-badge.component';
 
@@ -155,6 +155,19 @@ import { TagBadgeComponent } from '../../shared/tag-badge/tag-badge.component';
                     {{cat.label}}
                   </button>
                 </div>
+              </div>
+              <!-- Post as (only shown when user has hosts) -->
+              <div *ngIf="user && hosts().length > 0">
+                <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px">
+                  Post as
+                </label>
+                <select [ngModel]="selectedHostId()"
+                        (ngModelChange)="selectedHostId.set($event === 'null' ? null : +$event)"
+                        style="width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;
+                               font-size:13px;color:#0f172a;background:white;box-sizing:border-box">
+                  <option [ngValue]="null">Personal</option>
+                  <option *ngFor="let h of hosts()" [ngValue]="h.id">{{h.displayName}}</option>
+                </select>
               </div>
               <!-- Title -->
               <div>
@@ -363,6 +376,9 @@ export class SubmitComponent implements OnInit {
   existingPhotos = signal<Photo[]>([]);
   photoError: string | null = null;
 
+  hosts = signal<HostEntity[]>([]);
+  selectedHostId = signal<number | null>(null);
+
   addressSuggestions: any[] = [];
   showAddressSuggestions = false;
   private suggestTimer: any = null;
@@ -412,6 +428,18 @@ export class SubmitComponent implements OnInit {
   }
 
   ngOnInit() {
+    if (this.user) {
+      this.listingApi.getMyHosts().subscribe({
+        next: h => {
+          this.hosts.set(h);
+          if (h.length > 0 && this.selectedHostId() === null) {
+            this.selectedHostId.set(h[0].id);
+          }
+        },
+        error: () => {},
+      });
+    }
+
     if (this.editListing) {
       const d = this.editListing;
       this.form.category = d.category;
@@ -597,6 +625,7 @@ export class SubmitComponent implements OnInit {
       organizer: this.form.organizer,
       websiteUrl: this.form.websiteUrl,
       hostName: this.form.hostName,
+      hostId: this.selectedHostId(),
     };
 
     const call = this.adminEdit && this.editListing
