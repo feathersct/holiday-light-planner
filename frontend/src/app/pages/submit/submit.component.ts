@@ -156,18 +156,23 @@ import { TagBadgeComponent } from '../../shared/tag-badge/tag-badge.component';
                   </button>
                 </div>
               </div>
-              <!-- Post as (only shown when user has hosts) -->
-              <div *ngIf="user && hosts().length > 0">
+              <!-- Post as -->
+              <div *ngIf="user">
                 <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px">
                   Post as
                 </label>
-                <select [ngModel]="selectedHostId()"
+                <select *ngIf="hosts().length > 0"
+                        [ngModel]="selectedHostId()"
                         (ngModelChange)="selectedHostId.set($event)"
                         style="width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;
                                font-size:13px;color:#0f172a;background:white;box-sizing:border-box">
-                  <option [ngValue]="null">Personal</option>
                   <option *ngFor="let h of hosts()" [ngValue]="h.id">{{h.displayName}}</option>
                 </select>
+                <div *ngIf="hosts().length === 0"
+                     style="padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;
+                            font-size:13px;color:#64748b;background:white">
+                  {{user.displayName ?? user.name}} (a host profile will be created for you)
+                </div>
               </div>
               <!-- Title -->
               <div>
@@ -265,18 +270,6 @@ import { TagBadgeComponent } from '../../shared/tag-badge/tag-badge.component';
                 <input [(ngModel)]="form.websiteUrl" placeholder="https://..."
                        style="width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;
                               font-size:14px;color:#0f172a;background:white;box-sizing:border-box;outline:none"/>
-              </div>
-              <!-- Host name override (all categories) -->
-              <div>
-                <label style="font-size:13px;font-weight:600;color:#374151;display:block;margin-bottom:6px">
-                  Host name for this listing
-                  <span style="font-weight:400;color:#94a3b8">(optional — overrides your profile name)</span>
-                </label>
-                <input [(ngModel)]="form.hostName" placeholder="Leave blank to use your profile name"
-                       style="width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;
-                              font-size:14px;color:#0f172a;background:white;box-sizing:border-box;outline:none"
-                       (focus)="$any($event.target).style.borderColor='var(--accent)'"
-                       (blur)="$any($event.target).style.borderColor='#e2e8f0'"/>
               </div>
             </div>
           </div>
@@ -408,7 +401,6 @@ export class SubmitComponent implements OnInit {
     cuisineType: '',
     organizer: '',
     websiteUrl: '',
-    hostName: '',
   };
 
   get isLights() { return this.form.category === 'CHRISTMAS_LIGHTS'; }
@@ -456,7 +448,6 @@ export class SubmitComponent implements OnInit {
       this.form.cuisineType = d.cuisineType ?? '';
       this.form.organizer = d.organizer ?? '';
       this.form.websiteUrl = d.websiteUrl ?? '';
-      this.form.hostName = d.resolvedHostName ?? '';
       this.form.tagIds = d.tags.map(t => t.id);
 
       this.listingApi.getById(d.id).subscribe({
@@ -467,6 +458,7 @@ export class SubmitComponent implements OnInit {
           this.form.bestTime = full.bestTime ?? '';
           this.existingPhotos.set(full.photos ?? []);
           this.createdListingId.set(d.id);
+          if (full.hostId) this.selectedHostId.set(full.hostId);
         },
         error: () => {
           this.error = 'Could not load listing details. Some fields may be incomplete.';
@@ -624,7 +616,6 @@ export class SubmitComponent implements OnInit {
       cuisineType: this.form.cuisineType,
       organizer: this.form.organizer,
       websiteUrl: this.form.websiteUrl,
-      hostName: this.form.hostName,
       hostId: this.selectedHostId(),
     };
 

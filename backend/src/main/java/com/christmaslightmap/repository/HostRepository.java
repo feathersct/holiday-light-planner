@@ -12,5 +12,6 @@ public interface HostRepository extends JpaRepository<Host, Long> {
     boolean existsByHandle(String handle);
     boolean existsByHandleAndIdNot(String handle, Long id);
     List<Host> findByOwner_IdOrderByCreatedAtDesc(Long ownerId);
+    Optional<Host> findByOwner_IdAndIsDefaultTrue(Long ownerId);
     List<Host> findByDisplayNameContainingIgnoreCaseOrderByDisplayNameAsc(String query, Pageable pageable);
 }

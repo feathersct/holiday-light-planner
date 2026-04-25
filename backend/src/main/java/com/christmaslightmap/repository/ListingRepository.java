@@ -25,6 +25,7 @@ public interface ListingRepository extends JpaRepository<Listing, Long> {
         JOIN users u ON u.id = d.user_id
         LEFT JOIN hosts h ON h.id = d.host_id
         WHERE d.is_active = true
+          AND d.host_id IS NOT NULL
           AND ST_DWithin(d.location, ST_MakePoint(:lng, :lat)::geography, :radiusMetres)
           AND (:category IS NULL OR d.category = :category)
           AND (:includeExpired OR d.end_datetime >= NOW())
@@ -44,6 +45,7 @@ public interface ListingRepository extends JpaRepository<Listing, Long> {
     @Query(value = """
         SELECT COUNT(*) FROM listings d
         WHERE d.is_active = true
+          AND d.host_id IS NOT NULL
           AND ST_DWithin(d.location, ST_MakePoint(:lng, :lat)::geography, :radiusMetres)
           AND (:category IS NULL OR d.category = :category)
           AND (:includeExpired OR d.end_datetime >= NOW())
@@ -69,6 +71,7 @@ public interface ListingRepository extends JpaRepository<Listing, Long> {
         JOIN users u ON u.id = d.user_id
         LEFT JOIN hosts h ON h.id = d.host_id
         WHERE d.is_active = true
+          AND d.host_id IS NOT NULL
           AND ST_DWithin(d.location, ST_MakePoint(:lng, :lat)::geography, :radiusMetres)
           AND (:category IS NULL OR d.category = :category)
           AND (:includeExpired OR d.end_datetime >= NOW())
@@ -90,6 +93,7 @@ public interface ListingRepository extends JpaRepository<Listing, Long> {
     @Query(value = """
         SELECT COUNT(*) FROM listings d
         WHERE d.is_active = true
+          AND d.host_id IS NOT NULL
           AND ST_DWithin(d.location, ST_MakePoint(:lng, :lat)::geography, :radiusMetres)
           AND (:category IS NULL OR d.category = :category)
           AND (:includeExpired OR d.end_datetime >= NOW())

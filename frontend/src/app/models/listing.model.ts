@@ -123,6 +123,7 @@ export interface HostEntity {
   avatarUrl: string | null;
   listingCount: number;
   createdAt: string;
+  isDefault: boolean;
 }
 
 export interface PagedResponse<T> {

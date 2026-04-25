@@ -10,6 +10,7 @@ import com.christmaslightmap.model.Category;
 import com.christmaslightmap.model.DisplayPhoto;
 import com.christmaslightmap.model.Host;
 import com.christmaslightmap.model.Listing;
+import com.christmaslightmap.model.User;
 import com.christmaslightmap.repository.DisplayPhotoRepository;
 import com.christmaslightmap.repository.HostRepository;
 import com.christmaslightmap.repository.ListingRepository;
@@ -99,13 +100,15 @@ public class ListingService {
         var user = userRepository.findById(userId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        Host host = null;
+        Host host;
         if (request.getHostId() != null) {
             host = hostRepository.findById(request.getHostId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Host not found"));
             if (!host.getOwner().getId().equals(userId)) {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not your host");
             }
+        } else {
+            host = findOrCreateDefaultHost(user);
         }
 
         Point location = GEOMETRY_FACTORY.createPoint(new Coordinate(request.getLng(), request.getLat()));
@@ -113,11 +116,6 @@ public class ListingService {
 
         var tags = new HashSet<>(tagRepository.findAllById(
             request.getTagIds() != null ? request.getTagIds() : List.of()));
-
-        String resolvedHostName = host != null ? host.getDisplayName()
-            : (request.getHostName() != null && !request.getHostName().isBlank()
-                ? request.getHostName().trim().substring(0, Math.min(request.getHostName().trim().length(), 100))
-                : null);
 
         Listing listing = listingRepository.save(Listing.builder()
             .user(user)
@@ -138,7 +136,7 @@ public class ListingService {
             .organizer(request.getOrganizer())
             .websiteUrl(request.getWebsiteUrl())
             .priceInfo(request.getPriceInfo())
-            .hostName(resolvedHostName)
+            .hostName(host.getDisplayName())
             .tags(tags)
             .build());
 
@@ -368,5 +366,31 @@ public class ListingService {
             .resolvedHostName(resolvedHostName)
             .tags(List.of())
             .build();
+    }
+
+    private Host findOrCreateDefaultHost(User user) {
+        return hostRepository.findByOwner_IdAndIsDefaultTrue(user.getId())
+            .orElseGet(() -> {
+                String displayName = (user.getDisplayName() != null && !user.getDisplayName().isBlank())
+                    ? user.getDisplayName() : user.getName();
+                String handle = generateHandle(displayName, user.getId());
+                return hostRepository.save(Host.builder()
+                    .owner(user)
+                    .handle(handle)
+                    .displayName(displayName)
+                    .isDefault(true)
+                    .build());
+            });
+    }
+
+    private String generateHandle(String displayName, Long userId) {
+        String base = displayName.toLowerCase().replaceAll("[^a-z0-9]", "");
+        base = base.isEmpty() ? "user" + userId : base.substring(0, Math.min(base.length(), 20));
+        String handle = base;
+        int suffix = 1;
+        while (hostRepository.existsByHandle(handle) || userRepository.existsByHandle(handle)) {
+            handle = base + suffix++;
+        }
+        return handle;
     }
 }

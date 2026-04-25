@@ -156,6 +156,7 @@ public class HostService {
             .displayName(host.getDisplayName())
             .avatarUrl(host.getAvatarUrl())
             .listingCount(listingRepository.countByHostIdAndIsActiveTrue(host.getId()))
+            .isDefault(host.isDefault())
             .createdAt(host.getCreatedAt())
             .build();
     }

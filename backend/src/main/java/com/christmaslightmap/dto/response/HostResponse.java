@@ -13,5 +13,6 @@ public class HostResponse {
     private String displayName;
     private String avatarUrl;
     private int listingCount;
+    private boolean isDefault;
     private LocalDateTime createdAt;
 }
