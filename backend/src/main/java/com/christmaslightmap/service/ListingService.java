@@ -97,9 +97,6 @@ public class ListingService {
 
     @Transactional
     public ListingResponse createListing(Long userId, CreateListingRequest request) {
-        var user = userRepository.findById(userId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-
         Host host;
         if (request.getHostId() != null) {
             host = hostRepository.findById(request.getHostId())
@@ -108,7 +105,7 @@ public class ListingService {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not your host");
             }
         } else {
-            host = findOrCreateDefaultHost(user);
+            host = findOrCreateDefaultHost(userId);
         }
 
         Point location = GEOMETRY_FACTORY.createPoint(new Coordinate(request.getLng(), request.getLat()));
@@ -118,7 +115,6 @@ public class ListingService {
             request.getTagIds() != null ? request.getTagIds() : List.of()));
 
         Listing listing = listingRepository.save(Listing.builder()
-            .user(user)
             .host(host)
             .title(request.getTitle())
             .description(request.getDescription())
@@ -183,9 +179,7 @@ public class ListingService {
     public void deleteListing(Long userId, Long listingId) {
         Listing listing = listingRepository.findById(listingId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Listing not found"));
-        boolean isOwner = listing.getHost() != null
-            ? listing.getHost().getOwner().getId().equals(userId)
-            : listing.getUser().getId().equals(userId);
+        boolean isOwner = listing.getHost().getOwner().getId().equals(userId);
         if (!isOwner) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not your listing");
         }
@@ -197,9 +191,7 @@ public class ListingService {
     public ListingResponse updateListing(Long userId, Long listingId, UpdateListingRequest request) {
         Listing listing = listingRepository.findById(listingId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Listing not found"));
-        boolean isOwner = listing.getHost() != null
-            ? listing.getHost().getOwner().getId().equals(userId)
-            : listing.getUser().getId().equals(userId);
+        boolean isOwner = listing.getHost().getOwner().getId().equals(userId);
         if (!isOwner) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not your listing");
         }
@@ -254,9 +246,7 @@ public class ListingService {
     public void deletePhoto(Long userId, Long listingId, Long photoId) {
         Listing listing = listingRepository.findById(listingId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Listing not found"));
-        boolean isOwner = listing.getHost() != null
-            ? listing.getHost().getOwner().getId().equals(userId)
-            : listing.getUser().getId().equals(userId);
+        boolean isOwner = listing.getHost().getOwner().getId().equals(userId);
         if (!isOwner) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not your listing");
         }
@@ -283,11 +273,6 @@ public class ListingService {
         }
     }
 
-    public List<ListingSummaryResponse> getMyListings(Long userId) {
-        List<Listing> listings = listingRepository.findByUserIdAndIsActiveTrue(userId);
-        return toSummaries(listings);
-    }
-
     public List<ListingSummaryResponse> getUpvotedListings(Long userId) {
         List<Listing> listings = upvoteRepository.findByUserIdWithActiveListings(userId).stream()
             .map(u -> u.getListing())
@@ -306,15 +291,7 @@ public class ListingService {
     }
 
     private ListingSummaryResponse buildSummary(Listing listing, String primaryPhotoUrl) {
-        String resolvedHostName;
-        if (listing.getHost() != null) {
-            resolvedHostName = listing.getHost().getDisplayName();
-        } else {
-            String hostName = listing.getHostName();
-            String displayName = listing.getUser().getDisplayName();
-            String userName = listing.getUser().getName();
-            resolvedHostName = hostName != null ? hostName : (displayName != null ? displayName : userName);
-        }
+        String resolvedHostName = listing.getHost().getDisplayName();
         return ListingSummaryResponse.builder()
             .id(listing.getId())
             .title(listing.getTitle())
@@ -341,10 +318,7 @@ public class ListingService {
 
     private ListingSummaryResponse mapRowToSummary(Object[] row) {
         String categoryStr = (String) row[11];
-        String hostName = (String) row[18];
-        String displayName = (String) row[19];
-        String userName = (String) row[20];
-        String resolvedHostName = hostName != null ? hostName : (displayName != null ? displayName : userName);
+        String resolvedHostName = (String) row[18];
         return ListingSummaryResponse.builder()
             .id(((Number) row[0]).longValue())
             .title((String) row[1])
@@ -368,12 +342,14 @@ public class ListingService {
             .build();
     }
 
-    private Host findOrCreateDefaultHost(User user) {
-        return hostRepository.findByOwner_IdAndIsDefaultTrue(user.getId())
+    private Host findOrCreateDefaultHost(Long userId) {
+        return hostRepository.findByOwner_IdAndIsDefaultTrue(userId)
             .orElseGet(() -> {
+                User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
                 String displayName = (user.getDisplayName() != null && !user.getDisplayName().isBlank())
                     ? user.getDisplayName() : user.getName();
-                String handle = generateHandle(displayName, user.getId());
+                String handle = generateHandle(displayName, userId);
                 return hostRepository.save(Host.builder()
                     .owner(user)
                     .handle(handle)
