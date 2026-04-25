@@ -180,7 +180,7 @@ export interface CreateListingRequest {
   organizer: string;
   // Christmas Lights + Food Truck only
   websiteUrl: string;
-  hostName: string;
+  hostName?: string;
   hostId?: number | null;
 }
 
@@ -203,7 +203,7 @@ export interface UpdateListingRequest {
   cuisineType: string;
   organizer: string;
   websiteUrl: string;
-  hostName: string;
+  hostName?: string;
   hostId?: number | null;
 }
 
