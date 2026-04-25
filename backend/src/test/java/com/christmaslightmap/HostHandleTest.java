@@ -156,8 +156,7 @@ class HostHandleTest extends BaseIntegrationTest {
             .handle("public-host")
             .role(UserRole.USER).build());
 
-        // No auth headers — should still work (returns 404 since no host entity exists for this handle,
-        // but falls back to user lookup which succeeds)
+        // No auth headers — falls back to user lookup which succeeds
         ResponseEntity<String> response = restTemplate.getForEntity(
             "/api/v1/users/handle/public-host", String.class);
 

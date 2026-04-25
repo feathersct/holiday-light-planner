@@ -161,7 +161,7 @@ export class AppComponent implements OnInit {
   selectedDisplay = signal<ListingSummary | null>(null);
   viewingHost = signal<HostUser | null>(null);
   editingListing = signal<ListingSummary | null>(null);
-  editSource = signal<'profile' | 'admin'>('profile');
+  editSource = signal<'admin' | null>(null);
   initialFilters: InitialFilters | null = null;
   isMobile = window.innerWidth < 768;
 
@@ -263,13 +263,15 @@ export class AppComponent implements OnInit {
   onSubmitDone() {
     const source = this.editSource();
     this.editingListing.set(null);
+    this.editSource.set(null);
     this.screen.set(source === 'admin' ? 'admin' : 'map');
   }
 
   onSubmitCancel() {
     const source = this.editSource();
     this.editingListing.set(null);
-    this.screen.set(source);
+    this.editSource.set(null);
+    this.screen.set(source === 'admin' ? 'admin' : 'map');
   }
 
   onAdminEditListing(listing: ListingSummary) {
