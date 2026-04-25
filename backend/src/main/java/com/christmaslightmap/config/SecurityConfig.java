@@ -49,6 +49,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/users/search").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/users/*/listings").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/users/handle/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/hosts").permitAll()
                 .requestMatchers("/api/v1/hosts", "/api/v1/hosts/**").authenticated()
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()

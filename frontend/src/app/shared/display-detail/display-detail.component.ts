@@ -191,7 +191,11 @@ export class DisplayDetailComponent implements OnInit {
   onViewHost() {
     const d = this.fullDisplay();
     if (!d) return;
-    this.viewHost.emit({ id: d.submittedBy, name: d.submittedByName, displayName: null, avatarUrl: d.submittedByAvatarUrl, handle: d.submittedByHandle });
+    if (d.hostId && d.hostHandle) {
+      this.viewHost.emit({ id: d.hostId, name: d.resolvedHostName, displayName: d.resolvedHostName, avatarUrl: null, handle: d.hostHandle });
+    } else {
+      this.viewHost.emit({ id: d.submittedBy, name: d.submittedByName, displayName: null, avatarUrl: d.submittedByAvatarUrl, handle: d.submittedByHandle });
+    }
   }
 
   ngOnInit() {

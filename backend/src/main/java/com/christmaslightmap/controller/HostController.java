@@ -33,6 +33,11 @@ public class HostController {
             .body(ApiResponse.success(hostService.createHost(userId, request)));
     }
 
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<HostResponse>>> searchHosts(@RequestParam String q) {
+        return ResponseEntity.ok(ApiResponse.success(hostService.searchHosts(q)));
+    }
+
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<List<HostResponse>>> getMyHosts(Authentication authentication) {
         Long userId = (Long) authentication.getPrincipal();

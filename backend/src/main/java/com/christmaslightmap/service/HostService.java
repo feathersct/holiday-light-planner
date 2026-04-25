@@ -11,6 +11,7 @@ import com.christmaslightmap.repository.ListingRepository;
 import com.christmaslightmap.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,6 +58,11 @@ public class HostService {
             .build());
 
         return toResponse(host);
+    }
+
+    public List<HostResponse> searchHosts(String q) {
+        return hostRepository.findByDisplayNameContainingIgnoreCaseOrderByDisplayNameAsc(q, PageRequest.of(0, 10))
+            .stream().map(this::toResponse).collect(Collectors.toList());
     }
 
     public List<HostResponse> getMyHosts(Long userId) {

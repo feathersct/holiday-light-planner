@@ -70,6 +70,8 @@ export interface Listing extends ListingSummary {
   submittedByName: string;
   submittedByAvatarUrl: string | null;
   submittedByHandle: string | null;
+  hostId: number | null;
+  hostHandle: string | null;
   description: string;
   address: string;
   postcode: string;

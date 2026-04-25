@@ -35,6 +35,8 @@ public class ListingResponse {
     private String organizer;
     private String websiteUrl;
     private String resolvedHostName;
+    private Long hostId;
+    private String hostHandle;
     private String priceInfo;
     private int upvoteCount;
     private int photoCount;
@@ -67,6 +69,8 @@ public class ListingResponse {
             .organizer(listing.getOrganizer())
             .websiteUrl(listing.getWebsiteUrl())
             .resolvedHostName(resolveHostName(listing))
+            .hostId(listing.getHost() != null ? listing.getHost().getId() : null)
+            .hostHandle(listing.getHost() != null ? listing.getHost().getHandle() : null)
             .priceInfo(listing.getPriceInfo())
             .upvoteCount(listing.getUpvoteCount())
             .photoCount(listing.getPhotoCount())
@@ -78,6 +82,7 @@ public class ListingResponse {
     }
 
     private static String resolveHostName(Listing listing) {
+        if (listing.getHost() != null) return listing.getHost().getDisplayName();
         if (listing.getHostName() != null && !listing.getHostName().isBlank()) return listing.getHostName();
         if (listing.getUser().getDisplayName() != null && !listing.getUser().getDisplayName().isBlank()) return listing.getUser().getDisplayName();
         return listing.getUser().getName();
