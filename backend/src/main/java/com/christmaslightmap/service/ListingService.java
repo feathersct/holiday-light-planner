@@ -241,9 +241,11 @@ public class ListingService {
         listing.setOrganizer(request.getOrganizer());
         listing.setWebsiteUrl(request.getWebsiteUrl());
         listing.setPriceInfo(request.getPriceInfo());
-        listing.setHostName(request.getHostName() != null && !request.getHostName().isBlank()
-            ? request.getHostName().trim().substring(0, Math.min(request.getHostName().trim().length(), 100))
-            : null);
+        if (request.getHostId() == null) {
+            listing.setHostName(request.getHostName() != null && !request.getHostName().isBlank()
+                ? request.getHostName().trim().substring(0, Math.min(request.getHostName().trim().length(), 100))
+                : null);
+        }
         listing.setTags(tags);
 
         listing = listingRepository.save(listing);
