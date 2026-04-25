@@ -203,12 +203,15 @@ export class AppComponent implements OnInit {
     else if (path.startsWith('/host/')) {
       const handle = path.split('/')[2]?.split('?')[0];
       if (handle) {
+        this.screen.set('host');
         this.listingApi.getHostListingsByHandle(handle).subscribe({
           next: resp => {
             this.viewingHost.set(resp.user);
-            this.screen.set('host');
           },
-          error: () => this.location.replaceState('/'),
+          error: () => {
+            this.screen.set('map');
+            this.location.replaceState('/');
+          },
         });
       }
     }
