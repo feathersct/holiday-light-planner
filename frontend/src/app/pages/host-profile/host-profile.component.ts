@@ -100,7 +100,10 @@ export class HostProfileComponent implements OnInit {
   load() {
     this.loading.set(true);
     this.loadError.set(false);
-    this.listingApi.getHostListings(this.host.id).subscribe({
+    const request$ = this.host.handle
+      ? this.listingApi.getHostListingsByHandle(this.host.handle)
+      : this.listingApi.getHostListings(this.host.id);
+    request$.subscribe({
       next: (data: HostListingsResponse) => {
         this.listings.set(data.listings);
         this.loading.set(false);
