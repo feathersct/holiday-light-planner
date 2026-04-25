@@ -424,6 +424,8 @@ export class ProfileComponent implements OnInit {
         next: h => { this.hosts.set(h); this.hostsLoading.set(false); },
         error: () => this.hostsLoading.set(false),
       });
+    } else {
+      this.hostsLoading.set(false);
     }
   }
 
@@ -590,7 +592,7 @@ export class ProfileComponent implements OnInit {
     if (!file) return;
     this.listingApi.uploadHostAvatar(hostId, file).subscribe({
       next: updated => this.hosts.update(list => list.map(h => h.id === hostId ? updated : h)),
-      error: () => {},
+      error: () => this.editHostError.set('Avatar upload failed. Please try again.'),
     });
   }
 
