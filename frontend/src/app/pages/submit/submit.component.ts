@@ -162,7 +162,7 @@ import { TagBadgeComponent } from '../../shared/tag-badge/tag-badge.component';
                   Post as
                 </label>
                 <select [ngModel]="selectedHostId()"
-                        (ngModelChange)="selectedHostId.set($event === 'null' ? null : +$event)"
+                        (ngModelChange)="selectedHostId.set($event)"
                         style="width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;
                                font-size:13px;color:#0f172a;background:white;box-sizing:border-box">
                   <option [ngValue]="null">Personal</option>
