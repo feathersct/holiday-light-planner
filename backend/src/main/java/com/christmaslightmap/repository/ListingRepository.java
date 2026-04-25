@@ -20,9 +20,10 @@ public interface ListingRepository extends JpaRepository<Listing, Long> {
                 WHERE p.display_id = d.id AND p.is_primary = true LIMIT 1) AS primary_photo_url,
                d.category, d.start_datetime, d.end_datetime, d.price_info,
                d.cuisine_type, d.organizer, d.website_url,
-               d.host_name, u.display_name, u.name AS user_name
+               COALESCE(h.display_name, d.host_name) AS host_name, u.display_name, u.name AS user_name
         FROM listings d
         JOIN users u ON u.id = d.user_id
+        LEFT JOIN hosts h ON h.id = d.host_id
         WHERE d.is_active = true
           AND ST_DWithin(d.location, ST_MakePoint(:lng, :lat)::geography, :radiusMetres)
           AND (:category IS NULL OR d.category = :category)
@@ -63,9 +64,10 @@ public interface ListingRepository extends JpaRepository<Listing, Long> {
                 WHERE p.display_id = d.id AND p.is_primary = true LIMIT 1) AS primary_photo_url,
                d.category, d.start_datetime, d.end_datetime, d.price_info,
                d.cuisine_type, d.organizer, d.website_url,
-               d.host_name, u.display_name, u.name AS user_name
+               COALESCE(h.display_name, d.host_name) AS host_name, u.display_name, u.name AS user_name
         FROM listings d
         JOIN users u ON u.id = d.user_id
+        LEFT JOIN hosts h ON h.id = d.host_id
         WHERE d.is_active = true
           AND ST_DWithin(d.location, ST_MakePoint(:lng, :lat)::geography, :radiusMetres)
           AND (:category IS NULL OR d.category = :category)
@@ -117,9 +119,7 @@ public interface ListingRepository extends JpaRepository<Listing, Long> {
 
     Page<Listing> findByIsActiveOrderByCreatedAtDesc(boolean isActive, Pageable pageable);
 
-    @Query(value = "SELECT EXISTS(SELECT 1 FROM listings WHERE host_id = :hostId AND is_active = true)", nativeQuery = true)
-    boolean existsByHostIdAndIsActiveTrue(@Param("hostId") Long hostId);
+    boolean existsByHostIdAndIsActiveTrue(Long hostId);
 
-    @Query(value = "SELECT COUNT(*) FROM listings WHERE host_id = :hostId AND is_active = true", nativeQuery = true)
-    int countByHostIdAndIsActiveTrue(@Param("hostId") Long hostId);
+    int countByHostIdAndIsActiveTrue(Long hostId);
 }

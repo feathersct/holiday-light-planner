@@ -209,6 +209,16 @@ public class ListingService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Listing not found");
         }
 
+        if (request.getHostId() != null) {
+            Host host = hostRepository.findById(request.getHostId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Host not found"));
+            if (!host.getOwner().getId().equals(userId)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not your host");
+            }
+            listing.setHost(host);
+            listing.setHostName(host.getDisplayName());
+        }
+
         Point location = GEOMETRY_FACTORY.createPoint(new Coordinate(request.getLng(), request.getLat()));
         location.setSRID(4326);
 

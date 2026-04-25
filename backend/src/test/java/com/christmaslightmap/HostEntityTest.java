@@ -222,4 +222,56 @@ class HostEntityTest extends BaseIntegrationTest {
 
         assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
     }
+
+    @Test
+    void createListing_withValidHostId_usesHostDisplayName() {
+        User user = savedUser("listing1");
+        Host host = hostRepository.save(Host.builder()
+            .owner(user).handle("listing-truck").displayName("Listing Truck Co").build());
+
+        Map<String, Object> body = new java.util.HashMap<>();
+        body.put("title", "Taco Night");
+        body.put("address", "123 Main St");
+        body.put("city", "Austin");
+        body.put("state", "TX");
+        body.put("postcode", "78701");
+        body.put("lat", 30.2672);
+        body.put("lng", -97.7431);
+        body.put("category", "FOOD_TRUCK");
+        body.put("startDatetime", "2025-12-01T18:00:00");
+        body.put("endDatetime", "2025-12-01T21:00:00");
+        body.put("hostId", host.getId());
+
+        HttpEntity<Map<String, Object>> req = new HttpEntity<>(body, authHeaders(user));
+        ResponseEntity<String> resp = restTemplate.postForEntity("/api/v1/listings", req, String.class);
+
+        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(resp.getBody()).contains("Listing Truck Co");
+    }
+
+    @Test
+    void createListing_withUnownedHostId_returns403() {
+        User owner = savedUser("listing2");
+        User other = savedUser("listing3");
+        Host host = hostRepository.save(Host.builder()
+            .owner(owner).handle("other-truck").displayName("Other Truck").build());
+
+        Map<String, Object> body = new java.util.HashMap<>();
+        body.put("title", "Event");
+        body.put("address", "123 Main St");
+        body.put("city", "Austin");
+        body.put("state", "TX");
+        body.put("postcode", "78701");
+        body.put("lat", 30.2672);
+        body.put("lng", -97.7431);
+        body.put("category", "FOOD_TRUCK");
+        body.put("startDatetime", "2025-12-01T18:00:00");
+        body.put("endDatetime", "2025-12-01T21:00:00");
+        body.put("hostId", host.getId());
+
+        HttpEntity<Map<String, Object>> req = new HttpEntity<>(body, authHeaders(other));
+        ResponseEntity<String> resp = restTemplate.postForEntity("/api/v1/listings", req, String.class);
+
+        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
 }
