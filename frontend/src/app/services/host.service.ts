@@ -34,9 +34,7 @@ export class HostService {
   }
 
   getHostManagedListings(hostId: number): Observable<HostListingsResponse> {
-    return this.http.get<ApiResponse<HostListingsResponse>>(
-      `${this.base}/hosts/${hostId}/listings`, { withCredentials: true }
-    ).pipe(map(r => r.data));
+    return this.getHostListings(hostId);
   }
 
   createHost(displayName: string, handle: string): Observable<HostEntity> {
