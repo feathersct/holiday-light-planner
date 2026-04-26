@@ -3,6 +3,7 @@ package com.christmaslightmap.dto.response;
 import com.christmaslightmap.model.Category;
 import com.christmaslightmap.model.Listing;
 import com.christmaslightmap.model.DisplayPhoto;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 
@@ -36,6 +37,7 @@ public class ListingResponse {
     private String priceInfo;
     private int upvoteCount;
     private int photoCount;
+    @JsonProperty("isActive")
     private boolean isActive;
     private LocalDateTime createdAt;
     private List<TagResponse> tags;
