@@ -4,6 +4,7 @@ import com.christmaslightmap.dto.request.CreateHostRequest;
 import com.christmaslightmap.dto.request.TransferHostRequest;
 import com.christmaslightmap.dto.request.UpdateHostRequest;
 import com.christmaslightmap.dto.response.ApiResponse;
+import com.christmaslightmap.dto.response.HostListingsResponse;
 import com.christmaslightmap.dto.response.HostResponse;
 import com.christmaslightmap.service.HostService;
 import jakarta.validation.Valid;
@@ -42,6 +43,16 @@ public class HostController {
     public ResponseEntity<ApiResponse<List<HostResponse>>> getMyHosts(Authentication authentication) {
         Long userId = (Long) authentication.getPrincipal();
         return ResponseEntity.ok(ApiResponse.success(hostService.getMyHosts(userId)));
+    }
+
+    @GetMapping("/{userId}/listings")
+    public ResponseEntity<ApiResponse<HostListingsResponse>> getHostListings(@PathVariable Long userId) {
+        return ResponseEntity.ok(ApiResponse.success(hostService.getHostListings(userId)));
+    }
+
+    @GetMapping("/handle/{handle}")
+    public ResponseEntity<ApiResponse<HostListingsResponse>> getHostByHandle(@PathVariable String handle) {
+        return ResponseEntity.ok(ApiResponse.success(hostService.getHostListingsByHandle(handle)));
     }
 
     @PatchMapping("/{id}")
