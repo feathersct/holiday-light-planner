@@ -63,10 +63,10 @@ class HostListingsTest extends BaseIntegrationTest {
     }
 
     @Test
-    void getHostListingsByUserId_returns404ForUnknownUser() {
+    void getHostListings_returns401WithoutAuth() {
         ResponseEntity<String> response = restTemplate.getForEntity(
             "/api/v1/hosts/99999/listings", String.class);
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test

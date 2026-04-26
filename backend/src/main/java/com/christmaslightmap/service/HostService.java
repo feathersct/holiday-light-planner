@@ -150,12 +150,43 @@ public class HostService {
         return toResponse(hostRepository.save(host));
     }
 
-    public HostListingsResponse getHostListings(Long userId) {
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+    public HostListingsResponse getHostListings(Long authUserId, Long hostId) {
+        Host host = findOwned(authUserId, hostId);
+        List<Listing> listings = listingRepository.findByHostIdOrderByStartDatetimeDesc(hostId);
+
+        List<Long> ids = listings.stream().map(Listing::getId).collect(Collectors.toList());
+        Map<Long, String> primaryUrls = ids.isEmpty() ? Map.of() :
+            displayPhotoRepository.findPrimaryByDisplayIdIn(ids).stream()
+                .collect(Collectors.toMap(p -> p.getDisplay().getId(), DisplayPhoto::getUrl));
+
+        List<ListingSummaryResponse> summaries = listings.stream()
+            .map(l -> ListingSummaryResponse.builder()
+                .id(l.getId())
+                .title(l.getTitle())
+                .city(l.getCity())
+                .state(l.getState())
+                .lat(l.getLocation().getY())
+                .lng(l.getLocation().getX())
+                .upvoteCount(l.getUpvoteCount())
+                .photoCount(l.getPhotoCount())
+                .category(l.getCategory())
+                .displayType(l.getDisplayType() != null ? l.getDisplayType().name() : null)
+                .primaryPhotoUrl(primaryUrls.get(l.getId()))
+                .tags(l.getTags().stream().map(TagResponse::from).collect(Collectors.toList()))
+                .isActive(l.isActive())
+                .startDatetime(l.getStartDatetime())
+                .endDatetime(l.getEndDatetime())
+                .priceInfo(l.getPriceInfo())
+                .cuisineType(l.getCuisineType())
+                .organizer(l.getOrganizer())
+                .websiteUrl(l.getWebsiteUrl())
+                .resolvedHostName(host.getDisplayName())
+                .build())
+            .collect(Collectors.toList());
+
         return HostListingsResponse.builder()
-            .user(HostUserResponse.from(user))
-            .listings(List.of())
+            .user(HostUserResponse.from(host))
+            .listings(summaries)
             .build();
     }
 
@@ -165,7 +196,9 @@ public class HostService {
             .orElseGet(() -> {
                 User user = userRepository.findByHandle(handle)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Host not found"));
-                return getHostListings(user.getId());
+                Host userHost = hostRepository.findByOwner_IdOrderByCreatedAtDesc(user.getId()).stream().findFirst()
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Host not found"));
+                return getHostListingsForHostEntity(userHost);
             });
     }
 

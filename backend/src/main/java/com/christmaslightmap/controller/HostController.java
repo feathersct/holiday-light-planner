@@ -45,9 +45,13 @@ public class HostController {
         return ResponseEntity.ok(ApiResponse.success(hostService.getMyHosts(userId)));
     }
 
-    @GetMapping("/{userId}/listings")
-    public ResponseEntity<ApiResponse<HostListingsResponse>> getHostListings(@PathVariable Long userId) {
-        return ResponseEntity.ok(ApiResponse.success(hostService.getHostListings(userId)));
+    @GetMapping("/{hostId}/listings")
+    public ResponseEntity<ApiResponse<HostListingsResponse>> getHostListings(
+        @PathVariable Long hostId,
+        Authentication authentication
+    ) {
+        Long userId = (Long) authentication.getPrincipal();
+        return ResponseEntity.ok(ApiResponse.success(hostService.getHostListings(userId, hostId)));
     }
 
     @GetMapping("/handle/{handle}")
