@@ -289,7 +289,7 @@ class HostEntityTest extends BaseIntegrationTest {
             .build());
 
         ResponseEntity<String> resp = restTemplate.getForEntity(
-            "/api/v1/users/handle/my-brand", String.class);
+            "/api/v1/hosts/handle/my-brand", String.class);
 
         assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(resp.getBody()).contains("My Brand");

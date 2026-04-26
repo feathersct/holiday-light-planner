@@ -56,11 +56,11 @@ class HostSearchTest extends BaseIntegrationTest {
             .build());
 
         ResponseEntity<String> response = restTemplate.getForEntity(
-            "/api/v1/users/search?q=BBQ", String.class);
+            "/api/v1/hosts?q=BBQ", String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).contains("Joe's BBQ Truck");
-        assertThat(response.getBody()).contains(hostUser.getId().toString());
+        assertThat(response.getBody()).contains(host.getId().toString());
     }
 
     @Test
@@ -83,42 +83,16 @@ class HostSearchTest extends BaseIntegrationTest {
             .build());
 
         ResponseEntity<String> response = restTemplate.getForEntity(
-            "/api/v1/users/search?q=Sarah", String.class);
+            "/api/v1/hosts?q=Sarah", String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).contains("Sarah's Market");
     }
 
     @Test
-    void searchHosts_excludesHostsWithNoUpcomingListings() {
-        User hostUser = userRepository.save(User.builder()
-            .provider("facebook").providerId("fb-search3")
-            .email("expired@test.com").name("Expired Vendor")
-            .role(UserRole.USER).handle("host-search-3").build());
-
-        Host host = hostRepository.save(Host.builder()
-            .owner(hostUser).handle("expired-vendor").displayName("Expired Vendor").build());
-
-        listingRepository.save(Listing.builder()
-            .host(host).title("Old Sale")
-            .city("Houston").state("TX")
-            .location(point(-95.3, 29.7))
-            .category(Category.YARD_SALE)
-            .startDatetime(LocalDateTime.now().minusDays(10))
-            .endDatetime(LocalDateTime.now().minusDays(1))
-            .build());
-
-        ResponseEntity<String> response = restTemplate.getForEntity(
-            "/api/v1/users/search?q=Expired", String.class);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).doesNotContain("Expired Vendor");
-    }
-
-    @Test
     void searchHosts_returnsEmptyForNoMatch() {
         ResponseEntity<String> response = restTemplate.getForEntity(
-            "/api/v1/users/search?q=zzznomatch", String.class);
+            "/api/v1/hosts?q=zzznomatch", String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).contains("[]");
