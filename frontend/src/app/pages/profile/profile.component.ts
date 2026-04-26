@@ -122,8 +122,8 @@ import { HostService } from '../../services/host.service';
                style="display:flex;align-items:center;gap:12px;padding:14px;
                       border:1.5px solid #e2e8f0;border-radius:12px;margin-bottom:10px;
                       cursor:pointer;transition:border-color 0.15s;background:white"
-               (mouseenter)="$any($event.target).style.borderColor='var(--accent)'"
-               (mouseleave)="$any($event.target).style.borderColor='#e2e8f0'">
+               (mouseenter)="$any($event.currentTarget).style.borderColor='var(--accent)'"
+               (mouseleave)="$any($event.currentTarget).style.borderColor='#e2e8f0'">
             <img *ngIf="h.avatarUrl" [src]="h.avatarUrl" [alt]="h.displayName"
                  style="width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0"/>
             <app-avatar *ngIf="!h.avatarUrl" [initials]="getInitials(h.displayName)" [size]="44"/>
