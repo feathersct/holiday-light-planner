@@ -61,7 +61,7 @@ class HostHandleTest extends BaseIntegrationTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).contains("Handle Host");
-        assertThat(response.getBody()).contains("handle-host");
+        assertThat(response.getBody()).contains("\"handle-host\"");
         assertThat(response.getBody()).contains("Handle Event");
     }
 
@@ -74,13 +74,15 @@ class HostHandleTest extends BaseIntegrationTest {
 
     @Test
     void getHostByHandle_isPublicNoAuthRequired() {
-        userRepository.save(User.builder()
+        User owner = userRepository.save(User.builder()
             .provider("facebook").providerId("fb-handle6")
             .email("public@test.com").name("Public Host")
-            .handle("public-host")
+            .handle("public-host-user")
             .role(UserRole.USER).build());
 
-        // No auth headers — falls back to user lookup which succeeds
+        hostRepository.save(Host.builder()
+            .owner(owner).handle("public-host").displayName("Public Host").build());
+
         ResponseEntity<String> response = restTemplate.getForEntity(
             "/api/v1/hosts/handle/public-host", String.class);
 
