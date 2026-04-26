@@ -75,7 +75,7 @@ class SetListingActiveTest extends BaseIntegrationTest {
             HttpMethod.PATCH, request, String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).contains("\"active\":false");
+        assertThat(response.getBody()).contains("\"isActive\":false");
 
         Listing updated = listingRepository.findById(listing.getId()).orElseThrow();
         assertThat(updated.isActive()).isFalse();
@@ -101,7 +101,7 @@ class SetListingActiveTest extends BaseIntegrationTest {
             HttpMethod.PATCH, request, String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).contains("\"active\":true");
+        assertThat(response.getBody()).contains("\"isActive\":true");
     }
 
     @Test

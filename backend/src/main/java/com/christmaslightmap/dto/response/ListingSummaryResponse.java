@@ -1,6 +1,7 @@
 package com.christmaslightmap.dto.response;
 
 import com.christmaslightmap.model.Category;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 
@@ -22,6 +23,7 @@ public class ListingSummaryResponse {
     private String displayType;
     private String primaryPhotoUrl;
     private List<TagResponse> tags;
+    @JsonProperty("isActive")
     private boolean isActive;
     private LocalDateTime startDatetime;
     private LocalDateTime endDatetime;
