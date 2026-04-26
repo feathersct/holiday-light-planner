@@ -33,6 +33,12 @@ export class HostService {
     ).pipe(map(r => r.data));
   }
 
+  getHostManagedListings(hostId: number): Observable<HostListingsResponse> {
+    return this.http.get<ApiResponse<HostListingsResponse>>(
+      `${this.base}/hosts/${hostId}/listings`, { withCredentials: true }
+    ).pipe(map(r => r.data));
+  }
+
   createHost(displayName: string, handle: string): Observable<HostEntity> {
     return this.http.post<ApiResponse<HostEntity>>(
       `${this.base}/hosts`, { displayName, handle }, { withCredentials: true }

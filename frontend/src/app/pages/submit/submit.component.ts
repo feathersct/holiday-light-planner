@@ -368,6 +368,7 @@ export class SubmitComponent implements OnInit {
   createdListingId = signal<number | null>(null);
   @Input() editListing: ListingSummary | null = null;
   @Input() adminEdit = false;
+  @Input() preselectedHostId: number | null = null;
   @Output() cancel = new EventEmitter<void>();
 
   existingPhotos = signal<Photo[]>([]);
@@ -428,7 +429,9 @@ export class SubmitComponent implements OnInit {
       this.userService.getMyHosts().subscribe({
         next: (h: any) => {
           this.hosts.set(h);
-          if (h.length > 0 && this.selectedHostId() === null) {
+          if (this.preselectedHostId !== null) {
+            this.selectedHostId.set(this.preselectedHostId);
+          } else if (h.length > 0 && this.selectedHostId() === null) {
             this.selectedHostId.set(h[0].id);
           }
         },

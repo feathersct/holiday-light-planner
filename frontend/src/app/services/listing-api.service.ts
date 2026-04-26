@@ -79,4 +79,10 @@ export class ListingApiService {
   deleteListing(listingId: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/listings/${listingId}`, { withCredentials: true });
   }
+
+  setListingActive(listingId: number, active: boolean): Observable<ListingSummary> {
+    return this.http.patch<ApiResponse<ListingSummary>>(
+      `${this.base}/listings/${listingId}/active`, { active }, { withCredentials: true }
+    ).pipe(map(r => r.data));
+  }
 }
