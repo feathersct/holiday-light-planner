@@ -153,41 +153,7 @@ public class HostService {
     public HostListingsResponse getHostListings(Long authUserId, Long hostId) {
         Host host = findOwned(authUserId, hostId);
         List<Listing> listings = listingRepository.findByHostIdOrderByStartDatetimeDesc(hostId);
-
-        List<Long> ids = listings.stream().map(Listing::getId).collect(Collectors.toList());
-        Map<Long, String> primaryUrls = ids.isEmpty() ? Map.of() :
-            displayPhotoRepository.findPrimaryByDisplayIdIn(ids).stream()
-                .collect(Collectors.toMap(p -> p.getDisplay().getId(), DisplayPhoto::getUrl));
-
-        List<ListingSummaryResponse> summaries = listings.stream()
-            .map(l -> ListingSummaryResponse.builder()
-                .id(l.getId())
-                .title(l.getTitle())
-                .city(l.getCity())
-                .state(l.getState())
-                .lat(l.getLocation().getY())
-                .lng(l.getLocation().getX())
-                .upvoteCount(l.getUpvoteCount())
-                .photoCount(l.getPhotoCount())
-                .category(l.getCategory())
-                .displayType(l.getDisplayType() != null ? l.getDisplayType().name() : null)
-                .primaryPhotoUrl(primaryUrls.get(l.getId()))
-                .tags(l.getTags().stream().map(TagResponse::from).collect(Collectors.toList()))
-                .isActive(l.isActive())
-                .startDatetime(l.getStartDatetime())
-                .endDatetime(l.getEndDatetime())
-                .priceInfo(l.getPriceInfo())
-                .cuisineType(l.getCuisineType())
-                .organizer(l.getOrganizer())
-                .websiteUrl(l.getWebsiteUrl())
-                .resolvedHostName(host.getDisplayName())
-                .build())
-            .collect(Collectors.toList());
-
-        return HostListingsResponse.builder()
-            .user(HostUserResponse.from(host))
-            .listings(summaries)
-            .build();
+        return buildHostListingsResponse(host, listings);
     }
 
     public HostListingsResponse getHostListingsByHandle(String handle) {
@@ -204,7 +170,10 @@ public class HostService {
 
     private HostListingsResponse getHostListingsForHostEntity(Host host) {
         List<Listing> listings = listingRepository.findActiveByHostId(host.getId(), LocalDateTime.now());
+        return buildHostListingsResponse(host, listings);
+    }
 
+    private HostListingsResponse buildHostListingsResponse(Host host, List<Listing> listings) {
         List<Long> ids = listings.stream().map(Listing::getId).collect(Collectors.toList());
         Map<Long, String> primaryUrls = ids.isEmpty() ? Map.of() :
             displayPhotoRepository.findPrimaryByDisplayIdIn(ids).stream()
