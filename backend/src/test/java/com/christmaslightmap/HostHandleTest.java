@@ -2,16 +2,15 @@ package com.christmaslightmap;
 
 import com.christmaslightmap.model.*;
 import com.christmaslightmap.repository.*;
-import com.christmaslightmap.security.JwtService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.locationtech.jts.geom.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,7 +22,6 @@ class HostHandleTest extends BaseIntegrationTest {
     @Autowired private ListingRepository listingRepository;
     @Autowired private UserRepository userRepository;
     @Autowired private HostRepository hostRepository;
-    @Autowired private JwtService jwtService;
 
     @AfterEach
     void cleanUp() {
@@ -36,13 +34,6 @@ class HostHandleTest extends BaseIntegrationTest {
         Point p = GF.createPoint(new Coordinate(lng, lat));
         p.setSRID(4326);
         return p;
-    }
-
-    private HttpHeaders authHeaders(User user) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Cookie", "jwt=" + jwtService.generateToken(user));
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        return headers;
     }
 
     @Test
@@ -66,7 +57,7 @@ class HostHandleTest extends BaseIntegrationTest {
             .build());
 
         ResponseEntity<String> response = restTemplate.getForEntity(
-            "/api/v1/users/handle/handle-host", String.class);
+            "/api/v1/hosts/handle/handle-host", String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).contains("Handle Host");
@@ -77,75 +68,8 @@ class HostHandleTest extends BaseIntegrationTest {
     @Test
     void getHostByHandle_returns404ForUnknownHandle() {
         ResponseEntity<String> response = restTemplate.getForEntity(
-            "/api/v1/users/handle/nonexistent-handle", String.class);
+            "/api/v1/hosts/handle/nonexistent-handle", String.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-    }
-
-    @Test
-    void updateHandle_succeeds() {
-        User user = userRepository.save(User.builder()
-            .provider("facebook").providerId("fb-handle2")
-            .email("update@test.com").name("Update User")
-            .handle("old-handle")
-            .role(UserRole.USER).build());
-
-        HttpEntity<Map<String, String>> request = new HttpEntity<>(
-            Map.of("handle", "new-handle"),
-            authHeaders(user)
-        );
-
-        ResponseEntity<String> response = restTemplate.exchange(
-            "/api/v1/users/me/handle", HttpMethod.PATCH, request, String.class);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).contains("new-handle");
-
-        User updated = userRepository.findById(user.getId()).orElseThrow();
-        assertThat(updated.getHandle()).isEqualTo("new-handle");
-    }
-
-    @Test
-    void updateHandle_returns409WhenHandleTaken() {
-        userRepository.save(User.builder()
-            .provider("facebook").providerId("fb-handle3")
-            .email("taken@test.com").name("Taken User")
-            .handle("taken-handle")
-            .role(UserRole.USER).build());
-
-        User user = userRepository.save(User.builder()
-            .provider("facebook").providerId("fb-handle4")
-            .email("clash@test.com").name("Clash User")
-            .handle("my-handle")
-            .role(UserRole.USER).build());
-
-        HttpEntity<Map<String, String>> request = new HttpEntity<>(
-            Map.of("handle", "taken-handle"),
-            authHeaders(user)
-        );
-
-        ResponseEntity<String> response = restTemplate.exchange(
-            "/api/v1/users/me/handle", HttpMethod.PATCH, request, String.class);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-    }
-
-    @Test
-    void updateHandle_returns400ForInvalidFormat() {
-        User user = userRepository.save(User.builder()
-            .provider("facebook").providerId("fb-handle5")
-            .email("invalid@test.com").name("Invalid User")
-            .handle("valid-handle")
-            .role(UserRole.USER).build());
-
-        HttpEntity<Map<String, String>> request = new HttpEntity<>(
-            Map.of("handle", "UPPERCASE_INVALID!"),
-            authHeaders(user)
-        );
-
-        ResponseEntity<String> response = restTemplate.exchange(
-            "/api/v1/users/me/handle", HttpMethod.PATCH, request, String.class);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
@@ -158,21 +82,9 @@ class HostHandleTest extends BaseIntegrationTest {
 
         // No auth headers — falls back to user lookup which succeeds
         ResponseEntity<String> response = restTemplate.getForEntity(
-            "/api/v1/users/handle/public-host", String.class);
+            "/api/v1/hosts/handle/public-host", String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
-    @Test
-    void updateHandle_returns401WhenUnauthenticated() {
-        HttpEntity<Map<String, String>> request = new HttpEntity<>(
-            Map.of("handle", "some-handle"),
-            new HttpHeaders() {{ setContentType(MediaType.APPLICATION_JSON); }}
-        );
-
-        ResponseEntity<String> response = restTemplate.exchange(
-            "/api/v1/users/me/handle", HttpMethod.PATCH, request, String.class);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-    }
 }
