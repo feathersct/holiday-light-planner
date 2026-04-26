@@ -1,15 +1,8 @@
 package com.christmaslightmap.service;
 
 import com.christmaslightmap.dto.request.UpdateDisplayNameRequest;
-import com.christmaslightmap.dto.request.UpdateHandleRequest;
-import com.christmaslightmap.dto.response.*;
-import com.christmaslightmap.model.DisplayPhoto;
-import com.christmaslightmap.model.Host;
-import com.christmaslightmap.model.Listing;
+import com.christmaslightmap.dto.response.HostUserResponse;
 import com.christmaslightmap.model.User;
-import com.christmaslightmap.repository.DisplayPhotoRepository;
-import com.christmaslightmap.repository.HostRepository;
-import com.christmaslightmap.repository.ListingRepository;
 import com.christmaslightmap.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,105 +10,24 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class UserService {
 
     private final UserRepository userRepository;
-    private final ListingRepository listingRepository;
-    private final DisplayPhotoRepository displayPhotoRepository;
-    private final HostRepository hostRepository;
-
-    public HostListingsResponse getHostListings(Long userId) {
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-        return HostListingsResponse.builder()
-            .user(HostUserResponse.from(user))
-            .listings(List.of())
-            .build();
-    }
-
-    public List<HostUserResponse> searchHosts(String q) {
-        return userRepository.searchHosts(q.trim(), LocalDateTime.now()).stream()
-            .limit(10)
-            .map(HostUserResponse::from)
-            .collect(Collectors.toList());
-    }
 
     @Transactional
     public HostUserResponse updateDisplayName(Long userId, UpdateDisplayNameRequest request) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         String name = request.getDisplayName();
-        user.setDisplayName((name == null || name.isBlank()) ? null : name.trim().substring(0, Math.min(name.trim().length(), 100)));
-        return HostUserResponse.from(userRepository.save(user));
-    }
-
-    public HostListingsResponse getHostListingsByHandle(String handle) {
-        return hostRepository.findByHandle(handle)
-            .map(this::getHostListingsForHostEntity)
-            .orElseGet(() -> {
-                User user = userRepository.findByHandle(handle)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Host not found"));
-                return getHostListings(user.getId());
-            });
-    }
-
-    private HostListingsResponse getHostListingsForHostEntity(Host host) {
-        List<Listing> listings = listingRepository.findActiveByHostId(host.getId(), LocalDateTime.now());
-
-        List<Long> ids = listings.stream().map(Listing::getId).collect(Collectors.toList());
-        Map<Long, String> primaryUrls = ids.isEmpty() ? Map.of() :
-            displayPhotoRepository.findPrimaryByDisplayIdIn(ids).stream()
-                .collect(Collectors.toMap(p -> p.getDisplay().getId(), DisplayPhoto::getUrl));
-
-        List<ListingSummaryResponse> summaries = listings.stream()
-            .map(l -> ListingSummaryResponse.builder()
-                .id(l.getId())
-                .title(l.getTitle())
-                .city(l.getCity())
-                .state(l.getState())
-                .lat(l.getLocation().getY())
-                .lng(l.getLocation().getX())
-                .upvoteCount(l.getUpvoteCount())
-                .photoCount(l.getPhotoCount())
-                .category(l.getCategory())
-                .displayType(l.getDisplayType() != null ? l.getDisplayType().name() : null)
-                .primaryPhotoUrl(primaryUrls.get(l.getId()))
-                .tags(l.getTags().stream().map(TagResponse::from).collect(Collectors.toList()))
-                .isActive(l.isActive())
-                .startDatetime(l.getStartDatetime())
-                .endDatetime(l.getEndDatetime())
-                .priceInfo(l.getPriceInfo())
-                .cuisineType(l.getCuisineType())
-                .organizer(l.getOrganizer())
-                .websiteUrl(l.getWebsiteUrl())
-                .resolvedHostName(host.getDisplayName())
-                .build())
-            .collect(Collectors.toList());
-
-        HostUserResponse hostUser = HostUserResponse.from(host);
-
-        return HostListingsResponse.builder()
-            .user(hostUser)
-            .listings(summaries)
-            .build();
-    }
-
-    @Transactional
-    public HostUserResponse updateHandle(Long userId, UpdateHandleRequest request) {
-        if (userRepository.existsByHandleAndIdNot(request.getHandle(), userId)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Handle already taken");
+        if (name == null || name.isBlank()) {
+            user.setDisplayName(null);
+        } else {
+            String trimmed = name.trim();
+            user.setDisplayName(trimmed.substring(0, Math.min(trimmed.length(), 100)));
         }
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-        user.setHandle(request.getHandle());
         return HostUserResponse.from(userRepository.save(user));
     }
 
