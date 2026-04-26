@@ -169,7 +169,7 @@ public class HostService {
     }
 
     private HostListingsResponse getHostListingsForHostEntity(Host host) {
-        List<Listing> listings = listingRepository.findActiveByHostId(host.getId(), LocalDateTime.now());
+        List<Listing> listings = listingRepository.findActiveByHostId(host.getId(), LocalDateTime.now().toLocalDate().atStartOfDay());
         return buildHostListingsResponse(host, listings);
     }
 

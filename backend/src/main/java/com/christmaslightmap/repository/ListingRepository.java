@@ -27,7 +27,7 @@ public interface ListingRepository extends JpaRepository<Listing, Long> {
           AND d.host_id IS NOT NULL
           AND ST_DWithin(d.location, ST_MakePoint(:lng, :lat)::geography, :radiusMetres)
           AND (:category IS NULL OR d.category = :category)
-          AND (:includeExpired OR d.end_datetime >= NOW())
+          AND (:includeExpired OR d.end_datetime >= CURRENT_DATE)
         ORDER BY d.upvote_count DESC
         LIMIT :lim OFFSET :off
         """, nativeQuery = true)
@@ -47,7 +47,7 @@ public interface ListingRepository extends JpaRepository<Listing, Long> {
           AND d.host_id IS NOT NULL
           AND ST_DWithin(d.location, ST_MakePoint(:lng, :lat)::geography, :radiusMetres)
           AND (:category IS NULL OR d.category = :category)
-          AND (:includeExpired OR d.end_datetime >= NOW())
+          AND (:includeExpired OR d.end_datetime >= CURRENT_DATE)
         """, nativeQuery = true)
     long countSearchListings(
         @Param("lat") double lat,
@@ -72,7 +72,7 @@ public interface ListingRepository extends JpaRepository<Listing, Long> {
           AND d.host_id IS NOT NULL
           AND ST_DWithin(d.location, ST_MakePoint(:lng, :lat)::geography, :radiusMetres)
           AND (:category IS NULL OR d.category = :category)
-          AND (:includeExpired OR d.end_datetime >= NOW())
+          AND (:includeExpired OR d.end_datetime >= CURRENT_DATE)
           AND EXISTS (SELECT 1 FROM display_tags dt WHERE dt.display_id = d.id AND dt.tag_id IN (:tagIds))
         ORDER BY d.upvote_count DESC
         LIMIT :lim OFFSET :off
@@ -94,7 +94,7 @@ public interface ListingRepository extends JpaRepository<Listing, Long> {
           AND d.host_id IS NOT NULL
           AND ST_DWithin(d.location, ST_MakePoint(:lng, :lat)::geography, :radiusMetres)
           AND (:category IS NULL OR d.category = :category)
-          AND (:includeExpired OR d.end_datetime >= NOW())
+          AND (:includeExpired OR d.end_datetime >= CURRENT_DATE)
           AND EXISTS (SELECT 1 FROM display_tags dt WHERE dt.display_id = d.id AND dt.tag_id IN (:tagIds))
         """, nativeQuery = true)
     long countSearchListingsWithTags(
@@ -109,8 +109,8 @@ public interface ListingRepository extends JpaRepository<Listing, Long> {
     @Query("SELECT d FROM Listing d LEFT JOIN FETCH d.tags WHERE d.id IN :ids")
     List<Listing> findByIdInWithTags(@Param("ids") List<Long> ids);
 
-    @Query("SELECT l FROM Listing l LEFT JOIN FETCH l.tags WHERE l.host.id = :hostId AND l.isActive = true AND l.endDatetime >= :now ORDER BY l.startDatetime ASC")
-    List<Listing> findActiveByHostId(@Param("hostId") Long hostId, @Param("now") LocalDateTime now);
+    @Query("SELECT l FROM Listing l LEFT JOIN FETCH l.tags WHERE l.host.id = :hostId AND l.isActive = true AND l.endDatetime >= :startOfToday ORDER BY l.startDatetime ASC")
+    List<Listing> findActiveByHostId(@Param("hostId") Long hostId, @Param("startOfToday") LocalDateTime startOfToday);
 
     @Query("SELECT l FROM Listing l LEFT JOIN FETCH l.tags WHERE l.host.id = :hostId ORDER BY l.startDatetime DESC")
     List<Listing> findByHostIdOrderByStartDatetimeDesc(@Param("hostId") Long hostId);
