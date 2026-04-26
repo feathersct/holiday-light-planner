@@ -74,7 +74,7 @@ class HostProfileTest extends BaseIntegrationTest {
             .build());
 
         ResponseEntity<String> response = restTemplate.getForEntity(
-            "/api/v1/users/handle/test-host-profile", String.class);
+            "/api/v1/hosts/handle/test-host-profile", String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).contains("Upcoming Event");
@@ -86,7 +86,7 @@ class HostProfileTest extends BaseIntegrationTest {
     @Test
     void getHostListings_returns404ForUnknownUser() {
         ResponseEntity<String> response = restTemplate.getForEntity(
-            "/api/v1/users/99999/listings", String.class);
+            "/api/v1/hosts/99999/listings", String.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
