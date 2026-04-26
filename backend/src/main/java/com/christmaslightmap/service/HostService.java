@@ -23,6 +23,15 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
 import java.util.List;
+import com.christmaslightmap.dto.response.HostListingsResponse;
+import com.christmaslightmap.dto.response.HostUserResponse;
+import com.christmaslightmap.dto.response.ListingSummaryResponse;
+import com.christmaslightmap.dto.response.TagResponse;
+import com.christmaslightmap.model.DisplayPhoto;
+import com.christmaslightmap.model.Listing;
+import com.christmaslightmap.repository.DisplayPhotoRepository;
+import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,6 +42,7 @@ public class HostService {
     private final HostRepository hostRepository;
     private final UserRepository userRepository;
     private final ListingRepository listingRepository;
+    private final DisplayPhotoRepository displayPhotoRepository;
     private final S3Client s3Client;
 
     @Value("${app.r2.bucket}")
@@ -138,6 +148,64 @@ public class HostService {
 
         host.setAvatarUrl(publicUrl + "/" + key);
         return toResponse(hostRepository.save(host));
+    }
+
+    public HostListingsResponse getHostListings(Long userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        return HostListingsResponse.builder()
+            .user(HostUserResponse.from(user))
+            .listings(List.of())
+            .build();
+    }
+
+    public HostListingsResponse getHostListingsByHandle(String handle) {
+        return hostRepository.findByHandle(handle)
+            .map(this::getHostListingsForHostEntity)
+            .orElseGet(() -> {
+                User user = userRepository.findByHandle(handle)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Host not found"));
+                return getHostListings(user.getId());
+            });
+    }
+
+    private HostListingsResponse getHostListingsForHostEntity(Host host) {
+        List<Listing> listings = listingRepository.findActiveByHostId(host.getId(), LocalDateTime.now());
+
+        List<Long> ids = listings.stream().map(Listing::getId).collect(Collectors.toList());
+        Map<Long, String> primaryUrls = ids.isEmpty() ? Map.of() :
+            displayPhotoRepository.findPrimaryByDisplayIdIn(ids).stream()
+                .collect(Collectors.toMap(p -> p.getDisplay().getId(), DisplayPhoto::getUrl));
+
+        List<ListingSummaryResponse> summaries = listings.stream()
+            .map(l -> ListingSummaryResponse.builder()
+                .id(l.getId())
+                .title(l.getTitle())
+                .city(l.getCity())
+                .state(l.getState())
+                .lat(l.getLocation().getY())
+                .lng(l.getLocation().getX())
+                .upvoteCount(l.getUpvoteCount())
+                .photoCount(l.getPhotoCount())
+                .category(l.getCategory())
+                .displayType(l.getDisplayType() != null ? l.getDisplayType().name() : null)
+                .primaryPhotoUrl(primaryUrls.get(l.getId()))
+                .tags(l.getTags().stream().map(TagResponse::from).collect(Collectors.toList()))
+                .isActive(l.isActive())
+                .startDatetime(l.getStartDatetime())
+                .endDatetime(l.getEndDatetime())
+                .priceInfo(l.getPriceInfo())
+                .cuisineType(l.getCuisineType())
+                .organizer(l.getOrganizer())
+                .websiteUrl(l.getWebsiteUrl())
+                .resolvedHostName(host.getDisplayName())
+                .build())
+            .collect(Collectors.toList());
+
+        return HostListingsResponse.builder()
+            .user(HostUserResponse.from(host))
+            .listings(summaries)
+            .build();
     }
 
     private Host findOwned(Long userId, Long hostId) {
