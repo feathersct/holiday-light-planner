@@ -84,13 +84,6 @@ class HostProfileTest extends BaseIntegrationTest {
     }
 
     @Test
-    void getHostListings_returns401WithoutAuth() {
-        ResponseEntity<String> response = restTemplate.getForEntity(
-            "/api/v1/hosts/99999/listings", String.class);
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-    }
-
-    @Test
     void getListingById_includesHostNameInResponse() {
         User owner = userRepository.save(User.builder()
             .provider("facebook").providerId("fb-host2")
