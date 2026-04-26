@@ -301,7 +301,7 @@ export class AppComponent implements OnInit {
 
   navigateToManageHost(host: HostEntity) {
     this.selectedManagedHost.set(host);
-    this.screen.set('manage-host');
+    this.navigate('manage-host');
     this.location.replaceState('/profile');
   }
 
