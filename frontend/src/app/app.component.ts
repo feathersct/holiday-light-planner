@@ -1,7 +1,7 @@
 import { Component, OnInit, signal, computed, effect, HostListener, inject } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ListingSummary, HostUser, InitialFilters, FilterState, Category, CATEGORY_LABELS } from './models/listing.model';
+import { ListingSummary, HostUser, InitialFilters, FilterState, Category, CATEGORY_LABELS, HostEntity } from './models/listing.model';
 import { NavbarComponent } from './shared/navbar/navbar.component';
 import { BottomTabBarComponent } from './shared/bottom-tab-bar/bottom-tab-bar.component';
 import { SignInModalComponent } from './shared/sign-in-modal/sign-in-modal.component';
@@ -12,11 +12,12 @@ import { ProfileComponent } from './pages/profile/profile.component';
 import { AdminComponent } from './pages/admin/admin.component';
 import { HostProfileComponent } from './pages/host-profile/host-profile.component';
 import { HostSearchComponent } from './pages/host-search/host-search.component';
+import { ManageHostComponent } from './pages/manage-host/manage-host.component';
 import { AuthService } from './services/auth.service';
 import { UpvoteService } from './services/upvote.service';
 import { HostService } from './services/host.service';
 
-type Screen = 'map' | 'submit' | 'profile' | 'admin' | 'host' | 'hosts';
+type Screen = 'map' | 'submit' | 'profile' | 'admin' | 'host' | 'hosts' | 'manage-host';
 
 const ACCENT_OPTIONS = [
   { id: 'amber',  label: 'Warm Amber',  color: '#f59e0b' },
@@ -38,6 +39,7 @@ const TILE_OPTIONS = [
     NavbarComponent, BottomTabBarComponent,
     SignInModalComponent, DisplayDetailComponent,
     MapComponent, SubmitComponent, ProfileComponent, AdminComponent, HostProfileComponent, HostSearchComponent,
+    ManageHostComponent,
   ],
   template: `
     <!-- Navbar -->
@@ -63,6 +65,7 @@ const TILE_OPTIONS = [
         [user]="authService.currentUser()"
         [editListing]="editingListing()"
         [adminEdit]="editSource() === 'admin'"
+        [preselectedHostId]="preselectedHostId()"
         style="display:block;height:100%"
         (goHome)="onSubmitDone()"
         (cancel)="onSubmitCancel()"/>
@@ -85,6 +88,13 @@ const TILE_OPTIONS = [
       <app-host-search *ngIf="screen() === 'hosts'"
         style="display:block;height:100%"
         (viewHost)="openHostProfile($event)"/>
+
+      <app-manage-host *ngIf="screen() === 'manage-host' && selectedManagedHost()"
+        [host]="selectedManagedHost()!"
+        style="display:block;height:100%;overflow-y:auto"
+        (back)="navigate('profile')"
+        (addListing)="onManageHostAddListing($event)"
+        (editListing)="onManageHostEditListing($event)"/>
     </div>
 
     <!-- Mobile bottom tab bar -->
@@ -161,7 +171,9 @@ export class AppComponent implements OnInit {
   selectedDisplay = signal<ListingSummary | null>(null);
   viewingHost = signal<HostUser | null>(null);
   editingListing = signal<ListingSummary | null>(null);
-  editSource = signal<'admin' | null>(null);
+  editSource = signal<'admin' | 'manage-host' | null>(null);
+  selectedManagedHost = signal<HostEntity | null>(null);
+  preselectedHostId = signal<number | null>(null);
   initialFilters: InitialFilters | null = null;
   isMobile = window.innerWidth < 768;
 
@@ -231,6 +243,7 @@ export class AppComponent implements OnInit {
     }
     if (screen !== 'host') this.viewingHost.set(null);
     if (screen !== 'submit') this.editingListing.set(null);
+    if (screen !== 'manage-host') this.selectedManagedHost.set(null);
     this.screen.set(screen as Screen);
     this.showSettings.set(false);
     this.location.replaceState(screen === 'map' ? '/' : '/' + screen);
@@ -264,19 +277,45 @@ export class AppComponent implements OnInit {
     const source = this.editSource();
     this.editingListing.set(null);
     this.editSource.set(null);
-    this.screen.set(source === 'admin' ? 'admin' : 'map');
+    this.preselectedHostId.set(null);
+    if (source === 'admin') this.screen.set('admin');
+    else if (source === 'manage-host') this.screen.set('manage-host');
+    else this.screen.set('map');
   }
 
   onSubmitCancel() {
     const source = this.editSource();
     this.editingListing.set(null);
     this.editSource.set(null);
-    this.screen.set(source === 'admin' ? 'admin' : 'map');
+    this.preselectedHostId.set(null);
+    if (source === 'admin') this.screen.set('admin');
+    else if (source === 'manage-host') this.screen.set('manage-host');
+    else this.screen.set('map');
   }
 
   onAdminEditListing(listing: ListingSummary) {
     this.editSource.set('admin');
     this.editingListing.set(listing);
+    this.screen.set('submit');
+  }
+
+  navigateToManageHost(host: HostEntity) {
+    this.selectedManagedHost.set(host);
+    this.screen.set('manage-host');
+    this.location.replaceState('/profile');
+  }
+
+  onManageHostAddListing(host: HostEntity) {
+    this.editSource.set('manage-host');
+    this.editingListing.set(null);
+    this.preselectedHostId.set(host.id);
+    this.screen.set('submit');
+  }
+
+  onManageHostEditListing(listing: ListingSummary) {
+    this.editSource.set('manage-host');
+    this.editingListing.set(listing);
+    this.preselectedHostId.set(null);
     this.screen.set('submit');
   }
 
