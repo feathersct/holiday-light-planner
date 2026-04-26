@@ -5,6 +5,7 @@ import com.christmaslightmap.dto.response.ListingSummaryResponse;
 import com.christmaslightmap.dto.response.PagedResponse;
 import com.christmaslightmap.dto.response.TagResponse;
 import com.christmaslightmap.dto.request.CreateListingRequest;
+import com.christmaslightmap.dto.request.SetListingActiveRequest;
 import com.christmaslightmap.dto.request.UpdateListingRequest;
 import com.christmaslightmap.model.Category;
 import com.christmaslightmap.model.DisplayPhoto;
@@ -182,12 +183,46 @@ public class ListingService {
         if (listing.getHost() == null) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not your listing");
         }
-        boolean isOwner = listing.getHost().getOwner().getId().equals(userId);
-        if (!isOwner) {
+        if (!listing.getHost().getOwner().getId().equals(userId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not your listing");
         }
-        listing.setActive(false);
-        listingRepository.save(listing);
+        listingRepository.delete(listing);
+    }
+
+    @Transactional
+    public ListingSummaryResponse setListingActive(Long userId, Long listingId, SetListingActiveRequest request) {
+        Listing listing = listingRepository.findById(listingId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Listing not found"));
+        if (listing.getHost() == null || !listing.getHost().getOwner().getId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not your listing");
+        }
+        listing.setActive(request.isActive());
+        listing = listingRepository.save(listing);
+
+        String primaryUrl = displayPhotoRepository.findPrimaryByDisplayIdIn(List.of(listingId))
+            .stream().findFirst().map(DisplayPhoto::getUrl).orElse(null);
+
+        return ListingSummaryResponse.builder()
+            .id(listing.getId())
+            .title(listing.getTitle())
+            .city(listing.getCity())
+            .state(listing.getState())
+            .lat(listing.getLocation().getY())
+            .lng(listing.getLocation().getX())
+            .upvoteCount(listing.getUpvoteCount())
+            .photoCount(listing.getPhotoCount())
+            .category(listing.getCategory())
+            .displayType(listing.getDisplayType() != null ? listing.getDisplayType().name() : null)
+            .primaryPhotoUrl(primaryUrl)
+            .tags(listing.getTags().stream().map(TagResponse::from).collect(Collectors.toList()))
+            .isActive(listing.isActive())
+            .startDatetime(listing.getStartDatetime())
+            .endDatetime(listing.getEndDatetime())
+            .priceInfo(listing.getPriceInfo())
+            .cuisineType(listing.getCuisineType())
+            .organizer(listing.getOrganizer())
+            .websiteUrl(listing.getWebsiteUrl())
+            .build();
     }
 
     @Transactional

@@ -2,6 +2,7 @@ package com.christmaslightmap.controller;
 
 import com.christmaslightmap.dto.request.CreateListingRequest;
 import com.christmaslightmap.dto.request.ReportRequest;
+import com.christmaslightmap.dto.request.SetListingActiveRequest;
 import com.christmaslightmap.dto.request.UpdateListingRequest;
 import com.christmaslightmap.dto.response.ApiResponse;
 import com.christmaslightmap.dto.response.ListingResponse;
@@ -135,6 +136,16 @@ public class ListingController {
         Long userId = (Long) authentication.getPrincipal();
         listingService.deleteListing(userId, id);
         return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    @PatchMapping("/{id}/active")
+    public ResponseEntity<ApiResponse<ListingSummaryResponse>> setActive(
+        @PathVariable Long id,
+        @RequestBody SetListingActiveRequest request,
+        Authentication authentication
+    ) {
+        Long userId = (Long) authentication.getPrincipal();
+        return ResponseEntity.ok(ApiResponse.success(listingService.setListingActive(userId, id, request)));
     }
 
     @GetMapping("/upvoted")
