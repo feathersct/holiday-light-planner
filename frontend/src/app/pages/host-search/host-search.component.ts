@@ -2,7 +2,7 @@ import { Component, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HostSearchResult, HostUser, getInitials } from '../../models/listing.model';
-import { ListingApiService } from '../../services/listing-api.service';
+import { HostService } from '../../services/host.service';
 import { AvatarComponent } from '../../shared/avatar/avatar.component';
 
 @Component({
@@ -88,7 +88,7 @@ export class HostSearchComponent {
 
   getInitials = getInitials;
 
-  private listingApi = inject(ListingApiService);
+  private hostService = inject(HostService);
   private debounceTimer: any = null;
 
   onQueryChange(q: string) {
@@ -101,8 +101,8 @@ export class HostSearchComponent {
     this.searching = true;
     this.showDropdown = true;
     this.debounceTimer = setTimeout(() => {
-      this.listingApi.searchHosts(q).subscribe({
-        next: results => {
+      this.hostService.searchHosts(q).subscribe({
+        next: (results: any) => {
           this.results = results;
           this.searching = false;
         },

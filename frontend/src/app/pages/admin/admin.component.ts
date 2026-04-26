@@ -2,7 +2,7 @@ import { Component, signal, computed, OnInit, Output, EventEmitter, inject } fro
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Report, ListingSummary, CATEGORY_LABELS } from '../../models/listing.model';
-import { ListingApiService } from '../../services/listing-api.service';
+import { AdminService } from '../../services/admin.service';
 
 type StatusFilter = 'OPEN' | 'RESOLVED' | 'ALL';
 type AdminTab = 'reports' | 'listings';
@@ -232,7 +232,7 @@ export class AdminComponent implements OnInit {
     { id: 'ALL', label: 'All' },
   ];
 
-  private listingApi = inject(ListingApiService);
+  private adminService = inject(AdminService);
 
   ngOnInit() {
     this.loadReports();
@@ -252,7 +252,7 @@ export class AdminComponent implements OnInit {
 
   private loadReports() {
     this.loadingReports.set(true);
-    this.listingApi.getReports(this.statusFilter()).subscribe({
+    this.adminService.getReports(this.statusFilter()).subscribe({
       next: page => { this.reports.set(page.content); this.loadingReports.set(false); },
       error: () => this.loadingReports.set(false),
     });
@@ -261,7 +261,7 @@ export class AdminComponent implements OnInit {
   private loadListings() {
     this.loadingDisplays.set(true);
     this.listingsError.set(null);
-    this.listingApi.adminGetListings().subscribe({
+    this.adminService.adminGetListings().subscribe({
       next: page => { this.allListings.set(page.content); this.loadingDisplays.set(false); },
       error: (err) => {
         this.listingsError.set(`Failed to load listings (${err?.status ?? 'network error'})`);
@@ -289,19 +289,19 @@ export class AdminComponent implements OnInit {
   }
 
   resolve(r: Report) {
-    this.listingApi.updateReport(r.id, 'RESOLVED').subscribe({
+    this.adminService.updateReport(r.id, 'RESOLVED').subscribe({
       next: updated => this.reports.update(list => list.map(x => x.id === r.id ? updated : x)),
     });
   }
 
   dismiss(r: Report) {
-    this.listingApi.updateReport(r.id, 'DISMISSED').subscribe({
+    this.adminService.updateReport(r.id, 'DISMISSED').subscribe({
       next: updated => this.reports.update(list => list.map(x => x.id === r.id ? updated : x)),
     });
   }
 
   toggleActive(d: ListingSummary) {
-    this.listingApi.adminSetListingActive(d.id, !d.isActive).subscribe({
+    this.adminService.adminSetListingActive(d.id, !d.isActive).subscribe({
       next: updated => this.allListings.update(list => list.map(x => x.id === d.id ? { ...x, isActive: updated.isActive } : x)),
     });
   }
@@ -311,7 +311,7 @@ export class AdminComponent implements OnInit {
   }
 
   doDisplayDelete(id: number) {
-    this.listingApi.adminDeleteListing(id).subscribe({
+    this.adminService.adminDeleteListing(id).subscribe({
       next: () => {
         this.allListings.update(list => list.filter(d => d.id !== id));
         this.deletingDisplayId.set(null);

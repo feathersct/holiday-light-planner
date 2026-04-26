@@ -6,6 +6,8 @@ import { DisplayCardComponent } from '../../shared/display-card/display-card.com
 import { AvatarComponent } from '../../shared/avatar/avatar.component';
 import { UpvoteService } from '../../services/upvote.service';
 import { ListingApiService } from '../../services/listing-api.service';
+import { UserService } from '../../services/user.service';
+import { HostService } from '../../services/host.service';
 
 @Component({
   selector: 'app-profile',
@@ -55,35 +57,6 @@ import { ListingApiService } from '../../services/listing-api.service';
                            border-radius:9px;font-size:13px;font-weight:700;cursor:pointer">
               {{savingDisplayName() ? 'Saving…' : displayNameSaved() ? 'Saved!' : 'Save'}}
             </button>
-          </div>
-        </div>
-
-        <!-- Handle / profile URL -->
-        <div style="background:white;border-radius:16px;padding:20px;margin-bottom:16px;
-                    box-shadow:0 1px 6px rgba(0,0,0,0.06)">
-          <div style="font-weight:700;font-size:14px;color:#0f172a;margin-bottom:4px">
-            Profile URL handle
-          </div>
-          <div style="font-size:12.5px;color:#64748b;margin-bottom:12px">
-            Share <strong style="color:#0f172a">eventmapster.com/host/{{handle() || 'yourhandle'}}</strong> to link people directly to your events.
-          </div>
-          <div style="display:flex;gap:8px">
-            <input [ngModel]="handle()"
-                   (ngModelChange)="handle.set($event)"
-                   placeholder="e.g. smithfamilylights"
-                   style="flex:1;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:9px;
-                          font-size:13.5px;color:#0f172a;outline:none;background:white"/>
-            <button (click)="saveHandle()"
-                    [disabled]="savingHandle() || handleLoading()"
-                    [style.opacity]="savingHandle() || handleLoading() ? '0.6' : '1'"
-                    style="padding:9px 16px;background:var(--accent);color:white;border:none;
-                           border-radius:9px;font-size:13px;font-weight:700;cursor:pointer">
-              {{savingHandle() ? 'Saving…' : handleSaved() ? 'Saved!' : 'Save'}}
-            </button>
-          </div>
-          <div *ngIf="handleError()"
-               style="font-size:12px;color:#ef4444;margin-top:6px">
-            {{handleError()}}
           </div>
         </div>
 
@@ -306,10 +279,9 @@ export class ProfileComponent implements OnInit {
   getInitials = getInitials;
 
   private listingApi = inject(ListingApiService);
-
-  constructor(
-    public upvoteService: UpvoteService,
-  ) {}
+  private userService = inject(UserService);
+  private hostService = inject(HostService);
+  upvoteService = inject(UpvoteService);
 
   ngOnInit() {
     this.listingApi.getUpvotedListings().subscribe({
@@ -320,14 +292,7 @@ export class ProfileComponent implements OnInit {
       this.displayName.set(this.user.displayName);
     }
     if (this.user) {
-      this.listingApi.getHostListings(this.user.id).subscribe({
-        next: resp => {
-          this.handle.set(resp.user.handle ?? '');
-          this.handleLoading.set(false);
-        },
-        error: () => this.handleLoading.set(false),
-      });
-      this.listingApi.getMyHosts().subscribe({
+      this.userService.getMyHosts().subscribe({
         next: h => { this.hosts.set(h); this.hostsLoading.set(false); },
         error: () => this.hostsLoading.set(false),
       });
@@ -339,11 +304,6 @@ export class ProfileComponent implements OnInit {
   displayName = signal('');
   savingDisplayName = signal(false);
   displayNameSaved = signal(false);
-  handle = signal('');
-  savingHandle = signal(false);
-  handleSaved = signal(false);
-  handleError = signal('');
-  handleLoading = signal(true);
 
   hosts = signal<HostEntity[]>([]);
   hostsLoading = signal(true);
@@ -367,43 +327,13 @@ export class ProfileComponent implements OnInit {
   saveDisplayName() {
     this.savingDisplayName.set(true);
     this.displayNameSaved.set(false);
-    this.listingApi.updateDisplayName(this.displayName()).subscribe({
+    this.userService.updateDisplayName(this.displayName()).subscribe({
       next: () => {
         this.savingDisplayName.set(false);
         this.displayNameSaved.set(true);
         setTimeout(() => this.displayNameSaved.set(false), 2500);
       },
       error: () => this.savingDisplayName.set(false),
-    });
-  }
-
-  saveHandle() {
-    const h = this.handle().trim().toLowerCase();
-    if (!h || h.length < 3) {
-      this.handleError.set('Handle must be at least 3 characters.');
-      return;
-    }
-    if (h.length > 30) {
-      this.handleError.set('Handle must be 30 characters or fewer.');
-      return;
-    }
-    if (!/^[a-z0-9-]+$/.test(h)) {
-      this.handleError.set('Handle may only contain lowercase letters, numbers, and hyphens.');
-      return;
-    }
-    this.savingHandle.set(true);
-    this.handleError.set('');
-    this.listingApi.updateHandle(h).subscribe({
-      next: () => {
-        this.savingHandle.set(false);
-        this.handleSaved.set(true);
-        this.handle.set(h);
-        setTimeout(() => this.handleSaved.set(false), 2000);
-      },
-      error: (err) => {
-        this.savingHandle.set(false);
-        this.handleError.set(err.status === 409 ? 'That handle is already taken.' : 'Something went wrong.');
-      },
     });
   }
 
@@ -417,7 +347,7 @@ export class ProfileComponent implements OnInit {
 
     this.creatingHost.set(true);
     this.createHostError.set('');
-    this.listingApi.createHost(name, handle).subscribe({
+    this.hostService.createHost(name, handle).subscribe({
       next: h => {
         this.hosts.update(list => [h, ...list]);
         this.newHostName.set('');
@@ -454,7 +384,7 @@ export class ProfileComponent implements OnInit {
 
     this.savingHostId.set(hostId);
     this.editHostError.set('');
-    this.listingApi.updateHost(hostId, name, handle).subscribe({
+    this.hostService.updateHost(hostId, name, handle).subscribe({
       next: updated => {
         this.hosts.update(list => list.map(h => h.id === hostId ? updated : h));
         this.editingHostId.set(null);
@@ -470,7 +400,7 @@ export class ProfileComponent implements OnInit {
   onHostAvatarChange(hostId: number, event: Event) {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
-    this.listingApi.uploadHostAvatar(hostId, file).subscribe({
+    this.hostService.uploadHostAvatar(hostId, file).subscribe({
       next: updated => this.hosts.update(list => list.map(h => h.id === hostId ? updated : h)),
       error: () => this.editHostError.set('Avatar upload failed. Please try again.'),
     });
@@ -492,7 +422,7 @@ export class ProfileComponent implements OnInit {
     if (!handle) { this.transferError.set('Enter the recipient\'s handle.'); return; }
     this.transferring.set(true);
     this.transferError.set('');
-    this.listingApi.transferHost(hostId, handle).subscribe({
+    this.hostService.transferHost(hostId, handle).subscribe({
       next: () => {
         this.hosts.update(list => list.filter(h => h.id !== hostId));
         this.transferringHostId.set(null);
@@ -519,7 +449,7 @@ export class ProfileComponent implements OnInit {
 
   doDeleteHost(hostId: number) {
     this.deletingHost.set(true);
-    this.listingApi.deleteHost(hostId).subscribe({
+    this.hostService.deleteHost(hostId).subscribe({
       next: () => {
         this.hosts.update(list => list.filter(h => h.id !== hostId));
         this.confirmDeleteHostId.set(null);

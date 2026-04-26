@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HostUser, HostListingsResponse, ListingSummary, getInitials } from '../../models/listing.model';
-import { ListingApiService } from '../../services/listing-api.service';
+import { HostService } from '../../services/host.service';
 import { DisplayCardComponent } from '../../shared/display-card/display-card.component';
 import { AvatarComponent } from '../../shared/avatar/avatar.component';
 
@@ -91,7 +91,7 @@ export class HostProfileComponent implements OnInit {
 
   getInitials = getInitials;
 
-  private listingApi = inject(ListingApiService);
+  private hostService = inject(HostService);
 
   ngOnInit() {
     this.load();
@@ -101,8 +101,8 @@ export class HostProfileComponent implements OnInit {
     this.loading.set(true);
     this.loadError.set(false);
     const request$ = this.host.handle
-      ? this.listingApi.getHostListingsByHandle(this.host.handle)
-      : this.listingApi.getHostListings(this.host.id);
+      ? this.hostService.getHostListingsByHandle(this.host.handle)
+      : this.hostService.getHostListings(this.host.id);
     request$.subscribe({
       next: (data: HostListingsResponse) => {
         this.listings.set(data.listings);

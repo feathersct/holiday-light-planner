@@ -14,7 +14,7 @@ import { HostProfileComponent } from './pages/host-profile/host-profile.componen
 import { HostSearchComponent } from './pages/host-search/host-search.component';
 import { AuthService } from './services/auth.service';
 import { UpvoteService } from './services/upvote.service';
-import { ListingApiService } from './services/listing-api.service';
+import { HostService } from './services/host.service';
 
 type Screen = 'map' | 'submit' | 'profile' | 'admin' | 'host' | 'hosts';
 
@@ -174,7 +174,7 @@ export class AppComponent implements OnInit {
     private location: Location,
   ) {}
 
-  private listingApi = inject(ListingApiService);
+  private hostService = inject(HostService);
 
   private parseInitialFilters(): InitialFilters | null {
     const params = new URLSearchParams(window.location.search);
@@ -203,8 +203,8 @@ export class AppComponent implements OnInit {
       const handle = path.split('/')[2]?.split('?')[0];
       if (handle) {
         this.screen.set('host');
-        this.listingApi.getHostListingsByHandle(handle).subscribe({
-          next: resp => {
+        this.hostService.getHostListingsByHandle(handle).subscribe({
+          next: (resp: any) => {
             this.viewingHost.set(resp.user);
           },
           error: () => {

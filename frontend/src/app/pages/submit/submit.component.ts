@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CATEGORY_LABELS, Category, Tag, Photo, Listing, ListingSummary, HostEntity, UpdateListingRequest } from '../../models/listing.model';
 import { ListingApiService } from '../../services/listing-api.service';
+import { UserService } from '../../services/user.service';
+import { AdminService } from '../../services/admin.service';
 import { TagBadgeComponent } from '../../shared/tag-badge/tag-badge.component';
 
 @Component({
@@ -351,6 +353,8 @@ export class SubmitComponent implements OnInit {
   @Output() goHome = new EventEmitter<void>();
 
   private listingApi = inject(ListingApiService);
+  private userService = inject(UserService);
+  private adminService = inject(AdminService);
 
   step = signal<'location' | 'details' | 'photo' | 'done'>('location');
   steps = ['location', 'details', 'photo'];
@@ -421,8 +425,8 @@ export class SubmitComponent implements OnInit {
 
   ngOnInit() {
     if (this.user) {
-      this.listingApi.getMyHosts().subscribe({
-        next: h => {
+      this.userService.getMyHosts().subscribe({
+        next: (h: any) => {
           this.hosts.set(h);
           if (h.length > 0 && this.selectedHostId() === null) {
             this.selectedHostId.set(h[0].id);
@@ -620,13 +624,13 @@ export class SubmitComponent implements OnInit {
     };
 
     const call = this.adminEdit && this.editListing
-      ? this.listingApi.adminUpdateListing(this.editListing.id, payload as UpdateListingRequest)
+      ? this.adminService.adminUpdateListing(this.editListing.id, payload as UpdateListingRequest)
       : this.editListing
         ? this.listingApi.update(this.editListing.id, payload as UpdateListingRequest)
         : this.listingApi.create(payload);
 
     call.subscribe({
-      next: listing => {
+      next: (listing: any) => {
         this.createdListingId.set(listing.id);
         this.submitting = false;
         this.step.set('photo');
