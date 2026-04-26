@@ -39,10 +39,10 @@ import { HostService } from '../../services/host.service';
         <div style="background:white;border-radius:16px;padding:20px;margin-bottom:16px;
                     box-shadow:0 1px 6px rgba(0,0,0,0.06)">
           <div style="font-weight:700;font-size:14px;color:#0f172a;margin-bottom:4px">
-            Business / host name
+            Display name
           </div>
           <div style="font-size:12.5px;color:#64748b;margin-bottom:12px">
-            Shown on your listings instead of your Facebook name.
+            Shown for any community listings. Does not affect listings posted under a host.
           </div>
           <div style="display:flex;gap:8px">
             <input [ngModel]="displayName()"
@@ -118,132 +118,24 @@ import { HostService } from '../../services/host.service';
 
           <!-- Host cards -->
           <div *ngFor="let h of hosts()"
-               style="border:1.5px solid #e2e8f0;border-radius:12px;padding:14px;margin-bottom:10px">
-
-            <!-- View mode -->
-            <div *ngIf="editingHostId() !== h.id && transferringHostId() !== h.id && confirmDeleteHostId() !== h.id">
-              <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
-                <img *ngIf="h.avatarUrl" [src]="h.avatarUrl" [alt]="h.displayName"
-                     style="width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0"/>
-                <app-avatar *ngIf="!h.avatarUrl" [initials]="getInitials(h.displayName)" [size]="44"/>
-                <div style="flex:1;min-width:0">
-                  <div style="font-weight:700;font-size:14px;color:#0f172a">{{h.displayName}}</div>
-                  <div style="font-size:11.5px;color:#64748b;margin-top:1px">
-                    eventmapster.com/host/{{h.handle}} · {{h.listingCount}} listing{{h.listingCount !== 1 ? 's' : ''}}
-                  </div>
-                </div>
-              </div>
-              <div style="display:flex;gap:6px">
-                <button (click)="startEditHost(h)"
-                        style="padding:5px 12px;background:#e0f2fe;border:none;color:#0369a1;
-                               border-radius:7px;font-size:12px;font-weight:600;cursor:pointer">
-                  Edit
-                </button>
-                <button (click)="startTransferHost(h.id)"
-                        style="padding:5px 12px;background:#f0fdf4;border:none;color:#166534;
-                               border-radius:7px;font-size:12px;font-weight:600;cursor:pointer">
-                  Transfer
-                </button>
-                <button (click)="confirmDeleteHost(h.id)"
-                        [disabled]="h.listingCount > 0"
-                        [title]="h.listingCount > 0 ? 'Remove all listings before deleting' : ''"
-                        [style.opacity]="h.listingCount > 0 ? '0.4' : '1'"
-                        style="padding:5px 12px;background:#fee2e2;border:none;color:#dc2626;
-                               border-radius:7px;font-size:12px;font-weight:600;cursor:pointer">
-                  Delete
-                </button>
+               (click)="manageHost.emit(h)"
+               style="display:flex;align-items:center;gap:12px;padding:14px;
+                      border:1.5px solid #e2e8f0;border-radius:12px;margin-bottom:10px;
+                      cursor:pointer;transition:border-color 0.15s;background:white"
+               (mouseenter)="$any($event.target).style.borderColor='var(--accent)'"
+               (mouseleave)="$any($event.target).style.borderColor='#e2e8f0'">
+            <img *ngIf="h.avatarUrl" [src]="h.avatarUrl" [alt]="h.displayName"
+                 style="width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0"/>
+            <app-avatar *ngIf="!h.avatarUrl" [initials]="getInitials(h.displayName)" [size]="44"/>
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:700;font-size:14px;color:#0f172a">{{h.displayName}}</div>
+              <div style="font-size:11.5px;color:#64748b;margin-top:1px">
+                &#64;{{h.handle}} · {{h.listingCount}} listing{{h.listingCount !== 1 ? 's' : ''}}
               </div>
             </div>
-
-            <!-- Edit mode -->
-            <div *ngIf="editingHostId() === h.id">
-              <input [ngModel]="editHostName()" (ngModelChange)="editHostName.set($event)"
-                     placeholder="Display name"
-                     style="width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:9px;
-                            font-size:13.5px;color:#0f172a;background:white;box-sizing:border-box;
-                            outline:none;margin-bottom:8px"/>
-              <input [ngModel]="editHostHandle()" (ngModelChange)="editHostHandle.set($event)"
-                     placeholder="handle"
-                     style="width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:9px;
-                            font-size:13.5px;color:#0f172a;background:white;box-sizing:border-box;
-                            outline:none;margin-bottom:4px"/>
-              <div style="font-size:11.5px;color:#64748b;margin-bottom:8px">
-                eventmapster.com/host/{{editHostHandle() || h.handle}}
-              </div>
-              <div style="margin-bottom:8px">
-                <label style="font-size:12px;color:#64748b;font-weight:600;display:block;margin-bottom:4px">
-                  Avatar photo
-                </label>
-                <input type="file" accept="image/*" (change)="onHostAvatarChange(h.id, $event)"
-                       style="font-size:12px;color:#374151"/>
-              </div>
-              <div *ngIf="editHostError()"
-                   style="font-size:12px;color:#ef4444;margin-bottom:8px">{{editHostError()}}</div>
-              <div style="display:flex;gap:6px">
-                <button (click)="saveHost(h.id)"
-                        [disabled]="savingHostId() === h.id"
-                        [style.opacity]="savingHostId() === h.id ? '0.6' : '1'"
-                        style="padding:7px 14px;background:var(--accent);color:white;border:none;
-                               border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">
-                  {{savingHostId() === h.id ? 'Saving…' : 'Save'}}
-                </button>
-                <button (click)="cancelEditHost()"
-                        style="padding:7px 12px;background:none;border:1.5px solid #e2e8f0;
-                               border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;color:#64748b">
-                  Cancel
-                </button>
-              </div>
-            </div>
-
-            <!-- Transfer mode -->
-            <div *ngIf="transferringHostId() === h.id">
-              <div style="font-size:13px;font-weight:600;color:#0f172a;margin-bottom:8px">
-                Transfer "{{h.displayName}}" to another user
-              </div>
-              <input [ngModel]="transferHandle()" (ngModelChange)="transferHandle.set($event)"
-                     placeholder="Recipient's handle"
-                     style="width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:9px;
-                            font-size:13.5px;color:#0f172a;background:white;box-sizing:border-box;
-                            outline:none;margin-bottom:8px"/>
-              <div *ngIf="transferError()"
-                   style="font-size:12px;color:#ef4444;margin-bottom:8px">{{transferError()}}</div>
-              <div style="display:flex;gap:6px">
-                <button (click)="doTransferHost(h.id)"
-                        [disabled]="transferring()"
-                        [style.opacity]="transferring() ? '0.6' : '1'"
-                        style="padding:7px 14px;background:#dc2626;color:white;border:none;
-                               border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">
-                  {{transferring() ? 'Transferring…' : 'Transfer'}}
-                </button>
-                <button (click)="cancelTransferHost()"
-                        style="padding:7px 12px;background:none;border:1.5px solid #e2e8f0;
-                               border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;color:#64748b">
-                  Cancel
-                </button>
-              </div>
-            </div>
-
-            <!-- Delete confirm -->
-            <div *ngIf="confirmDeleteHostId() === h.id">
-              <div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:10px">
-                Delete "{{h.displayName}}"? This cannot be undone.
-              </div>
-              <div style="display:flex;gap:6px">
-                <button (click)="doDeleteHost(h.id)"
-                        [disabled]="deletingHost()"
-                        [style.opacity]="deletingHost() ? '0.6' : '1'"
-                        style="padding:7px 14px;background:#dc2626;color:white;border:none;
-                               border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">
-                  {{deletingHost() ? 'Deleting…' : 'Yes, delete'}}
-                </button>
-                <button (click)="cancelDeleteHost()"
-                        style="padding:7px 12px;background:none;border:1.5px solid #e2e8f0;
-                               border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;color:#64748b">
-                  Cancel
-                </button>
-              </div>
-            </div>
-
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
           </div>
         </div>
 
@@ -272,6 +164,7 @@ import { HostService } from '../../services/host.service';
 export class ProfileComponent implements OnInit {
   @Input() user: User | null = null;
   @Output() selectDisplay = new EventEmitter<ListingSummary>();
+  @Output() manageHost = new EventEmitter<HostEntity>();
 
   upvotedListings = signal<ListingSummary[]>([]);
   loadingUpvoted = signal(true);
@@ -312,17 +205,6 @@ export class ProfileComponent implements OnInit {
   newHostHandle = signal('');
   creatingHost = signal(false);
   createHostError = signal('');
-  editingHostId = signal<number | null>(null);
-  editHostName = signal('');
-  editHostHandle = signal('');
-  editHostError = signal('');
-  savingHostId = signal<number | null>(null);
-  transferringHostId = signal<number | null>(null);
-  transferHandle = signal('');
-  transferring = signal(false);
-  transferError = signal('');
-  confirmDeleteHostId = signal<number | null>(null);
-  deletingHost = signal(false);
 
   saveDisplayName() {
     this.savingDisplayName.set(true);
@@ -362,103 +244,4 @@ export class ProfileComponent implements OnInit {
     });
   }
 
-  startEditHost(host: HostEntity) {
-    this.editingHostId.set(host.id);
-    this.editHostName.set(host.displayName);
-    this.editHostHandle.set(host.handle);
-    this.editHostError.set('');
-  }
-
-  cancelEditHost() {
-    this.editingHostId.set(null);
-    this.editHostError.set('');
-  }
-
-  saveHost(hostId: number) {
-    const name = this.editHostName().trim();
-    const handle = this.editHostHandle().trim().toLowerCase();
-    if (!name) { this.editHostError.set('Name is required.'); return; }
-    if (!handle || handle.length < 3) { this.editHostError.set('Handle must be at least 3 characters.'); return; }
-    if (handle.length > 30) { this.editHostError.set('Handle must be 30 characters or fewer.'); return; }
-    if (!/^[a-z0-9-]+$/.test(handle)) { this.editHostError.set('Handle may only contain lowercase letters, numbers, and hyphens.'); return; }
-
-    this.savingHostId.set(hostId);
-    this.editHostError.set('');
-    this.hostService.updateHost(hostId, name, handle).subscribe({
-      next: updated => {
-        this.hosts.update(list => list.map(h => h.id === hostId ? updated : h));
-        this.editingHostId.set(null);
-        this.savingHostId.set(null);
-      },
-      error: (err) => {
-        this.savingHostId.set(null);
-        this.editHostError.set(err.status === 409 ? 'That handle is already taken.' : 'Something went wrong.');
-      },
-    });
-  }
-
-  onHostAvatarChange(hostId: number, event: Event) {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (!file) return;
-    this.hostService.uploadHostAvatar(hostId, file).subscribe({
-      next: updated => this.hosts.update(list => list.map(h => h.id === hostId ? updated : h)),
-      error: () => this.editHostError.set('Avatar upload failed. Please try again.'),
-    });
-  }
-
-  startTransferHost(hostId: number) {
-    this.transferringHostId.set(hostId);
-    this.transferHandle.set('');
-    this.transferError.set('');
-  }
-
-  cancelTransferHost() {
-    this.transferringHostId.set(null);
-    this.transferError.set('');
-  }
-
-  doTransferHost(hostId: number) {
-    const handle = this.transferHandle().trim().toLowerCase();
-    if (!handle) { this.transferError.set('Enter the recipient\'s handle.'); return; }
-    this.transferring.set(true);
-    this.transferError.set('');
-    this.hostService.transferHost(hostId, handle).subscribe({
-      next: () => {
-        this.hosts.update(list => list.filter(h => h.id !== hostId));
-        this.transferringHostId.set(null);
-        this.transferring.set(false);
-      },
-      error: (err) => {
-        this.transferring.set(false);
-        this.transferError.set(
-          err.status === 404 ? 'No user found with that handle.' :
-          err.status === 400 ? 'You already own this host.' :
-          'Something went wrong.'
-        );
-      },
-    });
-  }
-
-  confirmDeleteHost(hostId: number) {
-    this.confirmDeleteHostId.set(hostId);
-  }
-
-  cancelDeleteHost() {
-    this.confirmDeleteHostId.set(null);
-  }
-
-  doDeleteHost(hostId: number) {
-    this.deletingHost.set(true);
-    this.hostService.deleteHost(hostId).subscribe({
-      next: () => {
-        this.hosts.update(list => list.filter(h => h.id !== hostId));
-        this.confirmDeleteHostId.set(null);
-        this.deletingHost.set(false);
-      },
-      error: () => {
-        this.deletingHost.set(false);
-        this.confirmDeleteHostId.set(null);
-      },
-    });
-  }
 }

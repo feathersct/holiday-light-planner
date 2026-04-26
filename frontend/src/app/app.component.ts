@@ -73,7 +73,8 @@ const TILE_OPTIONS = [
       <app-profile *ngIf="screen() === 'profile'"
         [user]="authService.currentUser()"
         style="display:block;height:100%"
-        (selectDisplay)="openDetail($event)"/>
+        (selectDisplay)="openDetail($event)"
+        (manageHost)="navigateToManageHost($event)"/>
 
       <app-admin *ngIf="screen() === 'admin'"
         style="display:block;height:100%"
