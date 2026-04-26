@@ -80,8 +80,7 @@ class AuthControllerTest extends BaseIntegrationTest {
             "/api/v1/auth/logout", HttpMethod.POST, request, String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getHeaders().getFirst(HttpHeaders.SET_COOKIE))
-            .contains("jwt=")
-            .contains("Max-Age=0");
+        assertThat(response.getHeaders().get(HttpHeaders.SET_COOKIE))
+            .anyMatch(c -> c.contains("jwt=") && c.contains("Max-Age=0"));
     }
 }
