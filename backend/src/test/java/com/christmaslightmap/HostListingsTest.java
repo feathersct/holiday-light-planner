@@ -36,7 +36,7 @@ class HostListingsTest extends BaseIntegrationTest {
     }
 
     @Test
-    void getHostByHandle_returnsListingsAtNewPath() {
+    void getHostByHandle_returnsHostAndListings() {
         User owner = userRepository.save(User.builder()
             .provider("facebook").providerId("fb-hl1")
             .email("hl1@test.com").name("Host Listing User")
@@ -72,7 +72,7 @@ class HostListingsTest extends BaseIntegrationTest {
     @Test
     void getHostByHandle_returns404ForUnknownHandle() {
         ResponseEntity<String> response = restTemplate.getForEntity(
-            "/api/v1/hosts/handle/nonexistent-handle", String.class);
+            "/api/v1/hosts/handle/hl-nonexistent-handle", String.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
