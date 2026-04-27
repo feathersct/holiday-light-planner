@@ -25,8 +25,7 @@ describe('NavbarComponent', () => {
     fixture.detectChanges();
     let emitted = false;
     component.signOut.subscribe(() => emitted = true);
-    const btn = fixture.debugElement.queryAll(By.css('button'))
-      .find(b => b.nativeElement.textContent.trim() === 'Sign out');
+    const btn = fixture.debugElement.query(By.css('[data-testid="sign-out-btn"]'));
     expect(btn).toBeTruthy();
     btn!.nativeElement.click();
     expect(emitted).toBeTrue();

@@ -90,7 +90,7 @@ import { User, getInitials } from '../../models/listing.model';
                 My Account
               </button>
               <div style="height:1px;background:#f1f5f9;margin:4px 0"></div>
-              <button type="button" (click)="signOut.emit(); showAccount = false"
+              <button type="button" data-testid="sign-out-btn" (click)="signOut.emit(); showAccount = false"
                       style="display:block;width:100%;text-align:left;background:none;border:none;
                              padding:8px 12px;border-radius:7px;font-size:13.5px;color:#64748b;cursor:pointer"
                       (mouseenter)="$any($event.target).style.background='#f1f5f9'"
