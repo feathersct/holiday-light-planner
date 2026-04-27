@@ -20,7 +20,7 @@ Community holiday light display map. Users discover, submit, upvote, and manage 
 ## Key Backend Facts
 - `SessionCreationPolicy.IF_REQUIRED` — required for OAuth2 flow (STATELESS breaks it)
 - `server.forward-headers-strategy=NATIVE` — required for Railway reverse proxy
-- Spring Boot does NOT auto-load `.env` locally. Run: `export $(grep -v '^#' .env | xargs) && mvn spring-boot:run`
+- Spring Boot does NOT auto-load `.env` — Docker Compose handles this automatically. For native (non-Docker) runs only: `export $(grep -v '^#' backend/.env | xargs) && mvn spring-boot:run` from the project root
 - Flyway migrations in `backend/src/main/resources/db/migration/` — append-only, never edit existing
 - PostGIS coordinates: extract with `ST_Y(location::geometry)` (lat) and `ST_X(location::geometry)` (lng)
 - Facebook app is in Development mode — only admin/test users can log in until submitted for Facebook review
