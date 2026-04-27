@@ -34,6 +34,8 @@ export interface Photo {
 
 export type DisplayType = 'DRIVE_BY' | 'WALK_THROUGH' | 'BOTH';
 
+export type DateFilter = 'today' | 'tomorrow' | 'this-week' | 'all';
+
 export const TYPE_LABELS: Record<string, string> = {
   DRIVE_BY:     'Drive-by',
   WALK_THROUGH: 'Walk-through',
@@ -155,6 +157,7 @@ export interface FilterState {
   lat: number;
   lng: number;
   radius: number;
+  dateFilter?: DateFilter;
 }
 
 export interface CreateListingRequest {
@@ -234,6 +237,10 @@ export function isExpired(listing: ListingSummary): boolean {
 
 export function isUpcoming(listing: ListingSummary): boolean {
   return new Date(listing.startDatetime) > new Date();
+}
+
+export function matchesDateFilter(listing: ListingSummary, filter: DateFilter, now = new Date()): boolean {
+  return true; // implemented in Task 3
 }
 
 export function formatDateRange(start: string, end: string): string {
