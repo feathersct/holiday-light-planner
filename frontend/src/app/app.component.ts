@@ -44,7 +44,7 @@ const TILE_OPTIONS = [
   template: `
     <!-- Navbar -->
     <app-navbar [currentScreen]="screen()" [user]="authService.currentUser()" [isMobile]="isMobile"
-      (navigate)="navigate($event)" (authAction)="onAuthAction()"/>
+      (navigate)="navigate($event)" (authAction)="onAuthAction()" (signOut)="onSignOut()"/>
 
     <!-- Main content area (below 58px navbar, above 64px tab bar on mobile) -->
     <div [style.padding-top]="'58px'"
