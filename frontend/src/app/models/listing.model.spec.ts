@@ -1,4 +1,4 @@
-import { matchesDateFilter, DateFilter, ListingSummary } from './listing.model';
+import { matchesDateFilter, ListingSummary } from './listing.model';
 
 function makeListing(start: string, end: string): ListingSummary {
   return { startDatetime: start, endDatetime: end } as ListingSummary;

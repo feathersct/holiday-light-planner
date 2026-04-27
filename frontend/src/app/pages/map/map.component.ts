@@ -118,7 +118,7 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
             </div>
             <!-- Date dropdown (mobile) -->
             <div *ngIf="dateOpen" style="padding:6px 12px 10px;border-top:1px solid #f1f5f9;
-                                          display:flex;gap:6px;flex-shrink:0">
+                                          display:flex;gap:6px;flex-shrink:0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none">
               <button *ngFor="let opt of dateOptions" (click)="setDateFilter(opt.id)"
                       [style.background]="selectedDateFilter === opt.id ? 'var(--accent)' : '#f8fafc'"
                       [style.color]="selectedDateFilter === opt.id ? 'white' : '#475569'"
