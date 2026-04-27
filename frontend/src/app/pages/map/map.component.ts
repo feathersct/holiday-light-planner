@@ -100,6 +100,33 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
                              font-size:12.5px;font-weight:600;cursor:pointer;flex-shrink:0">
                 {{cat.label}}
               </button>
+              <button (click)="dateOpen = !dateOpen"
+                      [style.border-color]="selectedDateFilter !== 'all' ? 'var(--accent)' : '#e2e8f0'"
+                      [style.background]="selectedDateFilter !== 'all' ? 'var(--accent-bg)' : 'white'"
+                      [style.color]="selectedDateFilter !== 'all' ? 'var(--accent-dark)' : '#374151'"
+                      style="white-space:nowrap;padding:5px 12px;border-radius:99px;font-size:12px;
+                             font-weight:600;cursor:pointer;border:1.5px solid;flex-shrink:0;
+                             display:flex;align-items:center;gap:4px">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <rect x="3" y="4" width="18" height="18" rx="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                {{dateLabel}}
+              </button>
+            </div>
+            <!-- Date dropdown (mobile) -->
+            <div *ngIf="dateOpen" style="padding:6px 12px 10px;border-top:1px solid #f1f5f9;
+                                          display:flex;gap:6px;flex-shrink:0">
+              <button *ngFor="let opt of dateOptions" (click)="setDateFilter(opt.id)"
+                      [style.background]="selectedDateFilter === opt.id ? 'var(--accent)' : '#f8fafc'"
+                      [style.color]="selectedDateFilter === opt.id ? 'white' : '#475569'"
+                      [style.border-color]="selectedDateFilter === opt.id ? 'var(--accent)' : '#e2e8f0'"
+                      style="padding:4px 11px;border-radius:99px;font-size:11.5px;font-weight:600;
+                             cursor:pointer;border:1.5px solid;white-space:nowrap">
+                {{opt.label}}
+              </button>
             </div>
           </div>
           <!-- Selected card -->
