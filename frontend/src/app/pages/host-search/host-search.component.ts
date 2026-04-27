@@ -13,9 +13,9 @@ import { AvatarComponent } from '../../shared/avatar/avatar.component';
     <div style="height:100%;overflow-y:auto;background:#f8fafc;padding-bottom:40px">
       <div style="max-width:560px;margin:0 auto;padding:28px 20px 0">
 
-        <div style="font-weight:800;font-size:22px;color:#0f172a;margin-bottom:4px">Find a Host</div>
+        <div style="font-weight:800;font-size:22px;color:#0f172a;margin-bottom:4px">Find an Organizer</div>
         <div style="font-size:13.5px;color:#64748b;margin-bottom:24px">
-          Search for a food truck, market, or host by name.
+          Search for an organizer by name.
         </div>
 
         <!-- Search input -->
