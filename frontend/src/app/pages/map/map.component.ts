@@ -9,7 +9,7 @@ import { DisplayCardComponent } from '../../shared/display-card/display-card.com
 import { TagBadgeComponent } from '../../shared/tag-badge/tag-badge.component';
 import { UpvoteButtonComponent } from '../../shared/upvote-button/upvote-button.component';
 import { User } from '../../models/listing.model';
-import { ListingSummary, CATEGORY_COLORS, CATEGORY_LABELS, Category, formatDateRange, isUpcoming, Tag, InitialFilters, FilterState } from '../../models/listing.model';
+import { ListingSummary, CATEGORY_COLORS, CATEGORY_LABELS, Category, formatDateRange, isUpcoming, Tag, InitialFilters, FilterState, DateFilter, matchesDateFilter } from '../../models/listing.model';
 import { ListingApiService } from '../../services/listing-api.service';
 
 const TILE_LAYERS: Record<string, { url: string; attr: string }> = {
@@ -440,6 +440,20 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
   formatDateRange = formatDateRange;
   isUpcoming = isUpcoming;
   loading = false;
+  selectedDateFilter: DateFilter = 'today';
+  dateOpen = false;
+  dateOptions: Array<{ id: DateFilter; label: string }> = [
+    { id: 'all',       label: 'All' },
+    { id: 'today',     label: 'Today' },
+    { id: 'tomorrow',  label: 'Tomorrow' },
+    { id: 'this-week', label: 'This Week' },
+  ];
+  get dateLabel(): string {
+    const map: Record<DateFilter, string> = {
+      all: 'Date', today: 'Date · Today', tomorrow: 'Date · Tomorrow', 'this-week': 'Date · This Week',
+    };
+    return map[this.selectedDateFilter];
+  }
   showTour = false;
   welcomeDismissed = localStorage.getItem('hlp_welcome_dismissed') === '1';
   locating = !!navigator.geolocation && !sessionStorage.getItem('hlp_location_found');
@@ -462,6 +476,7 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
   get filtered(): ListingSummary[] {
     return this.listings.filter(d => {
       if (this.activeTags.length && !this.activeTags.every(t => d.tags.some(tag => tag.name === t))) return false;
+      if (!matchesDateFilter(d, this.selectedDateFilter)) return false;
       return true;
     }).sort((a, b) => this.sortBy === 'popular' ? b.upvoteCount - a.upvoteCount : b.id - a.id);
   }
@@ -574,6 +589,7 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
       lat: center.lat,
       lng: center.lng,
       radius: this.radius,
+      dateFilter: this.selectedDateFilter,
     });
   }
 
@@ -613,6 +629,7 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
   clearFilters() {
     this.activeTags = [];
     this.selectedCategory = '';
+    this.selectedDateFilter = 'today';
     this.loadDisplays();
   }
 
@@ -623,6 +640,11 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
       this.activeTags = [...this.activeTags, tag];
     }
     this.loadDisplays();
+  }
+
+  setDateFilter(filter: DateFilter) {
+    this.selectedDateFilter = filter;
+    this.dateOpen = false;
   }
 
   locateMe() {
