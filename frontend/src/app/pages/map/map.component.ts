@@ -490,9 +490,9 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
     this.tileLayer = L.tileLayer(cfg.url, { attribution: cfg.attr, maxZoom: 19 }).addTo(this.map);
     this.renderMarkers();
     this.map.on('click', () => { this.selected = null; if (this.isMobile) this.snapKey = 'peek'; });
-    this.map.on('moveend', () => this.loadDisplays());
     this.map.invalidateSize();
     this.loadDisplays();
+    this.map.on('moveend', () => this.loadDisplays());
     if (!hasUrlLocation && navigator.geolocation) {
       const cached = sessionStorage.getItem('hlp_location_found');
       if (cached) {
