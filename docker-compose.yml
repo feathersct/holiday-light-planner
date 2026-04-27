@@ -10,6 +10,31 @@ services:
       POSTGRES_PASSWORD: changeme
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d christmaslightmap"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    image: maven:3.9-eclipse-temurin-17
+    working_dir: /workspace
+    volumes:
+      - ./backend:/workspace
+      - maven_cache:/root/.m2
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/christmaslightmap
+      CORS_ALLOWED_ORIGINS: http://localhost:4200
+      OAUTH2_REDIRECT_URI: http://localhost:4200
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    command: mvn spring-boot:run
 
 volumes:
   postgres_data:
+  maven_cache:
