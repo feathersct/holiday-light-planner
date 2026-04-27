@@ -23,7 +23,10 @@ services:
       - maven_cache:/root/.m2
     ports:
       - "8080:8080"
+      - "5005:5005" #debugger port
     environment:
+      # JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005
+      MAVEN_OPTS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005 -Dspring.devtools.restart.enabled=false"
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/christmaslightmap
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: changeme
