@@ -131,7 +131,7 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <configuration>
-          <fork>false</fork>
+          <jvmArguments>-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005 -Dspring.devtools.restart.enabled=false</jvmArguments>
           <excludes>
             <exclude>
               <groupId>org.projectlombok</groupId>
