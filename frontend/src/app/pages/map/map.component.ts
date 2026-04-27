@@ -153,7 +153,7 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
       </div>
 
       <!-- Add Display FAB -->
-      <button *ngIf="user" data-testid="add-display-fab"
+      <button *ngIf="user" data-testid="add-display-fab" type="button"
               (click)="addDisplay.emit()"
               style="position:absolute;bottom:16px;right:16px;z-index:600;
                      background:#0f172a;color:white;border:none;border-radius:10px;
@@ -303,9 +303,9 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
         </button>
 
         <!-- Add Display FAB -->
-        <button *ngIf="user" data-testid="add-display-fab"
+        <button *ngIf="user" data-testid="add-display-fab" type="button"
                 (click)="addDisplay.emit()"
-                style="position:absolute;bottom:80px;right:24px;z-index:10;
+                style="position:absolute;bottom:80px;right:24px;z-index:25;
                        background:#0f172a;color:white;border:none;border-radius:10px;
                        padding:10px 18px;font-size:13.5px;font-weight:700;cursor:pointer;
                        display:flex;align-items:center;gap:7px;

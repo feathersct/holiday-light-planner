@@ -34,4 +34,12 @@ describe('MapComponent', () => {
     const fab = fixture.debugElement.query(By.css('[data-testid="add-display-fab"]'));
     expect(fab).toBeNull();
   });
+
+  it('shows FAB in mobile layout when user is set', () => {
+    component.user = { id: 1, name: 'Test', email: 'test@test.com', role: 'USER' } as any;
+    component.isMobile = true;
+    fixture.detectChanges();
+    const fab = fixture.debugElement.query(By.css('[data-testid="add-display-fab"]'));
+    expect(fab).toBeTruthy();
+  });
 });
