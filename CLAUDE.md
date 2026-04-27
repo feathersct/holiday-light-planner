@@ -42,13 +42,17 @@ Community holiday light display map. Users discover, submit, upvote, and manage 
 
 ## Running Locally
 ```bash
-# Backend
-cd backend
-export $(grep -v '^#' .env | xargs) && mvn spring-boot:run
+# Backend + DB (first run downloads Maven dependencies — ~3 min)
+docker compose up
 
-# Frontend
+# Frontend (separate terminal)
 cd frontend
 npm start
+```
+
+To trigger a Spring Boot hot-reload without restarting the container:
+```bash
+mvn compile -f backend/pom.xml
 ```
 
 ## Agent Instructions when running subagent-driven-development
