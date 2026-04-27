@@ -28,7 +28,7 @@ import { AvatarComponent } from '../../shared/avatar/avatar.component';
             </svg>
             <input [(ngModel)]="query"
                    (ngModelChange)="onQueryChange($event)"
-                   placeholder="Search hosts…"
+                   placeholder="Search organizers…"
                    style="flex:1;border:none;outline:none;font-size:14px;color:#0f172a;background:transparent"/>
             <button *ngIf="query" (click)="clearQuery()"
                     style="background:none;border:none;cursor:pointer;padding:0;
@@ -50,7 +50,7 @@ import { AvatarComponent } from '../../shared/avatar/avatar.component';
             <!-- No results -->
             <div *ngIf="!searching && results.length === 0"
                  style="padding:16px;text-align:center;color:#94a3b8;font-size:13.5px">
-              No hosts found
+              No organizers found
             </div>
 
             <!-- Results -->
