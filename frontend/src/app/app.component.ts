@@ -59,7 +59,8 @@ const TILE_OPTIONS = [
         (needAuth)="showSignIn.set(true)"
         (viewDetails)="openDetail($event)"
         (upvoteToggle)="upvoteService.toggle($event)"
-        (filtersChanged)="onFiltersChanged($event)"/>
+        (filtersChanged)="onFiltersChanged($event)"
+        (addDisplay)="navigate('submit')"/>
 
       <app-submit *ngIf="screen() === 'submit'"
         [user]="authService.currentUser()"
@@ -251,11 +252,11 @@ export class AppComponent implements OnInit {
   }
 
   onAuthAction() {
-    if (this.authService.currentUser()) {
-      this.authService.logout();
-    } else {
-      this.showSignIn.set(true);
-    }
+    this.showSignIn.set(true);
+  }
+
+  onSignOut() {
+    this.authService.logout();
   }
 
   signIn() {
