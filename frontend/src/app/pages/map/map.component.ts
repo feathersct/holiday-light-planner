@@ -90,7 +90,7 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
               </span>
             </div>
             <!-- Category filter chips -->
-            <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding:0 12px 10px;
+            <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding:0 12px 6px;
                         display:flex;gap:6px;scrollbar-width:none;width:100%;box-sizing:border-box">
               <button *ngFor="let cat of categoryOptions"
                       (click)="selectedCategory = cat.id; loadDisplays()"
@@ -100,12 +100,15 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
                              font-size:12.5px;font-weight:600;cursor:pointer;flex-shrink:0">
                 {{cat.label}}
               </button>
+            </div>
+            <!-- Date filter row -->
+            <div style="padding:2px 12px 8px;display:flex;gap:6px;align-items:center;flex-shrink:0">
               <button (click)="dateOpen = !dateOpen"
                       [style.border-color]="selectedDateFilter !== 'all' ? 'var(--accent)' : '#e2e8f0'"
                       [style.background]="selectedDateFilter !== 'all' ? 'var(--accent-bg)' : 'white'"
                       [style.color]="selectedDateFilter !== 'all' ? 'var(--accent-dark)' : '#374151'"
                       style="white-space:nowrap;padding:5px 12px;border-radius:99px;font-size:12px;
-                             font-weight:600;cursor:pointer;border:1.5px solid;flex-shrink:0;
+                             font-weight:600;cursor:pointer;border:1.5px solid;
                              display:flex;align-items:center;gap:4px">
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                   <rect x="3" y="4" width="18" height="18" rx="2"/>
@@ -389,7 +392,7 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
     <!-- Filter templates -->
     <ng-template #desktopFilters>
       <div style="background:white;border-bottom:1px solid #e9ecf0">
-        <div style="padding:10px 14px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+        <div style="padding:10px 14px 6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
           <button *ngFor="let cat of categoryOptions"
                   (click)="selectedCategory = cat.id; loadDisplays()"
                   [style.background]="selectedCategory === cat.id ? 'var(--accent)' : '#f1f5f9'"
@@ -398,6 +401,8 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
                          font-size:12.5px;font-weight:600;cursor:pointer;flex-shrink:0">
             {{cat.label}}
           </button>
+        </div>
+        <div style="padding:2px 14px 10px;display:flex;gap:6px;align-items:center">
           <button (click)="dateOpen = !dateOpen; tagsOpen = false"
                   [style.border-color]="selectedDateFilter !== 'all' ? 'var(--accent)' : '#e2e8f0'"
                   [style.background]="selectedDateFilter !== 'all' ? 'var(--accent-bg)' : 'white'"
