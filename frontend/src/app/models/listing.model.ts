@@ -239,6 +239,7 @@ export function isUpcoming(listing: ListingSummary): boolean {
   return new Date(listing.startDatetime) > new Date();
 }
 
+// startDatetime/endDatetime are parsed as local time — correct for single-locale event listings.
 export function matchesDateFilter(listing: ListingSummary, filter: DateFilter, now = new Date()): boolean {
   if (filter === 'all') return true;
   const start = new Date(listing.startDatetime);
