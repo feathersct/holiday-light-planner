@@ -151,6 +151,20 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
           </div>
         </div>
       </div>
+
+      <!-- Add Display FAB -->
+      <button *ngIf="user" data-testid="add-display-fab"
+              (click)="addDisplay.emit()"
+              style="position:absolute;bottom:16px;right:16px;z-index:600;
+                     background:#0f172a;color:white;border:none;border-radius:10px;
+                     padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;
+                     display:flex;align-items:center;gap:6px;
+                     box-shadow:0 4px 16px rgba(0,0,0,0.2)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Add Display
+      </button>
     </div>
 
     <!-- ── Desktop layout ── -->
@@ -287,6 +301,22 @@ const SNAPS = { peek: 82, half: 42, full: 4 };
           <span style="background:rgba(245,158,11,0.25);color:#f59e0b;font-size:9.5px;
                        font-weight:800;padding:2px 6px;border-radius:99px;letter-spacing:0.05em">BETA SOON</span>
         </button>
+
+        <!-- Add Display FAB -->
+        <button *ngIf="user" data-testid="add-display-fab"
+                (click)="addDisplay.emit()"
+                style="position:absolute;bottom:80px;right:24px;z-index:10;
+                       background:#0f172a;color:white;border:none;border-radius:10px;
+                       padding:10px 18px;font-size:13.5px;font-weight:700;cursor:pointer;
+                       display:flex;align-items:center;gap:7px;
+                       box-shadow:0 4px 20px rgba(0,0,0,0.2);transition:box-shadow 0.15s"
+                (mouseenter)="$any($event.target).style.boxShadow='0 8px 28px rgba(0,0,0,0.3)'"
+                (mouseleave)="$any($event.target).style.boxShadow='0 4px 20px rgba(0,0,0,0.2)'">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Add Display
+        </button>
       </div>
 
       <!-- Desktop selected popup -->
@@ -380,6 +410,7 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Output() viewDetails = new EventEmitter<ListingSummary>();
   @Output() needAuth = new EventEmitter<void>();
   @Output() upvoteToggle = new EventEmitter<number>();
+  @Output() addDisplay = new EventEmitter<void>();
   @Input() initialFilters: InitialFilters | null = null;
   @Output() filtersChanged = new EventEmitter<FilterState>();
 
