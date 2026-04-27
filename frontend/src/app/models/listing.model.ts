@@ -240,7 +240,28 @@ export function isUpcoming(listing: ListingSummary): boolean {
 }
 
 export function matchesDateFilter(listing: ListingSummary, filter: DateFilter, now = new Date()): boolean {
-  return true; // implemented in Task 3
+  if (filter === 'all') return true;
+  const start = new Date(listing.startDatetime);
+  const end = new Date(listing.endDatetime);
+
+  if (filter === 'today') {
+    const endOfToday = new Date(now);
+    endOfToday.setHours(23, 59, 59, 999);
+    return end > now && start <= endOfToday;
+  }
+
+  if (filter === 'tomorrow') {
+    const startOfTomorrow = new Date(now);
+    startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
+    startOfTomorrow.setHours(0, 0, 0, 0);
+    const endOfTomorrow = new Date(startOfTomorrow);
+    endOfTomorrow.setHours(23, 59, 59, 999);
+    return end >= startOfTomorrow && start <= endOfTomorrow;
+  }
+
+  // this-week
+  const endOfWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  return end > now && start <= endOfWeek;
 }
 
 export function formatDateRange(start: string, end: string): string {
