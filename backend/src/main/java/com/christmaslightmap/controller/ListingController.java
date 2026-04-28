@@ -47,6 +47,14 @@ public class ListingController {
             listingService.searchListings(lat, lng, radiusMiles, tags, category, includeExpired, page, size)));
     }
 
+    @GetMapping("/categories/available")
+    public ResponseEntity<ApiResponse<List<String>>> getAvailableCategories() {
+        List<String> categories = listingService.getAvailableCategories().stream()
+            .map(Enum::name)
+            .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(ApiResponse.success(categories));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ListingResponse>> getById(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(listingService.getById(id)));
