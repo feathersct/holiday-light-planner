@@ -123,6 +123,6 @@ public interface ListingRepository extends JpaRepository<Listing, Long> {
 
     int countByHostIdAndIsActiveTrue(Long hostId);
 
-    @Query(value = "SELECT DISTINCT category FROM listings WHERE is_active = true", nativeQuery = true)
+    @Query(value = "SELECT DISTINCT category FROM listings WHERE is_active = true AND host_id IS NOT NULL", nativeQuery = true)
     List<String> findDistinctActiveCategories();
 }
