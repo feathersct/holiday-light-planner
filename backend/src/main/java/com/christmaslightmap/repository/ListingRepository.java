@@ -122,4 +122,7 @@ public interface ListingRepository extends JpaRepository<Listing, Long> {
     boolean existsByHostIdAndIsActiveTrue(Long hostId);
 
     int countByHostIdAndIsActiveTrue(Long hostId);
+
+    @Query(value = "SELECT DISTINCT category FROM listings WHERE is_active = true", nativeQuery = true)
+    List<String> findDistinctActiveCategories();
 }
