@@ -304,6 +304,12 @@ public class ListingService {
         return toSummaries(listings);
     }
 
+    public List<Category> getAvailableCategories() {
+        return listingRepository.findDistinctActiveCategories().stream()
+            .map(Category::valueOf)
+            .collect(Collectors.toList());
+    }
+
     private List<ListingSummaryResponse> toSummaries(List<Listing> listings) {
         if (listings.isEmpty()) return List.of();
         List<Long> ids = listings.stream().map(Listing::getId).collect(Collectors.toList());
