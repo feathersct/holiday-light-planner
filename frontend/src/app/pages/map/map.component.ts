@@ -1,5 +1,5 @@
 import {
-  Component, OnInit, OnDestroy, AfterViewInit, Input, Output, EventEmitter,
+  Component, OnDestroy, AfterViewInit, Input, Output, EventEmitter,
   ViewChild, ElementRef, signal, computed, effect, OnChanges, SimpleChanges, NgZone, inject
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -10,9 +10,9 @@ import { TagBadgeComponent } from '../../shared/tag-badge/tag-badge.component';
 import { UpvoteButtonComponent } from '../../shared/upvote-button/upvote-button.component';
 import { User } from '../../models/listing.model';
 import { ListingSummary, CATEGORY_COLORS, CATEGORY_LABELS, Category, formatDateRange, isUpcoming, Tag, InitialFilters, FilterState, DateFilter, matchesDateFilter } from '../../models/listing.model';
-import { ListingApiService } from '../../services/listing-api.service';
 import { catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { ListingApiService } from '../../services/listing-api.service';
 
 const TILE_LAYERS: Record<string, { url: string; attr: string }> = {
   light:    { url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',  attr: '© OpenStreetMap © CARTO' },
@@ -556,7 +556,7 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
     ).subscribe(available => {
       if (available !== null) {
         this.categoryOptions = this.categoryOptions.filter(
-          opt => opt.id === '' || available.includes(opt.id as any)
+          opt => opt.id === '' || available.includes(opt.id as Category)
         );
       }
     });
