@@ -11,6 +11,8 @@ import { UpvoteButtonComponent } from '../../shared/upvote-button/upvote-button.
 import { User } from '../../models/listing.model';
 import { ListingSummary, CATEGORY_COLORS, CATEGORY_LABELS, Category, formatDateRange, isUpcoming, Tag, InitialFilters, FilterState, DateFilter, matchesDateFilter } from '../../models/listing.model';
 import { ListingApiService } from '../../services/listing-api.service';
+import { catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 const TILE_LAYERS: Record<string, { url: string; attr: string }> = {
   light:    { url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',  attr: '© OpenStreetMap © CARTO' },
@@ -548,6 +550,15 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy {
     this.listingApi.getTags().subscribe(tags => {
       this.availableTags = tags;
       this.allTags = tags.map(t => t.name);
+    });
+    this.listingApi.getAvailableCategories().pipe(
+      catchError(() => of(null))
+    ).subscribe(available => {
+      if (available !== null) {
+        this.categoryOptions = this.categoryOptions.filter(
+          opt => opt.id === '' || available.includes(opt.id as any)
+        );
+      }
     });
     this.zone.runOutsideAngular(() => {
       const handle = this.handleEl.nativeElement;
