@@ -51,7 +51,7 @@ public class ListingController {
     public ResponseEntity<ApiResponse<List<String>>> getAvailableCategories() {
         List<String> categories = listingService.getAvailableCategories().stream()
             .map(Enum::name)
-            .collect(java.util.stream.Collectors.toList());
+            .toList();
         return ResponseEntity.ok(ApiResponse.success(categories));
     }
 
